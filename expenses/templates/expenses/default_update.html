@@ -1,0 +1,17 @@
+{% extends "expenses/base_nav.html" %}
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% blocktrans %}Edit {{ view.class.name }}{% endblocktrans %}</h1>
+<form action="" method="post">{% csrf_token %}
+    <div class="form-horizontal">
+        {{ form.non_field_errors }}
+        {% for field in form %}
+            {% include "expenses/i_form_field.html" with field=field label=field.label %}
+        {% endfor %}
+        {% include "expenses/i_submit_button.html" with text="Update" %}
+    </div>
+</form>
+
+{% endblock %}

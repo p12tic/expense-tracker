@@ -1,0 +1,35 @@
+{% extends "expenses/base_nav.html" %}
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% block table_heading %}{% endblock %}
+<div class='pull-right'>
+{% block table_button %}
+{% endblock %}
+</div>
+</h1>
+{% block before_table %}
+{% endblock %}
+<table class="table table-condensed">
+    {% if object_list %}
+    <thead>
+        <tr>
+            {% block table_head_row %}{% endblock %}
+        </tr>
+    </thead>
+    {% endif %}
+    <tbody>
+    {% for row in object_list %}
+        <tr>
+            {% block table_row %}{% endblock %}
+        </tr>
+    {% empty %}
+        <tr><td>{% block table_empty_text %}{% endblock %}</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% block after_table %}
+{% endblock %}
+
+{% endblock %}

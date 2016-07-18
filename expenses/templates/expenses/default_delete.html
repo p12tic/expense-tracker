@@ -1,0 +1,16 @@
+{% extends "expenses/base_nav.html" %}
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% blocktrans %}Are you sure to delete {{ view.class.name }}{% endblocktrans %}</h1>
+<form action="" method="post">{% csrf_token %}
+    <div class="form-horizontal">
+        <div class='btn-group'>
+            <a href="{{ back_link }}" class="btn btn-primary" role="button">{% trans "Cancel" %}</a>
+        </div>
+        {% include "expenses/i_submit_button.html" with text="Delete" %}
+    </div>
+</form>
+
+{% endblock %}

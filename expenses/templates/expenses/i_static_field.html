@@ -1,0 +1,5 @@
+{% load i18n %}
+<div>
+    <div class="col-xs-4 col-sm-2 tmp-static-field-label">{% if notrans %}{{ label }}{% else %}{% trans label %}{% endif %}</div>
+    <div class="col-xs-8 col-sm-10 tmp-static-field-content">{{ content }}</div>
+</div>

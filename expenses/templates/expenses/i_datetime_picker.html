@@ -1,0 +1,24 @@
+{% load i18n %}
+{% load widget_tweaks %}
+
+<div class="form-group">
+    {{ field.errors }}
+    <label class="col-xs-4 col-sm-2 control-label" for="{{ field.id_for_label }}">{% trans "Date and time" %}</label>
+    <div class="col-xs-8 col-sm-10">
+        {{ field | add_class:"form-control form-control-readonly" }}
+    </div>
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+
+$(function() {
+    var timePicker = $('#id_date_time');
+    timePicker.datetimepicker({
+        format: 'YYYY-MM-DD HH:mm'
+    });
+    timePicker.data("DateTimePicker").date(new Date());
+});
+
+//]]>
+</script>

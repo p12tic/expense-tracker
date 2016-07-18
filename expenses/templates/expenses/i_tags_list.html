@@ -1,0 +1,51 @@
+{% load i18n %}
+{% load widget_tweaks %}
+<div id="tmp-tags">
+{{ formset.management_form }}
+{{ formset.non_form_errors }}
+{% for form in formset %}
+    {{ form.non_field_errors }}
+    {{ form.errors }}
+    <div class="tmp-tag-button btn btn-default" role="button">
+        {% render_field form.tag_id class+="tmp-tag-id" %}
+        {{ form.checked | add_class:"tmp-tag-checkbox" }}
+        {{ form.name }}
+        <label for="{{ form.checked.id_for_label }}">{{ form.name.value }}</label>
+    </div>
+{% empty %}
+    <div class="alert alert-info" role="alert">
+        {% trans "No tags have been created" %}
+    </div>
+{% endfor %}
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+
+$(function() {
+    var updateButton = function(button, checkbox) {
+        if (checkbox.prop('checked')) {
+            $(button).removeClass('btn-default');
+            $(button).addClass('btn-info');
+        } else {
+            $(button).removeClass('btn-info');
+            $(button).addClass('btn-default');
+        }
+    };
+
+    $('#tmp-tags > .tmp-tag-button').each(function() {
+        var button = $(this);
+        var checkbox = button.find('.tmp-tag-checkbox');
+        checkbox.hide();
+        button.click(function() {
+            checkbox.prop('checked', !checkbox.prop('checked'));
+        });
+        checkbox.change(function() {
+            updateButton(button, checkbox);
+        });
+        updateButton(button, checkbox);
+    });
+});
+
+//]]>
+</script>

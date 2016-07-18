@@ -1,0 +1,38 @@
+{% extends "expenses/base_table_view.html" %}
+{% load capture_tags i18n %}
+
+{% block table_heading %}{% trans "Preset " %}"{{ preset.name }}"{% endblock %}
+{% block table_button %}
+{% capture as table_button_link silent %}/presets/{{ preset.id }}/edit{% endcapture %}
+{% include "expenses/i_table_button.html" with text="Edit" link=table_button_link %}
+{% endblock %}
+
+{% block before_table %}
+{% include "expenses/i_static_field.html" with label="Description" content=preset.desc %}
+<h3>Transaction template</h3>
+{% endblock %}
+
+{% block table_head_row %}
+    <th>{% trans "Affected account" %}</th>
+    <th>{% trans "Fraction" %}</th>
+{% endblock %}
+
+{% block table_row %}
+    <td><a href="/accounts/{{ row.account.id }}">{{ row.account.name }}</a></td>
+    <td>{{ row.fraction | floatformat:3 }}</td>
+{% endblock %}
+
+{% block after_table %}
+<h4>Tags</h4>
+{% for tag in tag_list %}
+<button class="btn btn-xs" role="button">{{ tag.tag.name }}</button>
+{% empty %}
+<div class="alert alert-info" role="alert">
+    {% trans "No tags have been defined for this preset" %}
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block table_empty_text %}
+No accounts defined
+{% endblock %}

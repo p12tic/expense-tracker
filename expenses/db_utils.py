@@ -1,0 +1,205 @@
+import datetime
+from expenses.models import *
+
+# NOTE: the subtransaction filtering MUST be done using half-open intervals to ensure that when
+# several transactions are made on the same date/time the caches are computed correctly. In general
+# we are only interested in consistent ordering of account sync and account balance cache events
+# wrt. themselves and wrt. the rest of subtransactions. We assume the account sync transactions
+# happen before all other transactions at the same time and account sync events happen
+# before all transactions of the day.
+
+# Returns the account balance just before the given time.
+def get_account_balance(account, date_time):
+    # find the last account balances cache before date_time
+    account_cache = AccountBalanceCache.objects.filter(account=account,
+                                                      date__lte=date_time.date()).order_by('date').last()
+    if account_cache is None:
+        # no account caches before date_time: sum all subtransactions before date
+        sum = 0
+        subtransactions = Subtransaction.objects.filter(account=account,
+                                                        transaction__date_time__lt=date_time)
+    else:
+        # sum all subtransactions between the last cache and before the date/time
+        sum = account_cache.balance
+        subtransactions = Subtransaction.objects.filter(account=account,
+                                                        transaction__date_time__date__gte=account_cache.date,
+                                                        transaction__date_time__lt=date_time)
+
+
+    for sub in subtransactions:
+        sum += sub.amount
+
+    return sum
+
+# The subtransactions_queryset must satisfy the following constraints:
+# - the queryset must be ordered in ascending order wrt. the transaction dates
+# - the queryset must include all subtransactions in the account in some date/time range.
+def get_account_balances_for_subtransactions_range(account, subtransactions_queryset):
+    subtransactions = list(subtransactions_queryset)
+    if len(subtransactions) == 0:
+        return []
+    balance = get_account_balance(account, subtransactions[0].transaction.date_time)
+    ret = []
+    for sub in subtransactions:
+        balance += sub.amount
+        ret.append((sub, balance))
+    return ret
+
+def get_account_balances_for_accounts(accounts_queryset):
+    accounts = list(accounts_queryset)
+    if len(accounts) == 0:
+        return []
+    ret = []
+    for account in accounts:
+        balance = get_account_balance(account, datetime.datetime.max)
+        ret.append((account, balance))
+    return ret
+
+def get_transactions_actions_and_tags(transactions_queryset):
+    transactions = list(transactions_queryset)
+    if len(transactions) == 0:
+        return []
+    ret = []
+
+    accounts_descs = { b.id : b.name for b in Account.objects.all() }
+
+    for transaction in transactions:
+        subtransactions = Subtransaction.objects.filter(transaction=transaction)
+        subtransactions_data = []
+        for sub in subtransactions:
+            subtransactions_data.append((sub.account.id, accounts_descs[sub.account.id], '{0:+d}'.format(sub.amount)))
+
+        tag_names = []
+        for tr_tag in TransactionTag.objects.filter(transaction=transaction):
+            tag_names.append(tr_tag.tag.name)
+
+        ret.append((transaction, subtransactions_data, tag_names))
+    return ret
+
+def get_preset_accounts_and_tags(presets_queryset):
+    presets = list(presets_queryset)
+    if len(presets) == 0:
+        return []
+    ret = []
+
+    accounts_descs = { b.id : b.name for b in Account.objects.all() }
+
+    for preset in presets:
+        preset_sub = PresetSubtransaction.objects.filter(preset=preset)
+        preset_sub_data = []
+        for sub in preset_sub:
+            preset_sub_data.append((sub.account.id, accounts_descs[sub.account.id], sub.fraction))
+
+        preset_tag_data = []
+        for tr_tag in PresetTransactionTag.objects.filter(preset=preset):
+            preset_tag_data.append((tr_tag.tag.id, tr_tag.tag.name))
+
+        ret.append((preset, preset_sub_data, preset_tag_data))
+    return ret
+
+# updates the data in AccountBalanceCache to take into account the change of the
+# funds amount in a subtransaction
+def update_account_balance_cache_changed_sub(account, date_time, change):
+
+    # we need to update only until the first account sync event
+    sync_events = AccountSyncEvent.objects.filter(account=account, subtransaction__transaction__date_time__gt=date_time)
+    sync_events = sync_events.order_by('subtransaction__transaction__date_time')[0:1]
+
+    sync_event = sync_events[0] if len(sync_events) > 0 else None
+    if sync_event is not None:
+        # update the sync event subtransaction to take into account the changed subtransaction
+        sync_subtransaction = sync_event.subtransaction
+        sync_subtransaction.amount -= change
+        sync_subtransaction.save()
+
+        # update all account balance caches up to the date of sync_event, but not including it
+        account_caches = AccountBalanceCache.objects.filter(account=account,
+                                                           date__gt=date_time.date(),
+                                                           date__lt=sync_subtransaction.transaction.date_time.date())
+        for cache in account_caches:
+            cache.balance += change
+            cache.save()
+    else:
+        # no sync event, so update all subsequent caches
+        # update all account balance caches up to the date of sync_event, but not including it
+        account_caches = AccountBalanceCache.objects.filter(account=account,
+                                                           date__gt=date_time.date())
+        for cache in account_caches:
+            cache.balance += change
+            cache.save()
+
+def add_cache_if_needed(account, date_time):
+
+    date = date_time.date() + datetime.timedelta(days=1)
+    caches = AccountBalanceCache.objects.filter(account=account, date=date)
+    if len(caches) > 1:
+        raise Exception("The number of caches for account {0} is more than 1 on date {1}".format(
+                            account.id, date))
+    if len(caches) == 0:
+        balance = get_account_balance(account, datetime.datetime.combine(date, datetime.time.min))
+        new_cache = AccountBalanceCache(account=account, balance=balance, date=date)
+        new_cache.save()
+
+def update_transaction_subtransactions(user, transaction, old_date_time, new_date_time, account_amounts):
+    ''' Updates the database to reflect the account balance differences caused by transaction.
+        Subtransactions are created and deleted as needed
+    '''
+    user_accounts = Account.objects.filter(user=user)
+    subs = Subtransaction.objects.filter(transaction=transaction)
+
+    for account in user_accounts:
+        amount = account_amounts.get(account.id, 0)
+
+        if amount is not None and amount != 0:
+
+            existing_sub = subs.filter(account=account).first()
+            if existing_sub and new_date_time != old_date_time:
+                # we're updating time on an existing subtransaction.
+                # delete and recreate the subtransaction
+                existing_amount = existing_sub.amount
+                existing_sub.amount = 0
+                existing_sub.save()
+                update_account_balance_cache_changed_sub(account, old_date_time, existing_amount)
+                existing_sub.amount = amount
+                existing_sub.save()
+                update_account_balance_cache_changed_sub(account, new_date_time, amount)
+                add_cache_if_needed(account, new_date_time)
+                continue
+
+            if existing_sub:
+                # we're updating amount on an existing subtransaction
+                existing_amount = existing_sub.amount
+                existing_sub.amount = amount
+                existing_sub.save()
+                update_account_balance_cache_changed_sub(account, new_date_time, amount - existing_amount)
+                continue
+
+            # new subtransaction
+            new_sub = Subtransaction(transaction=transaction,
+                                     account=account,
+                                     amount=amount)
+            new_sub.save()
+            update_account_balance_cache_changed_sub(account, new_date_time, amount)
+            add_cache_if_needed(account, new_date_time)
+        else:
+            amount_changed = 0
+            for sub in subs.filter(account=account):
+                total_changed -= sub.amount
+                sub.delete()
+            update_account_balance_cache_changed_sub(account, old_date_time, -amount_changed)
+
+def update_transaction_tags(user, transaction, checked_tags):
+    user_tags = Tag.objects.filter(user=user)
+    tr_tags = TransactionTag.objects.filter(transaction=transaction)
+
+    for tag in user_tags:
+        checked = checked_tags.get(tag.id, False)
+
+        if not checked:
+            tr_tags.filter(tag=tag).delete()
+            continue
+
+        if len(tr_tags.filter(tag=tag)) > 0:
+            continue
+        new_ts_tag = TransactionTag(transaction=transaction, tag=tag)
+        new_ts_tag.save()

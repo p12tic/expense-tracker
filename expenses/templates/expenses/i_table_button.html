@@ -1,0 +1,5 @@
+{% load i18n %}
+
+<div class='btn-group'>
+    <a href="{{ link }}" class="btn {% if class %}{{ class }}{% else %}btn-primary{% endif %} text-right" role="button">{% blocktrans %}{{ text }}{% endblocktrans %}</a>
+</div>

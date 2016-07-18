@@ -1,0 +1,37 @@
+{% extends "expenses/base_table_view.html" %}
+{% load capture_tags i18n %}
+
+{% block table_heading %}{% trans "Transaction " %}"{{ transaction.desc }}"{% endblock %}
+{% block table_button %}
+{% capture as table_button_link silent %}/transactions/{{ transaction.id }}/edit{% endcapture %}
+{% include "expenses/i_table_button.html" with text="Edit" link=table_button_link %}
+{% capture as table_button_link silent %}/transactions/{{ transaction.id }}/delete{% endcapture %}
+{% include "expenses/i_table_button.html" with class="btn-danger" text="Delete" link=table_button_link %}
+{% endblock %}
+
+{% block before_table %}
+Time: {{ transaction.date_time|date:"Y-m-d H:i" }}
+<h3>Tags</h3>
+{% for tag in tag_list %}
+<button class="btn" role="button">{{ tag.tag.name }}</button>
+{% empty %}
+<div class="alert alert-info" role="alert">
+    {% trans "No tags have been defined for this transaction" %}
+</div>
+{% endfor %}
+<h3>Affected accounts</h3>
+{% endblock %}
+
+{% block table_head_row %}
+    <th>{% trans "Account" %}</th>
+    <th>{% trans "Amount" %}</th>
+{% endblock %}
+
+{% block table_row %}
+    <td><a href="/accounts/{{ row.account.id }}">{{ row.account.name }}</a></td>
+    <td>{{ row.amount }}</td>
+{% endblock %}
+
+{% block table_empty_text %}
+This transaction does not affect any accounts
+{% endblock %}

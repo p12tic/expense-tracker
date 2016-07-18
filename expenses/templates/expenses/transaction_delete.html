@@ -1,0 +1,3 @@
+{% load capture_tags %}
+{% capture as link silent %}/transactions/{{ transaction.id }}/edit{% endcapture %}
+{% include "expenses/default_delete.html" with object="transaction" back_link=link %}

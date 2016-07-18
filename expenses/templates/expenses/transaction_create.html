@@ -1,0 +1,150 @@
+{% extends "expenses/base_nav.html" %}
+{% load i18n %}
+{% load widget_tweaks %}
+{% block content %}
+
+<form action="" method="post">{% csrf_token %}
+<h1>{% block heading %}{% trans "New transaction" %}{% endblock %}</h1>
+{% if preset_list %}
+<div id="tmp-presets" class="panel panel-default">
+    <div class="panel-body">
+        <a class="btn btn-default" data-toggle="collapse" data-target="#view-presets"><b>{% trans "Import preset" %}</b></a>
+        <div class="collapse" id="view-presets" class="collapse">
+            <div style="margin:1em"></div>
+            <div class="form-group">
+                <p><b>{% trans "Select preset" %}</b></p>
+                {% for preset in preset_list %}
+                    <div class="tmp-preset-button btn btn-default" role="button" style="margin-bottom:0.2em" data-id="{{ preset.id }}">
+                        {{ preset.name }}
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="form-group tmp-preset-amount-line" style="display:none">
+                <label class="col-xs-12 col-sm-2 control-label">Amount</label>
+                <div class="col-xs-12 col-sm-10">
+                    <input class="form-control tmp-preset-amount" placeholder="Amount" step="1" type="number" value="0" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+//<![CDATA[
+
+$(function() {
+
+    var json = JSON.parse('{{ preset_data|escapejs }}');
+
+    var preset = null;
+    var presetButton = null;
+    var accountMap = {};
+    var tagMap = {};
+
+    $('#tmp-accounts > .form-group').each(function() {
+        var idElem = $(this).children('.tmp-account-id').first();
+        if (idElem.length == 0) {
+            return;
+        }
+        var id = Number.parseInt(idElem.attr('value'));
+        accountMap[id] = {
+            'account' : $(this),
+            'enable' : $(this).find('.tmp-account-enable'),
+            'disable' : $(this).find('.tmp-account-disable'),
+            'amount' : $(this).find('.tmp-account-amount')
+        };
+    });
+
+    $('#tmp-tags > .tmp-tag-button').each(function() {
+        var idElem = $(this).children('.tmp-tag-id').first();
+        if (idElem.length == 0) {
+            return;
+        }
+        var id = Number.parseInt(idElem.attr('value'));
+        tagMap[id] = {
+            'checkbox' : $(this).find('.tmp-tag-checkbox')
+        };
+    });
+
+    $('.tmp-preset-button').click(function() {
+
+        var id = Number.parseInt($(this).attr('data-id'));
+        if (id in json) {
+            if (!!presetButton) {
+                presetButton.removeClass('btn-info');
+                presetButton.addClass('btn-default');
+            }
+            presetButton = $(this);
+            presetButton.addClass('btn-info');
+            presetButton.removeClass('btn-default');
+
+            if (!preset) {
+                $('.tmp-preset-amount-line').show();
+            } else {
+                var subs = preset['subtransactions'];
+                for (var i = 0; i < subs.length; i++) {
+                    accountMap[subs[i].id].disable.click();
+                }
+                var tags = preset['tags'];
+                for (var i = 0; i < tags.length; i++) {
+                    tagMap[tags[i].id].checkbox.prop('checked', false).trigger('change');
+                }
+            }
+            preset = json[id];
+
+            var subs = preset['subtransactions'];
+            for (var i = 0; i < subs.length; i++) {
+                accountMap[subs[i].id].enable.click();
+            }
+            var tags = preset['tags'];
+            for (var i = 0; i < tags.length; i++) {
+                tagMap[tags[i].id].checkbox.prop('checked', true).trigger('change');
+            }
+            $('.tmp-preset-amount').change();
+        }
+    });
+
+    $('.tmp-preset-amount').TouchSpin({
+        min: -10000000,
+        max: 10000000,
+        step: 1,
+        maxboostedstep: 10,
+    });
+
+    $('.tmp-preset-amount').change(function() {
+        var amount = parseFloat($(this).val());
+        if (!!preset) {
+            var subs = preset['subtransactions'];
+            for (var i = 0; i < subs.length; i++) {
+                accountMap[subs[i].id].amount.val(amount * subs[i].fraction);
+            }
+        }
+    });
+});
+//]]>
+</script>
+{% else %}
+<div class="alert alert-info" role="alert">
+    {% trans "No presets have been created" %}
+</div>
+{% endif %}
+<div>&nbsp;</div>
+{{ form.non_field_errors }}
+<div class="form-horizontal">
+    {% include "expenses/i_form_field.html" with field=form.desc label="Description" %}
+    {% include "expenses/i_datetime_picker.html" with field=form.date_time %}
+</div>
+<div class="form-horizontal">
+    <h4>{% trans "Accounts" %}</h4>
+    {% include "expenses/i_accounts_list.html" with formset=accounts_form step=1 slider_label="Amount" %}
+</div>
+<div class="form-horizontal">
+    <h4>{% trans "Tags" %}</h4>
+    {% include "expenses/i_tags_list.html" with formset=tags_form %}
+</div>
+<div class="form-horizontal">
+    <div class="col-xs-4 col-sm-2 pull-right">
+        <input class="btn btn-primary" type="submit" style="width:100%" role="button" value="{% trans "Save" %}" />
+    </div>
+</div>
+</form>
+{% endblock %}

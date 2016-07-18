@@ -1,0 +1,32 @@
+{% extends "expenses/base_table_view.html" %}
+{% load i18n %}
+
+{% block table_heading %}{% trans "Presets" %}{% endblock %}
+{% block table_button %}
+{% include "expenses/i_table_button.html" with text="New" link="/presets/add" %}
+{% endblock %}
+
+{% block table_head_row %}
+    <th>{% trans "Name" %}</th>
+    <th>{% trans "Description" %}</th>
+    <th>{% trans "Accounts" %}</th>
+    <th>{% trans "Tags" %}</th>
+{% endblock %}
+
+{% block table_row %}
+    <td><a href="/presets/{{ row.0.id }}">{{ row.0.name }}</a></td>
+    <td>{{ row.0.desc }}</td>
+    <td>
+{% for sub_tr in row.1 %}
+<button class="btn btn-xs" role="button">{{ sub_tr.1 }}&nbsp;{{ sub_tr.2 }}</button>
+{% endfor %}
+</td>
+    <td>
+{% for tag in row.2 %}
+<button class="btn btn-xs" role="button">{{ tag.1 }}</button>
+{% endfor %}</td>
+{% endblock %}
+
+{% block table_empty_text %}
+No presets yet
+{% endblock %}

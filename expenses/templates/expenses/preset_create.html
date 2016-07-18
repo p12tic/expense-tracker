@@ -1,0 +1,28 @@
+{% extends "expenses/base_nav.html" %}
+{% load i18n %}
+{% load widget_tweaks %}
+{% block content %}
+
+<form action="" method="post">{% csrf_token %}
+<h1>{% block heading %}{% trans "New preset" %}{% endblock %}</h1>
+{{ form.non_field_errors }}
+<div class="form-horizontal">
+    {% include "expenses/i_form_field.html" with field=form.name label="Name" %}
+    {% include "expenses/i_form_field.html" with field=form.desc label="Description" %}
+</div>
+<div class="form-horizontal">
+    <h3>{% trans "Transaction template" %}</h3>
+    {% include "expenses/i_form_field.html" with field=form.transaction_desc label="Description" %}
+</div>
+<div class="form-horizontal">
+    <h4>{% trans "Accounts" %}</h4>
+    {% include "expenses/i_accounts_list.html" with formset=accounts_form slider_label="Multiplier" step=0.1 decimals=2 %}
+</div>
+<div class="form-horizontal">
+    <h4>{% trans "Tags" %}</h4>
+    {% include "expenses/i_tags_list.html" with formset=tags_form %}
+</div>
+{% include "expenses/i_submit_button.html" with text="Save" %}
+</form>
+
+{% endblock %}

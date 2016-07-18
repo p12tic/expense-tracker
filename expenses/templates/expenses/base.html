@@ -8,26 +8,29 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         {% block meta_tags %}{% endblock %}
         <title>
-            {% block title %}{% trans "Expense-tracker" %}{% endblock %}
+            {% block title %}{% trans "Expense tracker" %}{% endblock %}
         </title>
         {% block stylesheets %}
-            <link rel="stylesheet" href="{% static 'expenses/css/base.css' %}" type="text/css" />
             <link rel="stylesheet" href="{% static 'libs/bootstrap-3.3.5/css/bootstrap.min.css' %}">
+            <link rel="stylesheet" href="{% static 'libs/bootstrap-datepicker/bootstrap-datetimepicker.min.css' %}">
+            <link rel="stylesheet" href="{% static 'libs/bootstrap-touchspin/jquery.bootstrap-touchspin.min.css' %}">
+            <link rel="stylesheet" href="{% static 'expenses/common.css' %}" type="text/css" />
         {% endblock %}
         {% block javascript %}
             <script type="text/javascript" src="{% static 'libs/jquery/2.1.0/jquery-2.1.0.min.js' %}"></script>
             <script type="text/javascript" src="{% static 'libs/bootstrap-3.3.5/js/bootstrap.min.js' %}"></script>
+            <script type="text/javascript" src="{% static 'libs/moment/moment.min.js' %}"></script>
+            <script type="text/javascript" src="{% static 'libs/bootstrap-datepicker/bootstrap-datetimepicker.min.js' %}"></script>
+            <script type="text/javascript" src="{% static 'libs/bootstrap-touchspin/jquery.bootstrap-touchspin.min.js' %}"></script>
+            <script type="text/javascript" src="{% static 'expenses/common.js' %}"></script>
         {% endblock %}
         {% block extra_head %}{% endblock %}
     </head>
     <body>
-        {% block navigation %}
-        <header class="navbar navbar-fixed-top">
-            {% include "expenses/inc/navigation.html" %}
-        </header>
-        {% endblock %}
         <div id="main" role="main">
             <div class="container">
+                {% block navigation %}
+                {% endblock %}
                 {% block content %}
                     {{content}}
                 {% endblock %}

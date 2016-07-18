@@ -1,0 +1,21 @@
+{% extends "expenses/base_table_view.html" %}
+{% load i18n %}
+
+{% block table_heading %}{% trans "Tags" %}{% endblock %}
+{% block table_button %}
+{% include "expenses/i_table_button.html" with text="New" link="/tags/add" %}
+{% endblock %}
+
+{% block table_head_row %}
+    <th>{% trans "Name" %}</th>
+    <th>{% trans "Description" %}</th>
+{% endblock %}
+
+{% block table_row %}
+    <td><a href="/tags/{{ row.id }}">{{ row.name }}</a></td>
+    <td>{{ row.desc }}</td>
+{% endblock %}
+
+{% block table_empty_text %}
+No tags yet
+{% endblock %}

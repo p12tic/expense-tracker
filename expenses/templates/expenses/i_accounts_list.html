@@ -1,0 +1,85 @@
+{% load i18n %}
+{% load widget_tweaks %}
+
+<div id="tmp-accounts">
+{{ formset.management_form }}
+{{ formset.non_form_errors }}
+{% for form in formset %}
+<div class="form-group">
+    {{ form.non_field_errors }}
+    {{ form.errors }}
+    {% render_field form.account_id class+="tmp-account-id" %}
+    {{ form.name }}
+    <div class="col-xs-4 col-sm-2 pull-right tmp-account-buttons" style="display:none">
+        <button class="tmp-account-enable btn btn-default" style="width:100%" role="button" type="button">
+            {% trans "Use" %}
+        </button>
+        <button class="tmp-account-disable btn btn-default" style="width:100%" role="button" type="button">
+            {% trans "Don't use" %}
+        </button>
+    </div>
+    <label class="col-xs-2 col-sm-1 control-label">{% trans "Name" %}</label>
+    <div class="col-xs-4 col-sm-2 form-control-static tmp-account-name">{{ form.name.value }}</div>
+
+    <label class="col-xs-12 col-sm-1 control-label tmp-account-amount-label">{% trans slider_label %}</label>
+    <div class="col-xs-12 col-sm-4 tmp-account-amount-box">
+        {% render_field form.amount class+="form-control tmp-account-amount" placeholder=slider_label step=step %}
+    </div>
+</div>
+{% empty %}
+<div class="alert alert-info" role="alert">
+    {% trans "No accounts have been created" %}
+</div>
+{% endfor %}
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+
+$(function() {
+    var showAccount = function(accountElem, show) {
+        if (show) {
+            accountElem.find('.tmp-account-amount').show();
+            accountElem.find('.tmp-account-amount-box').show();
+            accountElem.find('.tmp-account-amount-label').show();
+            accountElem.find('.tmp-account-disable').show();
+            accountElem.find('.tmp-account-enable').hide();
+        } else {
+            accountElem.find('.tmp-account-amount').hide();
+            accountElem.find('.tmp-account-amount').val('');
+            accountElem.find('.tmp-account-amount-label').hide();
+            accountElem.find('.tmp-account-amount-box').hide();
+            accountElem.find('.tmp-account-enable').show();
+            accountElem.find('.tmp-account-disable').hide();
+        }
+    }
+
+    $('#tmp-accounts > .form-group').each(function() {
+        var self = this;
+        $(this).find('.tmp-account-enable').click(function() {
+            showAccount($(self), true);
+        });
+        $(this).find('.tmp-account-disable').click(function() {
+            showAccount($(self), false);
+        });
+        $(this).find('.tmp-account-buttons').show();
+        $(this).find('.tmp-account-amount').each(function() {
+            $(this).TouchSpin({
+                min: -10000000,
+                max: 10000000,
+                step: {% if step %}{{ step }}{% else %}1{% endif %},
+                {% if decimals %}decimals: {{ decimals }},{% endif %}
+                maxboostedstep: 10,
+            });
+            if ($(this).val() == '') {
+                showAccount($(self), false);
+                return;
+            }
+            var value = parseFloat($(this).val());
+            showAccount($(self), value != 0.0);
+        });
+    });
+});
+
+//]]>
+</script>

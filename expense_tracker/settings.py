@@ -31,13 +31,15 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'expenses.apps.ExpensesConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'expenses'
+    'widget_tweaks',
+    'capture_tag',
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -113,7 +115,8 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+# P12: USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
@@ -121,4 +124,5 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-LOGIN_URL = '/accounts/login'
+LOGIN_URL = '/user/login'
+LOGIN_REDIRECT_URL = '/'
