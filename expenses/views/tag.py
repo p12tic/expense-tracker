@@ -1,4 +1,5 @@
 
+from django.core.exceptions import PermissionDenied
 from django.views.generic.list import ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from expenses.views.auth import AppLoginRequiredMixin, VerifyOwnerMixin

@@ -1,6 +1,7 @@
 
 from django.views.generic.list import ListView
 from django.views.generic.edit import FormView, UpdateView, DeleteView
+from django.core.exceptions import PermissionDenied
 from django import forms
 from django.http import HttpResponseRedirect
 from expenses.views.auth import AppLoginRequiredMixin, VerifyOwnerMixin

@@ -1,5 +1,6 @@
 from django.views.generic.list import ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.core.exceptions import PermissionDenied
 from expenses.views.auth import AppLoginRequiredMixin, VerifyOwnerMixin
 from expenses.models import *
 from expenses.db_utils import *
