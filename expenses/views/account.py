@@ -14,7 +14,8 @@ class AccountListView(AppLoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['object_list'] = get_account_balances_for_accounts(context['object_list'])
+        context['object_list'] = \
+                get_account_balances_for_accounts(context['object_list'])
         return context
 
 class AccountCreateView(AppLoginRequiredMixin, VerifyOwnerMixin, CreateView):
@@ -42,9 +43,10 @@ class AccountSubtransactionsListView(AppLoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         account = Account.objects.get(id=self.kwargs['pk'])
-        context = super(AccountSubtransactionsListView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['account'] = account
-        context['object_list'] = get_account_balances_for_subtransactions_range(account, context['object_list'])
+        context['object_list'] =  \
+                get_account_balances_for_subtransactions_range(account, context['object_list'])
         return context
 
     def get_queryset(self):

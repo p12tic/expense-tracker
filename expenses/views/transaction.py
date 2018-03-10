@@ -16,7 +16,8 @@ class TransactionListView(AppLoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['object_list'] = get_transactions_actions_and_tags(context['object_list'])
+        context['object_list'] = \
+                get_transactions_actions_and_tags(context['object_list'])
         return context
 
 # the creation form
@@ -49,7 +50,12 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
             amount = 0
             if a.id in tr_subs:
                 amount = tr_subs[a.id]
-            initial.append({'account_id' : a.id, 'name' : a.name, 'amount' : amount})
+            data = {
+                'account_id' : a.id,
+                'name' : a.name,
+                'amount' : amount
+            }
+            initial.append(data)
 
         accounts_form = AccountFormSet(initial=initial, prefix="accounts")
         print(accounts_form)
@@ -59,7 +65,12 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
             checked = False
             if t.id in tr_tags:
                 checked = True
-            initial.append({'tag_id' : t.id, 'name' : t.name, 'checked' : checked})
+            data = {
+                'tag_id' : t.id,
+                'name' : t.name,
+                'checked' : checked
+            }
+            initial.append(data)
         tags_form = TagFormSet(initial=initial, prefix="tags")
 
         return accounts_form, tags_form
@@ -71,17 +82,22 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
             if tr.user != self.request.user:
                 raise PermissionDenied()
 
-        form = TransactionForm(instance=tr) if tr else self.get_form(self.get_form_class())
+        if tr:
+            form = TransactionForm(instance=tr)
+        else:
+            form = self.get_form(self.get_form_class())
 
         accounts_form, tags_form = self.get_initial_data(self.request.user, tr)
 
-        return self.render_to_response(
-            self.get_context_data(form=form, accounts_form=accounts_form, tags_form=tags_form))
+        data = self.get_context_data(form=form, accounts_form=accounts_form,
+                                     tags_form=tags_form)
+        return self.render_to_response(data)
 
     def post(self, request, *args, **kwargs):
         form = self.get_form(self.get_form_class())
 
-        accounts_form = AccountFormSet(self.request.POST, prefix="accounts", user=request.user)
+        accounts_form = AccountFormSet(self.request.POST, prefix="accounts",
+                                       user=request.user)
         tags_form = TagFormSet(self.request.POST, prefix="tags", user=request.user)
 
         if form.is_valid() and accounts_form.is_valid() and tags_form.is_valid():
@@ -112,8 +128,10 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['preset_list'] = Preset.objects.filter(user=self.request.user).order_by('name')
-        context['preset_data'] = self.dump_presets_to_json(get_preset_accounts_and_tags(context['preset_list']))
+        context['preset_list'] = \
+                Preset.objects.filter(user=self.request.user).order_by('name')
+        preset_data = get_preset_accounts_and_tags(context['preset_list'])
+        context['preset_data'] = self.dump_presets_to_json(preset_data)
         return context
 
     def form_valid(self, form, accounts_form, tags_form):
@@ -136,19 +154,24 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
 
         account_amounts = {}
         for form in accounts_form.forms:
-            account_amounts[form.cleaned_data['account_id']] = form.cleaned_data['amount']
-        update_transaction_subtransactions(self.request.user, transaction, old_date_time, new_date_time, account_amounts)
+            account_id = form.cleaned_data['account_id']
+            account_amounts[account_id] = form.cleaned_data['amount']
+        update_transaction_subtransactions(self.request.user, transaction,
+                                           old_date_time, new_date_time,
+                                           account_amounts)
 
         checked_tags = {}
         for form in tags_form.forms:
-            checked_tags[form.cleaned_data['tag_id']] = form.cleaned_data['checked']
+            tag_id = form.cleaned_data['tag_id']
+            checked_tags[tag_id] = form.cleaned_data['checked']
         update_transaction_tags(self.request.user, transaction, checked_tags)
 
         return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form, accounts_form, tags_form):
-        return self.render_to_response(
-            self.get_context_data(form=form, accounts_form=accounts_form, tags_form=tags_form))
+        data = self.get_context_data(form=form, accounts_form=accounts_form,
+                                     tags_form=tags_form)
+        return self.render_to_response(data)
 
 class TransactionCreateView(TransactionBaseFormView):
     template_name = 'expenses/transaction_create.html'
@@ -160,7 +183,8 @@ class TransactionUpdateView(TransactionBaseFormView):
     def get_success_url(self):
         return '/transactions/' + str(self.kwargs['pk'])
 
-class TransactionDeleteView(AppLoginRequiredMixin, VerifyOwnerMixin, DeleteView):
+class TransactionDeleteView(AppLoginRequiredMixin, VerifyOwnerMixin,
+                            DeleteView):
     model = Transaction
     template_name = 'expenses/default_delete.html'
     success_url = '/transactions'
@@ -168,7 +192,9 @@ class TransactionDeleteView(AppLoginRequiredMixin, VerifyOwnerMixin, DeleteView)
     def form_valid(self, form):
         transaction = self.get_object()
 
-        update_transaction_subtransactions(self.request.user, transaction, transaction.date_time, transaction.date_time, {})
+        update_transaction_subtransactions(self.request.user, transaction,
+                                           transaction.date_time,
+                                           transaction.date_time, {})
         update_transaction_tags(self.request.user, transaction, {})
         transaction.delete()
 
@@ -179,7 +205,8 @@ class TransactionSubtransactionsListView(AppLoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['transaction'] = Transaction.objects.get(id=self.kwargs['pk'])
-        context['tag_list'] = TransactionTag.objects.filter(transaction=self.kwargs['pk'])
+        context['tag_list'] = \
+                TransactionTag.objects.filter(transaction=self.kwargs['pk'])
         return context
 
     def get_queryset(self):

@@ -37,9 +37,10 @@ class TagTransactionListView(AppLoginRequiredMixin, ListView):
     template_name = 'expenses/tag.html'
 
     def get_context_data(self, **kwargs):
-        context = super(TagTransactionListView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['tag'] = Tag.objects.get(id=self.kwargs['pk'])
-        context['object_list'] = get_transactions_actions_and_tags(context['object_list'])
+        context['object_list'] = \
+                get_transactions_actions_and_tags(context['object_list'])
         return context
 
     def get_queryset(self):

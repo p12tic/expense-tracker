@@ -15,7 +15,8 @@ class PresetListView(AppLoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['object_list'] = get_preset_accounts_and_tags(context['object_list'])
+        context['object_list'] = \
+                get_preset_accounts_and_tags(context['object_list'])
         return context
 
 class PresetForm(forms.ModelForm):
@@ -46,7 +47,12 @@ class PresetBaseFormView(AppLoginRequiredMixin, FormView):
             amount = 0
             if a.id in preset_subs:
                 amount = preset_subs[a.id]
-            initial.append({'account_id' : a.id, 'name' : a.name, 'amount' : amount})
+            data = {
+                'account_id' : a.id,
+                'name' : a.name,
+                'amount' : amount
+            }
+            initial.append(data)
         accounts_form = FloatAccountFormSet(initial=initial, prefix="accounts")
 
         tag_list = Tag.objects.filter(user=self.request.user).order_by('name')
@@ -55,7 +61,12 @@ class PresetBaseFormView(AppLoginRequiredMixin, FormView):
             checked = False
             if t.id in preset_tags:
                 checked = True
-            initial.append({'tag_id' : t.id, 'name' : t.name, 'checked' : checked})
+            data = {
+                'tag_id' : t.id,
+                'name' : t.name,
+                'checked' : checked
+            }
+            initial.append(data)
         tags_form = TagFormSet(initial=initial, prefix="tags")
 
         return accounts_form, tags_form
@@ -68,17 +79,26 @@ class PresetBaseFormView(AppLoginRequiredMixin, FormView):
             if preset.user != self.request.user:
                 raise PermissionDenied()
 
-        form = PresetForm(instance=preset) if preset else self.get_form(self.get_form_class())
-        accounts_form, tags_form = self.get_initial_data(self.request.user, preset)
+        if preset:
+            form = PresetForm(instance=preset)
+        else:
+            form = self.get_form(self.get_form_class())
 
-        return self.render_to_response(
-            self.get_context_data(form=form, accounts_form=accounts_form, tags_form=tags_form))
+        accounts_form, tags_form = \
+                self.get_initial_data(self.request.user, preset)
+
+        data = self.get_context_data(form=form, accounts_form=accounts_form,
+                                     tags_form=tags_form)
+        return self.render_to_response(data)
 
     def post(self, request, *args, **kwargs):
         form = self.get_form(self.get_form_class())
 
-        accounts_form = FloatAccountFormSet(self.request.POST, prefix="accounts", user=request.user)
-        tags_form = TagFormSet(self.request.POST, prefix="tags", user=request.user)
+        accounts_form = FloatAccountFormSet(self.request.POST,
+                                            prefix="accounts",
+                                            user=request.user)
+        tags_form = TagFormSet(self.request.POST, prefix="tags",
+                               user=request.user)
 
         if form.is_valid() and accounts_form.is_valid() and tags_form.is_valid():
             return self.form_valid(form, accounts_form, tags_form)
@@ -103,20 +123,27 @@ class PresetBaseFormView(AppLoginRequiredMixin, FormView):
         preset.save()
 
         user_accounts = Account.objects.filter(user=self.request.user)
-        subs = PresetSubtransaction.objects.filter(preset=preset) if existing else PresetSubtransaction.objects.none()
+        if existing:
+            subs = PresetSubtransaction.objects.filter(preset=preset)
+        else:
+            subs = PresetSubtransaction.objects.none()
 
         for form in accounts_form.forms:
             account = user_accounts.get(pk=form.cleaned_data['account_id'])
             fraction = form.cleaned_data['amount']
             if fraction is not None and fraction != 0:
-                PresetSubtransaction.objects.update_or_create(preset=preset, account=account,
-                                                              defaults={'fraction' : fraction})
+                PresetSubtransaction.objects.update_or_create(
+                        preset=preset, account=account,
+                        defaults={'fraction' : fraction})
             else:
                 for sub in subs.filter(account=account):
                     sub.delete()
 
         user_tags = Tag.objects.filter(user=self.request.user)
-        tags = PresetTransactionTag.objects.filter(preset=preset) if existing else PresetTransactionTag.objects.none()
+        if existing:
+            tags = PresetTransactionTag.objects.filter(preset=preset)
+        else:
+            tags = PresetTransactionTag.objects.none()
 
         for form in tags_form.forms:
             checked = form.cleaned_data['checked']
@@ -138,8 +165,9 @@ class PresetBaseFormView(AppLoginRequiredMixin, FormView):
         return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form, accounts_form, tags_form):
-        return self.render_to_response(
-            self.get_context_data(form=form, accounts_form=accounts_form, tags_form=tags_form))
+        data = self.get_context_data(form=form, accounts_form=accounts_form,
+                                     tags_form=tags_form)
+        return self.render_to_response(data)
 
 class PresetCreateView(PresetBaseFormView):
     template_name = 'expenses/preset_create.html'
@@ -163,7 +191,8 @@ class PresetDetailView(AppLoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['preset'] = Preset.objects.get(id=self.kwargs['pk'])
-        context['tag_list'] = PresetTransactionTag.objects.filter(preset=self.kwargs['pk'])
+        context['tag_list'] = \
+                PresetTransactionTag.objects.filter(preset=self.kwargs['pk'])
         return context
 
     def get_queryset(self):

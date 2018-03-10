@@ -28,7 +28,8 @@ class BaseAccountFormSet(forms.BaseFormSet):
         for form in self.forms:
             account_id = form.cleaned_data['account_id']
             if account_id not in account_list:
-                raise forms.ValidationError("The current user does not have access to the account")
+                raise forms.ValidationError(
+                        "The current user does not have access to the account")
 
 AccountFormSet = forms.formset_factory(TransactionAccountForm,
                                        formset=BaseAccountFormSet,
@@ -58,7 +59,8 @@ class BaseTagFormSet(forms.BaseFormSet):
         for form in self.forms:
             tag_id = form.cleaned_data['tag_id']
             if tag_id not in tag_list:
-                raise forms.ValidationError("The current user does not have access to the tag")
+                raise forms.ValidationError(
+                        "The current user does not have access to the tag")
 
 TagFormSet = forms.formset_factory(TransactionTagForm,
                                    formset=BaseTagFormSet,
