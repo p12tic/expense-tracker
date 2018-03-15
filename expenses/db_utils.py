@@ -112,6 +112,8 @@ def get_preset_accounts_and_tags(presets_queryset):
 # funds amount in a subtransaction. Positive change means addition of funds,
 # negative change means removal.
 def update_account_balance_cache_changed_sub(account, date_time, change):
+    if change == 0:
+        return
 
     # we need to update only until the first account sync event
     sync_events = AccountSyncEvent.objects.filter(account=account,
