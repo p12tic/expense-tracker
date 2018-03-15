@@ -142,23 +142,21 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
             transaction = Transaction.objects.get(id=self.kwargs['pk'])
             if transaction.user != self.request.user:
                 raise PermissionDenied()
-            old_date_time = transaction.date_time
         else:
             existing = False
             transaction = Transaction(user=self.request.user)
-            old_date_time = new_date_time
+            transaction.date_time = new_date_time
 
         transaction.desc = form.cleaned_data['desc']
-        transaction.date_time = new_date_time
-        transaction.save()
+        # transaction will be saved in transaction_update_date_or_amount
 
         account_amounts = {}
         for form in accounts_form.forms:
             account_id = form.cleaned_data['account_id']
             account_amounts[account_id] = form.cleaned_data['amount']
-        update_transaction_subtransactions(self.request.user, transaction,
-                                           old_date_time, new_date_time,
-                                           account_amounts)
+
+        transaction_update_date_or_amount(self.request.user, transaction,
+                                          new_date_time, account_amounts)
 
         checked_tags = {}
         for form in tags_form.forms:
@@ -191,12 +189,7 @@ class TransactionDeleteView(AppLoginRequiredMixin, VerifyOwnerMixin,
 
     def form_valid(self, form):
         transaction = self.get_object()
-
-        update_transaction_subtransactions(self.request.user, transaction,
-                                           transaction.date_time,
-                                           transaction.date_time, {})
-        update_transaction_tags(self.request.user, transaction, {})
-        transaction.delete()
+        transaction_delete(self.request.user, transaction)
 
 class TransactionSubtransactionsListView(AppLoginRequiredMixin, ListView):
     model = Subtransaction

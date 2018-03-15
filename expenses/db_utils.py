@@ -160,7 +160,7 @@ def add_cache_if_needed(account, date_time):
                                         date=next_date)
         new_cache.save()
 
-def update_transaction_subtransactions(user, transaction, old_date_time,
+def transaction_update_subtransactions(user, transaction, old_date_time,
                                        new_date_time, account_amounts):
     ''' Updates the database to reflect the account balance differences caused
         by transaction. Subtransactions are created and deleted as needed
@@ -214,6 +214,20 @@ def update_transaction_subtransactions(user, transaction, old_date_time,
             update_account_balance_cache_changed_sub(account, old_date_time,
                                                      -total_amount)
 
+''' Updates transaction date or amount. The transaction will be saved
+    regardless of whether any data has changed.
+'''
+def transaction_update_date_or_amount(user, transaction, new_date_time,
+                                      account_amounts):
+    old_date_time = transaction.date_time
+    transaction.date_time = new_date_time
+    transaction.save()
+
+    transaction_update_subtransactions(user, transaction,
+                                       old_date_time, new_date_time,
+                                       account_amounts)
+
+
 def update_transaction_tags(user, transaction, checked_tags):
     user_tags = Tag.objects.filter(user=user)
     tr_tags = TransactionTag.objects.filter(transaction=transaction)
@@ -229,3 +243,10 @@ def update_transaction_tags(user, transaction, checked_tags):
             continue
         new_ts_tag = TransactionTag(transaction=transaction, tag=tag)
         new_ts_tag.save()
+
+def transaction_delete(user, transaction):
+    transaction_update_subtransactions(user, transaction,
+                                       transaction.date_time,
+                                       transaction.date_time, {})
+    update_transaction_tags(user, transaction, {})
+    transaction.delete()

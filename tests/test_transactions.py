@@ -25,24 +25,15 @@ class TestSingleAccount(TestCase):
     def create_transaction(self, date_time, amount):
         tr = Transaction.objects.create(desc='test', user=self.user,
                                         date_time=date_time)
-        update_transaction_subtransactions(self.user, tr, tr.date_time,
-                                           tr.date_time,
-                                           { self.account.id : amount })
+        transaction_update_date_or_amount(self.user, tr, date_time,
+                                          { self.account.id : amount })
 
         return tr
 
     def change_transaction(self, tr, date_time, amount):
-        old_date_time = tr.date_time
-        tr.date_time = date_time
-        tr.save()
-        update_transaction_subtransactions(self.user, tr, old_date_time,
-                                           date_time,
-                                           { self.account.id : amount })
+        transaction_update_date_or_amount(self.user, tr, date_time,
+                                          { self.account.id : amount })
 
-    def delete_transaction(self, tr):
-        update_transaction_subtransactions(self.user, tr, tr.date_time,
-                                           tr.date_time, {})
-        tr.delete()
 
     def test_empty_account_balance_zero(self):
         self.assertEqual(0, get_account_balance(self.account, datetime.min))
@@ -121,7 +112,7 @@ class TestSingleAccount(TestCase):
 
     def test_transaction_remove(self):
         tr = self.create_transaction(datetime(2000, 1, 2, 10, 0, 0), 100)
-        self.delete_transaction(tr)
+        transaction_delete(self.user, tr)
 
         balance_on_date_time = [
             ( 0, datetime(2000, 1, 2, 0, 0, 0)),
@@ -137,7 +128,7 @@ class TestSingleAccount(TestCase):
     def test_transaction_multiple_added_removed(self):
         tr1 = self.create_transaction(datetime(2000, 1, 2, 10, 0, 0), 100)
         tr2 = self.create_transaction(datetime(2000, 1, 2, 12, 0, 0), 50)
-        self.delete_transaction(tr2)
+        transaction_delete(self.user, tr2)
 
         balance_on_date_time = [
             ( 0, datetime(2000, 1, 2, 0, 0, 0)),
@@ -154,7 +145,7 @@ class TestSingleAccount(TestCase):
     def test_transaction_multiple_added_removed_same_time(self):
         tr1 = self.create_transaction(datetime(2000, 1, 2, 10, 0, 0), 100)
         tr2 = self.create_transaction(datetime(2000, 1, 2, 10, 0, 0), 50)
-        self.delete_transaction(tr2)
+        transaction_delete(self.user, tr2)
 
         balance_on_date_time = [
             ( 0, datetime(2000, 1, 2, 0, 0, 0)),
