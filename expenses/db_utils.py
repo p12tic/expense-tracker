@@ -109,7 +109,8 @@ def get_preset_accounts_and_tags(presets_queryset):
     return ret
 
 # updates the data in AccountBalanceCache to take into account the change of the
-# funds amount in a subtransaction
+# funds amount in a subtransaction. Positive change means addition of funds,
+# negative change means removal.
 def update_account_balance_cache_changed_sub(account, date_time, change):
 
     # we need to update only until the first account sync event
@@ -122,7 +123,7 @@ def update_account_balance_cache_changed_sub(account, date_time, change):
         # update the sync event subtransaction to take into account the
         # changed subtransaction
         sync_subtransaction = sync_event.subtransaction
-        sync_subtransaction.amount -= change
+        sync_subtransaction.amount += change
         sync_subtransaction.save()
 
         # update all account balance caches up to the date of sync_event, but
@@ -204,12 +205,12 @@ def update_transaction_subtransactions(user, transaction, old_date_time,
                                                      amount)
             add_cache_if_needed(account, new_date_time)
         else:
-            amount_changed = 0
+            total_amount = 0
             for sub in subs.filter(account=account):
-                total_changed -= sub.amount
+                total_amount += sub.amount
                 sub.delete()
             update_account_balance_cache_changed_sub(account, old_date_time,
-                                                     -amount_changed)
+                                                     -total_amount)
 
 def update_transaction_tags(user, transaction, checked_tags):
     user_tags = Tag.objects.filter(user=user)
