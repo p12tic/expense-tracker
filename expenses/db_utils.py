@@ -179,7 +179,7 @@ def update_transaction_subtransactions(user, transaction, old_date_time,
                 existing_sub.amount = 0
                 existing_sub.save()
                 update_account_balance_cache_changed_sub(account, old_date_time,
-                                                         existing_amount)
+                                                         -existing_amount)
                 existing_sub.amount = amount
                 existing_sub.save()
                 update_account_balance_cache_changed_sub(account, new_date_time,
