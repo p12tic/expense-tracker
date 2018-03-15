@@ -6,7 +6,7 @@ from expenses.models import *
 from expenses.db_utils import *
 from datetime import datetime, date
 
-class TestAccountBalance(TestCase):
+class TestSingleAccount(TestCase):
     def setUp(self):
         self.user = User.objects.create(username='test')
         self.account = Account.objects.create(user=self.user,
@@ -28,7 +28,16 @@ class TestAccountBalance(TestCase):
         update_transaction_subtransactions(self.user, tr, tr.date_time,
                                            tr.date_time,
                                            { self.account.id : amount })
+
         return tr
+
+    def change_transaction(self, tr, date_time, amount):
+        old_date_time = tr.date_time
+        tr.date_time = date_time
+        tr.save()
+        update_transaction_subtransactions(self.user, tr, old_date_time,
+                                           date_time,
+                                           { self.account.id : amount })
 
     def delete_transaction(self, tr):
         update_transaction_subtransactions(self.user, tr, tr.date_time,
@@ -52,8 +61,20 @@ class TestAccountBalance(TestCase):
 
         caches = AccountBalanceCache.objects.all()
         self.assertEqual(1, len(caches))
-        self.assertEqual(100, caches[0].balance)
-        self.assertEqual(date(2000, 1, 3), caches[0].date)
+        self.assert_cache_entry(caches[0], date(2000, 1, 3), 100)
+
+    def test_single_transaction_empty(self):
+        tr = self.create_transaction(datetime(2000, 1, 2), 0)
+
+        balance_on_date_time = [
+            ( 0, datetime(2000, 1, 1)),
+            ( 0, datetime(2000, 1, 2)),
+            ( 0, datetime(2000, 1, 3)),
+        ]
+        self.assert_balances_on_date(balance_on_date_time)
+
+        caches = AccountBalanceCache.objects.all()
+        self.assertEqual(0, len(caches))
 
     def test_multiple_transactions_same_day(self):
         tr1 = self.create_transaction(datetime(2000, 1, 2, 10, 0, 0), 100)
@@ -98,7 +119,7 @@ class TestAccountBalance(TestCase):
         self.assert_cache_entry(caches[0], date(2000, 1, 3), 300)
         self.assert_cache_entry(caches[1], date(2000, 1, 4), 370)
 
-    def test_transaction_removed(self):
+    def test_transaction_remove(self):
         tr = self.create_transaction(datetime(2000, 1, 2, 10, 0, 0), 100)
         self.delete_transaction(tr)
 
@@ -112,4 +133,174 @@ class TestAccountBalance(TestCase):
         caches = AccountBalanceCache.objects.all()
         self.assertEqual(1, len(caches))
         self.assert_cache_entry(caches[0], date(2000, 1, 3), 0)
+
+    def test_transaction_multiple_added_removed(self):
+        tr1 = self.create_transaction(datetime(2000, 1, 2, 10, 0, 0), 100)
+        tr2 = self.create_transaction(datetime(2000, 1, 2, 12, 0, 0), 50)
+        self.delete_transaction(tr2)
+
+        balance_on_date_time = [
+            ( 0, datetime(2000, 1, 2, 0, 0, 0)),
+            ( 0, datetime(2000, 1, 2, 10, 0, 0)),
+            ( 100, datetime(2000, 1, 2, 10, 0, 1)),
+            ( 100, datetime(2000, 1, 3)),
+        ]
+        self.assert_balances_on_date(balance_on_date_time)
+
+        caches = AccountBalanceCache.objects.all()
+        self.assertEqual(1, len(caches))
+        self.assert_cache_entry(caches[0], date(2000, 1, 3), 100)
+
+    def test_transaction_multiple_added_removed_same_time(self):
+        tr1 = self.create_transaction(datetime(2000, 1, 2, 10, 0, 0), 100)
+        tr2 = self.create_transaction(datetime(2000, 1, 2, 10, 0, 0), 50)
+        self.delete_transaction(tr2)
+
+        balance_on_date_time = [
+            ( 0, datetime(2000, 1, 2, 0, 0, 0)),
+            ( 0, datetime(2000, 1, 2, 10, 0, 0)),
+            ( 100, datetime(2000, 1, 2, 10, 0, 1)),
+            ( 100, datetime(2000, 1, 3)),
+        ]
+        self.assert_balances_on_date(balance_on_date_time)
+
+        caches = AccountBalanceCache.objects.all()
+        self.assertEqual(1, len(caches))
+        self.assert_cache_entry(caches[0], date(2000, 1, 3), 100)
+
+    def test_transaction_change_time(self):
+        tr = self.create_transaction(datetime(2000, 1, 2, 10, 0, 0), 100)
+        self.change_transaction(tr, datetime(2000, 1, 2, 12, 0, 0), 100)
+
+        balance_on_date_time = [
+            ( 0, datetime(2000, 1, 2, 0, 0, 0)),
+            ( 0, datetime(2000, 1, 2, 10, 0, 0)),
+            ( 0, datetime(2000, 1, 2, 12, 0, 0)),
+            ( 100, datetime(2000, 1, 2, 12, 0, 1)),
+            ( 100, datetime(2000, 1, 3)),
+        ]
+        self.assert_balances_on_date(balance_on_date_time)
+
+        caches = AccountBalanceCache.objects.all()
+        self.assertEqual(1, len(caches))
+        self.assert_cache_entry(caches[0], date(2000, 1, 3), 100)
+
+    def test_transaction_change_time_different_day(self):
+        tr = self.create_transaction(datetime(2000, 1, 2, 10, 0, 0), 100)
+        self.change_transaction(tr, datetime(2000, 1, 3, 12, 0, 0), 100)
+
+        balance_on_date_time = [
+            ( 0, datetime(2000, 1, 2, 0, 0, 0)),
+            ( 0, datetime(2000, 1, 2, 10, 0, 0)),
+            ( 0, datetime(2000, 1, 3, 12, 0, 0)),
+            ( 100, datetime(2000, 1, 3, 12, 0, 1)),
+            ( 100, datetime(2000, 1, 4)),
+        ]
+        self.assert_balances_on_date(balance_on_date_time)
+
+        caches = AccountBalanceCache.objects.all()
+        self.assertEqual(2, len(caches))
+        self.assert_cache_entry(caches[0], date(2000, 1, 3), 0)
+        self.assert_cache_entry(caches[1], date(2000, 1, 4), 100)
+
+    def test_transaction_change_amount(self):
+        tr = self.create_transaction(datetime(2000, 1, 2, 10, 0, 0), 100)
+        self.change_transaction(tr, datetime(2000, 1, 2, 10, 0, 0), 50)
+
+        balance_on_date_time = [
+            ( 0, datetime(2000, 1, 2, 0, 0, 0)),
+            ( 0, datetime(2000, 1, 2, 10, 0, 0)),
+            ( 50, datetime(2000, 1, 2, 10, 0, 1)),
+            ( 50, datetime(2000, 1, 3)),
+        ]
+        self.assert_balances_on_date(balance_on_date_time)
+
+        caches = AccountBalanceCache.objects.all()
+        self.assertEqual(1, len(caches))
+        self.assert_cache_entry(caches[0], date(2000, 1, 3), 50)
+
+    def test_transaction_change_amount_time(self):
+        tr = self.create_transaction(datetime(2000, 1, 2, 10, 0, 0), 100)
+        self.change_transaction(tr, datetime(2000, 1, 2, 12, 0, 0), 50)
+
+        balance_on_date_time = [
+            ( 0, datetime(2000, 1, 2, 0, 0, 0)),
+            ( 0, datetime(2000, 1, 2, 10, 0, 0)),
+            ( 0, datetime(2000, 1, 2, 12, 0, 0)),
+            ( 50, datetime(2000, 1, 2, 12, 0, 1)),
+            ( 50, datetime(2000, 1, 3)),
+        ]
+        self.assert_balances_on_date(balance_on_date_time)
+
+        caches = AccountBalanceCache.objects.all()
+        self.assertEqual(1, len(caches))
+        self.assert_cache_entry(caches[0], date(2000, 1, 3), 50)
+
+    def test_transaction_change_amount_time_different_day(self):
+        tr = self.create_transaction(datetime(2000, 1, 2, 10, 0, 0), 100)
+        self.change_transaction(tr, datetime(2000, 1, 3, 12, 0, 0), 50)
+
+        balance_on_date_time = [
+            ( 0, datetime(2000, 1, 2, 0, 0, 0)),
+            ( 0, datetime(2000, 1, 2, 10, 0, 0)),
+            ( 0, datetime(2000, 1, 3, 12, 0, 0)),
+            ( 50, datetime(2000, 1, 3, 12, 0, 1)),
+            ( 50, datetime(2000, 1, 4)),
+        ]
+        self.assert_balances_on_date(balance_on_date_time)
+
+        caches = AccountBalanceCache.objects.all()
+        self.assertEqual(2, len(caches))
+        self.assert_cache_entry(caches[0], date(2000, 1, 3), 0)
+        self.assert_cache_entry(caches[1], date(2000, 1, 4), 50)
+
+    def test_transaction_change_amount_create(self):
+        tr = self.create_transaction(datetime(2000, 1, 2, 10, 0, 0), 0)
+        self.change_transaction(tr, datetime(2000, 1, 2, 10, 0, 0), 50)
+
+        balance_on_date_time = [
+            ( 0, datetime(2000, 1, 2, 0, 0, 0)),
+            ( 0, datetime(2000, 1, 2, 10, 0, 0)),
+            ( 50, datetime(2000, 1, 2, 10, 0, 1)),
+            ( 50, datetime(2000, 1, 3)),
+        ]
+        self.assert_balances_on_date(balance_on_date_time)
+
+        caches = AccountBalanceCache.objects.all()
+        self.assertEqual(1, len(caches))
+        self.assert_cache_entry(caches[0], date(2000, 1, 3), 50)
+
+    def test_transaction_change_amount_time_create(self):
+        tr = self.create_transaction(datetime(2000, 1, 2, 10, 0, 0), 0)
+        self.change_transaction(tr, datetime(2000, 1, 2, 12, 0, 0), 50)
+
+        balance_on_date_time = [
+            ( 0, datetime(2000, 1, 2, 0, 0, 0)),
+            ( 0, datetime(2000, 1, 2, 10, 0, 0)),
+            ( 0, datetime(2000, 1, 2, 12, 0, 0)),
+            ( 50, datetime(2000, 1, 2, 12, 0, 1)),
+            ( 50, datetime(2000, 1, 3)),
+        ]
+        self.assert_balances_on_date(balance_on_date_time)
+
+        caches = AccountBalanceCache.objects.all()
+        self.assertEqual(1, len(caches))
+        self.assert_cache_entry(caches[0], date(2000, 1, 3), 50)
+
+    def test_transaction_change_amount_time_different_day_create(self):
+        tr = self.create_transaction(datetime(2000, 1, 2, 10, 0, 0), 0)
+        self.change_transaction(tr, datetime(2000, 1, 3, 12, 0, 0), 50)
+
+        balance_on_date_time = [
+            ( 0, datetime(2000, 1, 2, 0, 0, 0)),
+            ( 0, datetime(2000, 1, 2, 10, 0, 0)),
+            ( 0, datetime(2000, 1, 3, 12, 0, 0)),
+            ( 50, datetime(2000, 1, 3, 12, 0, 1)),
+            ( 50, datetime(2000, 1, 4)),
+        ]
+        self.assert_balances_on_date(balance_on_date_time)
+
+        caches = AccountBalanceCache.objects.all()
+        self.assertEqual(1, len(caches))
+        self.assert_cache_entry(caches[0], date(2000, 1, 4), 50)
 
