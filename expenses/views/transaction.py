@@ -155,8 +155,8 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
             account_id = form.cleaned_data['account_id']
             account_amounts[account_id] = form.cleaned_data['amount']
 
-        transaction_update_date_or_amount(self.request.user, transaction,
-                                          new_date_time, account_amounts)
+        transaction_update_date_or_amount(transaction, new_date_time,
+                                          account_amounts)
 
         checked_tags = {}
         for form in tags_form.forms:
@@ -189,7 +189,7 @@ class TransactionDeleteView(AppLoginRequiredMixin, VerifyOwnerMixin,
 
     def form_valid(self, form):
         transaction = self.get_object()
-        transaction_delete(self.request.user, transaction)
+        transaction_delete(transaction)
 
 class TransactionSubtransactionsListView(AppLoginRequiredMixin, ListView):
     model = Subtransaction

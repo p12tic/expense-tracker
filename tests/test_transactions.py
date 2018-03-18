@@ -41,14 +41,14 @@ class TestTransactions(TestCase):
     def create_transaction(self, date_time, amount):
         tr = Transaction.objects.create(desc='test', user=self.user,
                                         date_time=date_time)
-        transaction_update_date_or_amount(self.user, tr, date_time,
+        transaction_update_date_or_amount(tr, date_time,
                                           { self.account1.id : amount,
                                             self.account2.id : amount * 2 })
 
         return tr
 
     def change_transaction(self, tr, date_time, amount):
-        transaction_update_date_or_amount(self.user, tr, date_time,
+        transaction_update_date_or_amount(tr, date_time,
                                           { self.account1.id : amount,
                                             self.account2.id : amount * 2 })
 
@@ -126,7 +126,7 @@ class TestTransactions(TestCase):
 
     def test_transaction_remove(self):
         tr = self.create_transaction(datetime(2000, 1, 2, 10, 0, 0), 100)
-        transaction_delete(self.user, tr)
+        transaction_delete(tr)
 
         balance_on_date_time = [
             ( 0, datetime(2000, 1, 2, 0, 0, 0)),
@@ -141,7 +141,7 @@ class TestTransactions(TestCase):
     def test_transaction_multiple_added_removed(self):
         tr1 = self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
         tr2 = self.create_transaction(datetime(2000, 1, 2, 12, 0, 1), 50)
-        transaction_delete(self.user, tr2)
+        transaction_delete(tr2)
 
         balance_on_date_time = [
             ( 0, datetime(2000, 1, 2, 0, 0, 0)),
@@ -157,7 +157,7 @@ class TestTransactions(TestCase):
     def test_transaction_multiple_added_removed_same_time(self):
         tr1 = self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
         tr2 = self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 50)
-        transaction_delete(self.user, tr2)
+        transaction_delete(tr2)
 
         balance_on_date_time = [
             ( 0, datetime(2000, 1, 2, 0, 0, 0)),

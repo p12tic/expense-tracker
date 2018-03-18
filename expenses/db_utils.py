@@ -160,11 +160,12 @@ def add_cache_if_needed(account, date_time):
                                         date=next_date)
         new_cache.save()
 
-def transaction_update_subtransactions(user, transaction, old_date_time,
+def transaction_update_subtransactions(transaction, old_date_time,
                                        new_date_time, account_amounts):
     ''' Updates the database to reflect the account balance differences caused
         by transaction. Subtransactions are created and deleted as needed
     '''
+    user = transaction.user
     user_accounts = Account.objects.filter(user=user)
     subs = Subtransaction.objects.filter(transaction=transaction)
 
@@ -217,19 +218,18 @@ def transaction_update_subtransactions(user, transaction, old_date_time,
 ''' Updates transaction date or amount. The transaction will be saved
     regardless of whether any data has changed.
 '''
-def transaction_update_date_or_amount(user, transaction, new_date_time,
+def transaction_update_date_or_amount(transaction, new_date_time,
                                       account_amounts):
     old_date_time = transaction.date_time
     transaction.date_time = new_date_time
     transaction.save()
 
-    transaction_update_subtransactions(user, transaction,
-                                       old_date_time, new_date_time,
-                                       account_amounts)
+    transaction_update_subtransactions(transaction, old_date_time,
+                                       new_date_time, account_amounts)
 
 
-def update_transaction_tags(user, transaction, checked_tags):
-    user_tags = Tag.objects.filter(user=user)
+def update_transaction_tags(transaction, checked_tags):
+    user_tags = Tag.objects.filter(user=transaction.user)
     tr_tags = TransactionTag.objects.filter(transaction=transaction)
 
     for tag in user_tags:
@@ -244,9 +244,9 @@ def update_transaction_tags(user, transaction, checked_tags):
         new_ts_tag = TransactionTag(transaction=transaction, tag=tag)
         new_ts_tag.save()
 
-def transaction_delete(user, transaction):
-    transaction_update_subtransactions(user, transaction,
+def transaction_delete(transaction):
+    transaction_update_subtransactions(transaction,
                                        transaction.date_time,
                                        transaction.date_time, {})
-    update_transaction_tags(user, transaction, {})
+    update_transaction_tags(transaction, {})
     transaction.delete()
