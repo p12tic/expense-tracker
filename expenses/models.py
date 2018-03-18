@@ -154,7 +154,8 @@ class PresetSubtransaction(models.Model):
 
 class AccountBalanceCache(models.Model):
     ''' Caches the amount of funds in a account at the beginning of specific
-        day.
+        day. The time point of the cached balance is after all transactions of
+        the previous day and before all transactions of the current day.
     '''
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
     balance = models.IntegerField()
@@ -165,6 +166,10 @@ class AccountSyncEvent(models.Model):
         the database with actual balance of funds. A account sync event creates
         a subtransaction to adjust the balance in the account to match the
         actual amount of funds present.
+
+        The time point of the synchronization is just after all transactions
+        that occur before or on the specified time point and before all
+        transactions that occur after the specified time point.
     '''
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
     balance = models.IntegerField()

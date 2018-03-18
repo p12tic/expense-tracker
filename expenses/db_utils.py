@@ -5,9 +5,7 @@ from expenses.models import *
 # ensure that when several transactions are made on the same date/time the
 # caches are computed correctly. In general we are only interested in consistent
 # ordering of account sync and account balance cache events wrt. themselves and
-# wrt. the rest of subtransactions. We assume the account sync transactions
-# happen before all other transactions at the same time and account sync events
-# happen before all transactions of the day.
+# wrt. the rest of subtransactions.
 
 # Returns the account balance just before or on the given time.
 def get_account_balance(account, date_time):
@@ -115,7 +113,9 @@ def update_account_balance_cache_changed_sub(account, date_time, change):
     if change == 0:
         return
 
-    # we need to update only until the first account sync event
+    # Account sync events force the balance on particular date and time. Thus
+    # we only need to update caches until the first balance sync event and then
+    # update the sync event itself.
     sync_events = AccountSyncEvent.objects.filter(account=account,
             subtransaction__transaction__date_time__gt=date_time)
     sync_events = sync_events.order_by('subtransaction__transaction__date_time')[0:1]
@@ -250,3 +250,46 @@ def transaction_delete(transaction):
                                        transaction.date_time, {})
     update_transaction_tags(transaction, {})
     transaction.delete()
+
+def has_sync_event_on_time(account, date_time):
+    tr = Transaction.objects.filter(date_time=date_time)
+    if len(tr) == 0:
+        return False
+    events = AccountSyncEvent.objects.filter(
+            account=account,
+            subtransaction__transaction__date_time=date_time)
+    return len(events) > 0
+
+def sync_create(account, date_time, balance):
+    if has_sync_event_on_time(account, date_time):
+        raise Exception('Trying to create sync event on top of existing event')
+
+    balance_curr = get_account_balance(account, date_time)
+    balance_diff = balance - balance_curr
+
+    tr = Transaction(user=account.user)
+    tr.date_time = date_time
+    transaction_update_date_or_amount(tr, date_time,
+                                      { account.id : balance_diff })
+
+    # TODO: maybe just return subtransactions from
+    # transaction_update_date_or_amount
+    sub = Subtransaction.objects.filter(transaction=tr)[0]
+    event = AccountSyncEvent(account=account, balance=balance,
+                             subtransaction=sub)
+    event.save()
+    return event
+
+def sync_delete(event):
+    account = event.account
+    transaction = event.subtransaction.transaction
+    event.delete()
+
+    transaction_update_date_or_amount(transaction, transaction.date_time,
+                                      { account.id : 0 })
+
+def sync_update_date_or_amount(event, date_time, balance):
+    # Returns new event object
+    account = event.account
+    sync_delete(event)
+    return sync_create(account, date_time, balance)
