@@ -9,7 +9,7 @@ from expenses.models import *
 # happen before all other transactions at the same time and account sync events
 # happen before all transactions of the day.
 
-# Returns the account balance just before the given time.
+# Returns the account balance just before or on the given time.
 def get_account_balance(account, date_time):
     # find the last account balances cache before date_time
     account_cache = AccountBalanceCache.objects.filter(account=account,
@@ -20,14 +20,14 @@ def get_account_balance(account, date_time):
         # given date
         sum = 0
         subtransactions = Subtransaction.objects.filter(account=account,
-                transaction__date_time__lt=date_time)
+                transaction__date_time__lte=date_time)
     else:
         # sum all subtransactions between the last cache and before the
         # given date/time
         sum = account_cache.balance
         subtransactions = Subtransaction.objects.filter(account=account,
                 transaction__date_time__date__gte=account_cache.date,
-                transaction__date_time__lt=date_time)
+                transaction__date_time__lte=date_time)
 
 
     for sub in subtransactions:
