@@ -133,8 +133,9 @@ def update_account_balance_cache_changed_sub(account, date_time, change,
     # we only need to update caches until the first balance sync event and then
     # update the sync event itself.
     sync_events = AccountSyncEvent.objects.filter(account=account,
-            subtransaction__transaction__date_time__gt=date_time)
-    sync_events = sync_events.order_by('subtransaction__transaction__date_time')[0:1]
+            subtransaction__transaction__date_time__gte=date_time)
+    sync_events = sync_events.order_by(
+            'subtransaction__transaction__date_time')[0:1]
 
     sync_event = get_first_sync_event_with_ignore(sync_events,
                                                   ignore_sync_event)
@@ -171,8 +172,9 @@ def add_cache_if_needed(account, date_time):
         raise Exception("The number of caches for account {0} is more than 1 "
                         "on date {1}".format(account.id, next_date))
     if len(caches) == 0:
-        next_date_time = datetime.datetime.combine(next_date, datetime.time.min)
-        balance = get_account_balance(account, next_date_time)
+        balance_date_time = datetime.datetime.combine(date_time.date(),
+                                                      datetime.time.max)
+        balance = get_account_balance(account, balance_date_time)
         new_cache = AccountBalanceCache(account=account, balance=balance,
                                         date=next_date)
         new_cache.save()

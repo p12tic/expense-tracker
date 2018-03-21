@@ -297,3 +297,40 @@ class TestTransactions(TestCase):
 
         self.assert_cache_count(1)
         self.assert_cache_entry(0, date(2000, 1, 4), 50)
+
+    def test_correct_cache_when_transaction_at_day_begin(self):
+        self.create_transaction(datetime(2000, 1, 3, 0, 0, 0), 20)
+        self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 50)
+
+        balance_on_date_time = [
+            ( 0, datetime(2000, 1, 2, 0, 0, 0)),
+            ( 0, datetime(2000, 1, 2, 10, 0, 0)),
+            ( 50, datetime(2000, 1, 2, 10, 0, 1)),
+            ( 50, datetime(2000, 1, 2, 23, 59, 59, microsecond=999999)),
+            ( 70, datetime(2000, 1, 3, 0, 0, 0)),
+        ]
+        self.assert_balances_on_date(balance_on_date_time)
+
+        self.assert_cache_count(2)
+        self.assert_cache_entry(0, date(2000, 1, 4), 70)
+        self.assert_cache_entry(1, date(2000, 1, 3), 50)
+
+    def test_correct_cache_when_transaction_at_day_end(self):
+        self.create_transaction(datetime(2000, 1, 3, 10, 0, 1), 50)
+        self.create_transaction(
+                datetime(2000, 1, 2, 23, 59, 59, microsecond=999999), 20)
+
+        balance_on_date_time = [
+            ( 0, datetime(2000, 1, 2, 0, 0, 0)),
+            ( 0, datetime(2000, 1, 2, 10, 0, 0)),
+            ( 0, datetime(2000, 1, 2, 23, 59, 59, microsecond=999998)),
+            ( 20, datetime(2000, 1, 2, 23, 59, 59, microsecond=999999)),
+            ( 20, datetime(2000, 1, 3, 0, 0, 0)),
+            ( 20, datetime(2000, 1, 3, 10, 0, 0)),
+            ( 70, datetime(2000, 1, 3, 10, 0, 1)),
+        ]
+        self.assert_balances_on_date(balance_on_date_time)
+
+        self.assert_cache_count(2)
+        self.assert_cache_entry(0, date(2000, 1, 4), 70)
+        self.assert_cache_entry(1, date(2000, 1, 3), 20)
