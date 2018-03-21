@@ -106,10 +106,26 @@ def get_preset_accounts_and_tags(presets_queryset):
         ret.append((preset, preset_sub_data, preset_tag_data))
     return ret
 
-# updates the data in AccountBalanceCache to take into account the change of the
-# funds amount in a subtransaction. Positive change means addition of funds,
-# negative change means removal.
-def update_account_balance_cache_changed_sub(account, date_time, change):
+# Given list of sync events returns first that is not ignore_event, or None
+# if there's no such events
+def get_first_sync_event_with_ignore(events, ignore_event):
+    if len(events) == 0:
+        return None
+    if ignore_event is not None and ignore_event.id == events[0].id:
+        if len(events) == 1:
+            return None
+        return events[1]
+    return events[0]
+
+''' Updates the data in AccountBalanceCache to take into account the change of
+    the funds amount in a subtransaction. Positive change means addition of
+    funds, negative change means removal.
+
+    One sync event may be ignored if the sync event transaction is itself
+    updated.
+'''
+def update_account_balance_cache_changed_sub(account, date_time, change,
+                                             ignore_sync_event=None):
     if change == 0:
         return
 
@@ -120,7 +136,8 @@ def update_account_balance_cache_changed_sub(account, date_time, change):
             subtransaction__transaction__date_time__gt=date_time)
     sync_events = sync_events.order_by('subtransaction__transaction__date_time')[0:1]
 
-    sync_event = sync_events[0] if len(sync_events) > 0 else None
+    sync_event = get_first_sync_event_with_ignore(sync_events,
+                                                  ignore_sync_event)
     if sync_event is not None:
         # update the sync event subtransaction to take into account the
         # changed subtransaction
@@ -161,7 +178,8 @@ def add_cache_if_needed(account, date_time):
         new_cache.save()
 
 def transaction_update_subtransactions(transaction, old_date_time,
-                                       new_date_time, account_amounts):
+                                       new_date_time, account_amounts,
+                                       ignore_sync_event=None):
     ''' Updates the database to reflect the account balance differences caused
         by transaction. Subtransactions are created and deleted as needed
     '''
@@ -182,11 +200,11 @@ def transaction_update_subtransactions(transaction, old_date_time,
                 existing_sub.amount = 0
                 existing_sub.save()
                 update_account_balance_cache_changed_sub(account, old_date_time,
-                                                         -existing_amount)
+                        -existing_amount, ignore_sync_event=ignore_sync_event)
                 existing_sub.amount = amount
                 existing_sub.save()
                 update_account_balance_cache_changed_sub(account, new_date_time,
-                                                         amount)
+                        amount, ignore_sync_event=ignore_sync_event)
                 add_cache_if_needed(account, new_date_time)
                 continue
 
@@ -196,7 +214,8 @@ def transaction_update_subtransactions(transaction, old_date_time,
                 existing_sub.amount = amount
                 existing_sub.save()
                 update_account_balance_cache_changed_sub(account, new_date_time,
-                        amount - existing_amount)
+                        amount - existing_amount,
+                        ignore_sync_event=ignore_sync_event)
                 continue
 
             # new subtransaction
@@ -205,7 +224,7 @@ def transaction_update_subtransactions(transaction, old_date_time,
                                      amount=amount)
             new_sub.save()
             update_account_balance_cache_changed_sub(account, new_date_time,
-                                                     amount)
+                        amount, ignore_sync_event=ignore_sync_event)
             add_cache_if_needed(account, new_date_time)
         else:
             total_amount = 0
@@ -213,19 +232,20 @@ def transaction_update_subtransactions(transaction, old_date_time,
                 total_amount += sub.amount
                 sub.delete()
             update_account_balance_cache_changed_sub(account, old_date_time,
-                                                     -total_amount)
+                        -total_amount, ignore_sync_event=ignore_sync_event)
 
 ''' Updates transaction date or amount. The transaction will be saved
     regardless of whether any data has changed.
 '''
 def transaction_update_date_or_amount(transaction, new_date_time,
-                                      account_amounts):
+                                      account_amounts, ignore_sync_event=None):
     old_date_time = transaction.date_time
     transaction.date_time = new_date_time
     transaction.save()
 
     transaction_update_subtransactions(transaction, old_date_time,
-                                       new_date_time, account_amounts)
+                                       new_date_time, account_amounts,
+                                       ignore_sync_event=ignore_sync_event)
 
 
 def update_transaction_tags(transaction, checked_tags):
@@ -289,7 +309,19 @@ def sync_delete(event):
                                       { account.id : 0 })
 
 def sync_update_date_or_amount(event, date_time, balance):
-    # Returns new event object
     account = event.account
-    sync_delete(event)
-    return sync_create(account, date_time, balance)
+    sub = event.subtransaction
+    tr = sub.transaction
+
+    if date_time != tr.date_time and has_sync_event_on_time(account, date_time):
+        raise Exception('Trying to create sync event on top of existing event')
+
+    transaction_update_date_or_amount(tr, date_time, { account.id : 0 })
+    balance_curr = get_account_balance(account, date_time)
+    balance_diff = balance - balance_curr
+    transaction_update_date_or_amount(tr, date_time,
+                                      { account.id : balance_diff })
+
+    sub = Subtransaction.objects.filter(transaction=tr)[0]
+    event.sub = sub
+    event.save()
