@@ -143,14 +143,14 @@ def update_account_balance_cache_changed_sub(account, date_time, change,
         # update the sync event subtransaction to take into account the
         # changed subtransaction
         sync_subtransaction = sync_event.subtransaction
-        sync_subtransaction.amount += change
+        sync_subtransaction.amount -= change
         sync_subtransaction.save()
 
-        # update all account balance caches up to the date of sync_event, but
-        # not including it
+        # update all account balance caches up to and including the date of
+        # sync_event
         account_caches = AccountBalanceCache.objects.filter(account=account,
                 date__gt=date_time.date(),
-                date__lt=sync_subtransaction.transaction.date_time.date())
+                date__lte=sync_subtransaction.transaction.date_time.date())
         for cache in account_caches:
             cache.balance += change
             cache.save()

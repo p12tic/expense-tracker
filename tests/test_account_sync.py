@@ -18,14 +18,16 @@ class TestAccountSync(TestCase):
                              get_account_balance(self.account, date_time),
                              msg='On {0}'.format(date_time))
 
-    def assert_cache_count(self, count):
+    def assert_caches(self, cache_on_date):
         caches = AccountBalanceCache.objects.filter(account=self.account)
-        self.assertEqual(count, len(caches))
+        self.assertEqual(len(cache_on_date), len(caches))
 
-    def assert_cache_entry(self, cache_entry_id, date, balance):
-        caches = AccountBalanceCache.objects.filter(account=self.account)
-        self.assertEqual(balance, caches[cache_entry_id].balance)
-        self.assertEqual(date, caches[cache_entry_id].date)
+        for balance, date in cache_on_date:
+            caches = AccountBalanceCache.objects.filter(account=self.account,
+                                                        date=date)
+            self.assertEqual(1, len(caches), msg='On {0}'.format(date))
+            self.assertEqual(balance, caches[0].balance,
+                             msg='On {0}'.format(date))
 
     def create_transaction(self, date_time, amount):
         tr = Transaction.objects.create(desc='test', user=self.user,
@@ -39,12 +41,21 @@ class TestAccountSync(TestCase):
         transaction_update_date_or_amount(tr, date_time,
                                           { self.account.id : amount })
 
-    def test_account_sync_create(self):
-        self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
-        self.create_transaction(datetime(2000, 1, 2, 12, 0, 1), 50)
-
+    def test_account_sync_create_no_transactions(self):
         sync_create(self.account, datetime(2000, 1, 2, 11, 0, 1), 70)
 
+        balance_on_date_time = [
+            ( 0, datetime(2000, 1, 2, 11, 0, 0)),
+            ( 70, datetime(2000, 1, 2, 11, 0, 1)),
+        ]
+        self.assert_balances_on_date(balance_on_date_time)
+
+        cache_on_date = [
+            ( 70, date(2000, 1, 3)),
+        ]
+        self.assert_caches(cache_on_date)
+
+    def verify_account_sync_create(self):
         balance_on_date_time = [
             ( 0, datetime(2000, 1, 1)),
             ( 0, datetime(2000, 1, 2, 10, 0, 0)),
@@ -56,15 +67,28 @@ class TestAccountSync(TestCase):
         ]
         self.assert_balances_on_date(balance_on_date_time)
 
-        self.assert_cache_count(1)
-        self.assert_cache_entry(0, date(2000, 1, 3), 120)
+        cache_on_date = [
+            ( 120, date(2000, 1, 3)),
+        ]
+        self.assert_caches(cache_on_date)
 
-    def test_account_sync_create_at_end(self):
+    def test_account_sync_create(self):
         self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
         self.create_transaction(datetime(2000, 1, 2, 12, 0, 1), 50)
 
-        sync_create(self.account, datetime(2000, 1, 3, 14, 0, 1), 70)
+        sync_create(self.account, datetime(2000, 1, 2, 11, 0, 1), 70)
 
+        self.verify_account_sync_create()
+
+    def test_account_sync_create_before_transactions(self):
+        sync_create(self.account, datetime(2000, 1, 2, 11, 0, 1), 70)
+
+        self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
+        self.create_transaction(datetime(2000, 1, 2, 12, 0, 1), 50)
+
+        self.verify_account_sync_create()
+
+    def verify_account_sync_create_at_end(self):
         balance_on_date_time = [
             ( 0, datetime(2000, 1, 1)),
             ( 0, datetime(2000, 1, 2, 10, 0, 0)),
@@ -76,17 +100,40 @@ class TestAccountSync(TestCase):
         ]
         self.assert_balances_on_date(balance_on_date_time)
 
-        self.assert_cache_count(2)
-        self.assert_cache_entry(0, date(2000, 1, 3), 150)
-        self.assert_cache_entry(1, date(2000, 1, 4), 70)
+        cache_on_date = [
+            ( 150, date(2000, 1, 3)),
+            ( 70, date(2000, 1, 4)),
+        ]
+        self.assert_caches(cache_on_date)
 
-    def test_account_sync_create_same_time_as_transaction(self):
+    def test_account_sync_create_at_end(self):
         self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
         self.create_transaction(datetime(2000, 1, 2, 12, 0, 1), 50)
-        self.create_transaction(datetime(2000, 1, 2, 14, 0, 1), 20)
 
-        sync_create(self.account, datetime(2000, 1, 2, 12, 0, 1), 70)
+        sync_create(self.account, datetime(2000, 1, 3, 14, 0, 1), 70)
 
+        self.verify_account_sync_create_at_end()
+
+    def test_account_sync_create_at_end_before_transactions(self):
+        sync_create(self.account, datetime(2000, 1, 3, 14, 0, 1), 70)
+
+
+        self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
+        balance_on_date_time = [
+            ( 0, datetime(2000, 1, 1)),
+            ( 0, datetime(2000, 1, 2, 10, 0, 0)),
+            ( 100, datetime(2000, 1, 2, 10, 0, 1)),
+            ( 100, datetime(2000, 1, 2, 12, 0, 0)),
+            ( 100, datetime(2000, 1, 2, 12, 0, 1)),
+            ( 100, datetime(2000, 1, 3, 14, 0, 0)),
+            ( 70, datetime(2000, 1, 3, 14, 0, 1)),
+        ]
+        self.assert_balances_on_date(balance_on_date_time)
+        self.create_transaction(datetime(2000, 1, 2, 12, 0, 1), 50)
+
+        self.verify_account_sync_create_at_end()
+
+    def verify_account_sync_create_same_time_as_transaction(self):
         balance_on_date_time = [
             ( 0, datetime(2000, 1, 1)),
             ( 0, datetime(2000, 1, 2, 10, 0, 0)),
@@ -99,8 +146,28 @@ class TestAccountSync(TestCase):
         ]
         self.assert_balances_on_date(balance_on_date_time)
 
-        self.assert_cache_count(1)
-        self.assert_cache_entry(0, date(2000, 1, 3), 90)
+        cache_on_date = [
+            ( 90, date(2000, 1, 3)),
+        ]
+        self.assert_caches(cache_on_date)
+
+    def test_account_sync_create_same_time_as_transaction(self):
+        self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
+        self.create_transaction(datetime(2000, 1, 2, 12, 0, 1), 50)
+        self.create_transaction(datetime(2000, 1, 2, 14, 0, 1), 20)
+
+        sync_create(self.account, datetime(2000, 1, 2, 12, 0, 1), 70)
+
+        self.verify_account_sync_create_same_time_as_transaction()
+
+    def test_account_sync_create_same_time_as_transaction_before_tr(self):
+        sync_create(self.account, datetime(2000, 1, 2, 12, 0, 1), 70)
+
+        self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
+        self.create_transaction(datetime(2000, 1, 2, 12, 0, 1), 50)
+        self.create_transaction(datetime(2000, 1, 2, 14, 0, 1), 20)
+
+        self.verify_account_sync_create_same_time_as_transaction()
 
     def test_account_sync_create_same_time_as_event(self):
         self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
@@ -111,13 +178,7 @@ class TestAccountSync(TestCase):
         with self.assertRaises(Exception):
             sync_create(self.account, datetime(2000, 1, 2, 12, 0, 1), 110)
 
-    def test_account_sync_delete(self):
-        self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
-        self.create_transaction(datetime(2000, 1, 2, 12, 0, 1), 50)
-
-        event = sync_create(self.account, datetime(2000, 1, 2, 11, 0, 1), 70)
-        sync_delete(event)
-
+    def verify_account_sync_delete(self):
         balance_on_date_time = [
             ( 0, datetime(2000, 1, 1)),
             ( 0, datetime(2000, 1, 2, 10, 0, 0)),
@@ -127,16 +188,40 @@ class TestAccountSync(TestCase):
         ]
         self.assert_balances_on_date(balance_on_date_time)
 
-        self.assert_cache_count(1)
-        self.assert_cache_entry(0, date(2000, 1, 3), 150)
+        cache_on_date = [
+            ( 150, date(2000, 1, 3)),
+        ]
+        self.assert_caches(cache_on_date)
 
-    def test_account_sync_delete_at_end(self):
+    def test_account_sync_delete(self):
         self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
         self.create_transaction(datetime(2000, 1, 2, 12, 0, 1), 50)
 
-        event = sync_create(self.account, datetime(2000, 1, 3, 14, 0, 1), 70)
+        event = sync_create(self.account, datetime(2000, 1, 2, 11, 0, 1), 70)
         sync_delete(event)
 
+        self.verify_account_sync_delete()
+
+    def test_account_sync_delete_before_transactions(self):
+        event = sync_create(self.account, datetime(2000, 1, 2, 11, 0, 1), 70)
+        sync_delete(event)
+
+        self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
+        self.create_transaction(datetime(2000, 1, 2, 12, 0, 1), 50)
+
+        self.verify_account_sync_delete()
+
+    def test_account_sync_delete_before_after_transactions(self):
+        event = sync_create(self.account, datetime(2000, 1, 2, 11, 0, 1), 70)
+
+        self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
+        self.create_transaction(datetime(2000, 1, 2, 12, 0, 1), 50)
+
+        sync_delete(event)
+
+        self.verify_account_sync_delete()
+
+    def verify_account_sync_delete_at_end(self):
         balance_on_date_time = [
             ( 0, datetime(2000, 1, 1)),
             ( 0, datetime(2000, 1, 2, 10, 0, 0)),
@@ -147,9 +232,39 @@ class TestAccountSync(TestCase):
         ]
         self.assert_balances_on_date(balance_on_date_time)
 
-        self.assert_cache_count(2)
-        self.assert_cache_entry(0, date(2000, 1, 3), 150)
-        self.assert_cache_entry(1, date(2000, 1, 4), 150)
+        cache_on_date = [
+            ( 150, date(2000, 1, 3)),
+            ( 150, date(2000, 1, 4)),
+        ]
+        self.assert_caches(cache_on_date)
+
+    def test_account_sync_delete_at_end(self):
+        self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
+        self.create_transaction(datetime(2000, 1, 2, 12, 0, 1), 50)
+
+        event = sync_create(self.account, datetime(2000, 1, 3, 14, 0, 1), 70)
+        sync_delete(event)
+
+        self.verify_account_sync_delete_at_end()
+
+    def test_account_sync_delete_at_end_before_transactions(self):
+        event = sync_create(self.account, datetime(2000, 1, 3, 14, 0, 1), 70)
+        sync_delete(event)
+
+        self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
+        self.create_transaction(datetime(2000, 1, 2, 12, 0, 1), 50)
+
+        self.verify_account_sync_delete_at_end()
+
+    def test_account_sync_delete_at_end_before_after_transactions(self):
+        event = sync_create(self.account, datetime(2000, 1, 3, 14, 0, 1), 70)
+
+        self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
+        self.create_transaction(datetime(2000, 1, 2, 12, 0, 1), 50)
+
+        sync_delete(event)
+
+        self.verify_account_sync_delete_at_end()
 
     def test_account_sync_change_amount(self):
         self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
@@ -169,8 +284,10 @@ class TestAccountSync(TestCase):
         ]
         self.assert_balances_on_date(balance_on_date_time)
 
-        self.assert_cache_count(1)
-        self.assert_cache_entry(0, date(2000, 1, 3), 110)
+        cache_on_date = [
+            ( 110, date(2000, 1, 3)),
+        ]
+        self.assert_caches(cache_on_date)
 
     def test_account_sync_change_time(self):
         self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
@@ -193,21 +310,12 @@ class TestAccountSync(TestCase):
         ]
         self.assert_balances_on_date(balance_on_date_time)
 
-        self.assert_cache_count(1)
-        self.assert_cache_entry(0, date(2000, 1, 3), 90)
+        cache_on_date = [
+            ( 90, date(2000, 1, 3)),
+        ]
+        self.assert_caches(cache_on_date)
 
-    def test_account_create_updates_all_following_caches(self):
-        self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
-        self.create_transaction(datetime(2000, 1, 2, 12, 0, 1), 50)
-        self.create_transaction(datetime(2000, 1, 3, 12, 0, 1), 20)
-        self.create_transaction(datetime(2000, 1, 4, 12, 0, 1), 1)
-        self.create_transaction(datetime(2000, 1, 5, 12, 0, 1), 1)
-        self.create_transaction(datetime(2000, 1, 6, 12, 0, 1), 1)
-        self.create_transaction(datetime(2000, 1, 7, 12, 0, 1), 1)
-
-        sync_create(self.account, datetime(2000, 1, 3, 11, 0, 1), 70)
-        sync_create(self.account, datetime(2000, 1, 6, 11, 0, 1), 80)
-
+    def verify_account_sync_create_updates_all_following_caches(self):
         balance_on_date_time = [
             ( 0, datetime(2000, 1, 1)),
             ( 0, datetime(2000, 1, 2, 10, 0, 0)),
@@ -231,10 +339,40 @@ class TestAccountSync(TestCase):
         ]
         self.assert_balances_on_date(balance_on_date_time)
 
-        self.assert_cache_count(6)
-        self.assert_cache_entry(0, date(2000, 1, 3), 150)
-        self.assert_cache_entry(1, date(2000, 1, 4), 90)
-        self.assert_cache_entry(2, date(2000, 1, 5), 91)
-        self.assert_cache_entry(3, date(2000, 1, 6), 92)
-        self.assert_cache_entry(4, date(2000, 1, 7), 81)
-        self.assert_cache_entry(5, date(2000, 1, 8), 82)
+        cache_on_date = [
+            ( 150, date(2000, 1, 3)),
+            ( 90, date(2000, 1, 4)),
+            ( 91, date(2000, 1, 5)),
+            ( 92, date(2000, 1, 6)),
+            ( 81, date(2000, 1, 7)),
+            ( 82, date(2000, 1, 8)),
+        ]
+        self.assert_caches(cache_on_date)
+
+    def test_account_sync_create_updates_all_following_caches(self):
+        self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
+        self.create_transaction(datetime(2000, 1, 2, 12, 0, 1), 50)
+        self.create_transaction(datetime(2000, 1, 3, 12, 0, 1), 20)
+        self.create_transaction(datetime(2000, 1, 4, 12, 0, 1), 1)
+        self.create_transaction(datetime(2000, 1, 5, 12, 0, 1), 1)
+        self.create_transaction(datetime(2000, 1, 6, 12, 0, 1), 1)
+        self.create_transaction(datetime(2000, 1, 7, 12, 0, 1), 1)
+
+        sync_create(self.account, datetime(2000, 1, 3, 11, 0, 1), 70)
+        sync_create(self.account, datetime(2000, 1, 6, 11, 0, 1), 80)
+
+        self.verify_account_sync_create_updates_all_following_caches()
+
+    def test_account_sync_create_updates_all_following_caches_before_tr(self):
+        sync_create(self.account, datetime(2000, 1, 3, 11, 0, 1), 70)
+        sync_create(self.account, datetime(2000, 1, 6, 11, 0, 1), 80)
+
+        self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
+        self.create_transaction(datetime(2000, 1, 2, 12, 0, 1), 50)
+        self.create_transaction(datetime(2000, 1, 3, 12, 0, 1), 20)
+        self.create_transaction(datetime(2000, 1, 4, 12, 0, 1), 1)
+        self.create_transaction(datetime(2000, 1, 5, 12, 0, 1), 1)
+        self.create_transaction(datetime(2000, 1, 6, 12, 0, 1), 1)
+        self.create_transaction(datetime(2000, 1, 7, 12, 0, 1), 1)
+
+        self.verify_account_sync_create_updates_all_following_caches()
