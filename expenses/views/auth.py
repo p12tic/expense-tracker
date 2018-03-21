@@ -21,13 +21,21 @@ class AppLoginRequiredMixin(LoginRequiredMixin):
     login_url = '/user/login'
     redirect_field_name = 'redirect_to'
 
-class VerifyOwnerMixin:
+class VerifyOwnerMixinBase:
     def form_valid(self, form):
         form.instance.user = self.request.user
         return super().form_valid(form)
 
+class VerifyOwnerMixin(VerifyOwnerMixinBase):
     def get_object(self):
         obj = super().get_object()
         if obj.user != self.request.user:
+            raise PermissionDenied()
+        return obj
+
+class VerifyAccountUserMixin(VerifyOwnerMixinBase):
+    def get_object(self):
+        obj = super().get_object()
+        if obj.account.user != self.request.user:
             raise PermissionDenied()
         return obj

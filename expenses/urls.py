@@ -5,7 +5,8 @@ from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
-from expenses.views import auth, account, json, preset, tag, transaction
+from expenses.views import (auth, account, account_sync,
+                            json, preset, tag, transaction)
 
 urlpatterns = [
     url(r'^$', RedirectView.as_view(url='/transactions')),
@@ -24,8 +25,15 @@ urlpatterns = [
     url(r'^accounts/(?P<pk>\d+)/edit$', account.AccountUpdateView.as_view()),
     url(r'^accounts/(?P<pk>\d+)/delete$', account.AccountDeleteView.as_view()),
     url(r'^accounts/add$', account.AccountCreateView.as_view()),
-    url(r'^presets$', preset.PresetListView.as_view()),
 
+    url(r'^sync/(?P<pk>\d+)/edit$',
+        account_sync.AccountSyncUpdateView.as_view()),
+    url(r'^sync/(?P<pk>\d+)/delete$',
+        account_sync.AccountSyncDeleteView.as_view()),
+    url(r'^sync/add/(?P<account_pk>\d+)$',
+        account_sync.AccountSyncCreateView.as_view()),
+
+    url(r'^presets$', preset.PresetListView.as_view()),
     url(r'^presets/(?P<pk>\d+)$', preset.PresetDetailView.as_view()),
     url(r'^presets/(?P<pk>\d+)/edit$', preset.PresetUpdateView.as_view()),
     url(r'^presets/(?P<pk>\d+)/delete$', preset.PresetDeleteView.as_view()),

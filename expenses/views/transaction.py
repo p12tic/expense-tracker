@@ -58,7 +58,6 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
             initial.append(data)
 
         accounts_form = AccountFormSet(initial=initial, prefix="accounts")
-        print(accounts_form)
         tag_list = Tag.objects.filter(user=self.request.user).order_by('name')
         initial = []
         for t in tag_list:
