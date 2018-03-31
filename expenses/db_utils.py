@@ -183,16 +183,18 @@ def transaction_update_subtransactions(transaction, old_date_time,
                                        new_date_time, account_amounts,
                                        ignore_sync_event=None):
     ''' Updates the database to reflect the account balance differences caused
-        by transaction. Subtransactions are created and deleted as needed
+        by transaction. Subtransactions are created and deleted as needed.
+        Subtransactions are created even if the amount for the account is zero.
+        If this is not wanted, simply omit the account id from account_amounts.
     '''
     user = transaction.user
     user_accounts = Account.objects.filter(user=user)
     subs = Subtransaction.objects.filter(transaction=transaction)
 
     for account in user_accounts:
-        amount = account_amounts.get(account.id, 0)
+        amount = account_amounts.get(account.id, None)
 
-        if amount is not None and amount != 0:
+        if amount is not None:
 
             existing_sub = subs.filter(account=account).first()
             if existing_sub and new_date_time != old_date_time:
@@ -307,8 +309,7 @@ def sync_delete(event):
     transaction = event.subtransaction.transaction
     event.delete()
 
-    transaction_update_date_or_amount(transaction, transaction.date_time,
-                                      { account.id : 0 })
+    transaction_update_date_or_amount(transaction, transaction.date_time, {})
 
 def sync_update_date_or_amount(event, date_time, balance):
     account = event.account
@@ -318,7 +319,7 @@ def sync_update_date_or_amount(event, date_time, balance):
     if date_time != tr.date_time and has_sync_event_on_time(account, date_time):
         raise Exception('Trying to create sync event on top of existing event')
 
-    transaction_update_date_or_amount(tr, date_time, { account.id : 0 })
+    transaction_update_date_or_amount(tr, date_time, {})
     balance_curr = get_account_balance(account, date_time)
     balance_diff = balance - balance_curr
     transaction_update_date_or_amount(tr, date_time,

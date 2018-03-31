@@ -43,20 +43,23 @@ class TestTransactions(TestCase):
             self.assertEqual(balance*2, caches[0].balance,
                              msg='On {0}'.format(date))
 
+    def get_account_amounts(self, amount):
+        if amount is None:
+            return {}
+        return { self.account1.id : amount,
+                 self.account2.id : amount * 2 }
+
     def create_transaction(self, date_time, amount):
         tr = Transaction.objects.create(desc='test', user=self.user,
                                         date_time=date_time)
         transaction_update_date_or_amount(tr, date_time,
-                                          { self.account1.id : amount,
-                                            self.account2.id : amount * 2 })
+                                          self.get_account_amounts(amount))
 
         return tr
 
     def change_transaction(self, tr, date_time, amount):
         transaction_update_date_or_amount(tr, date_time,
-                                          { self.account1.id : amount,
-                                            self.account2.id : amount * 2 })
-
+                                          self.get_account_amounts(amount))
 
     def test_empty_account_balance_zero(self):
         self.assertEqual(0, get_account_balance(self.account1, datetime.min))
@@ -78,8 +81,23 @@ class TestTransactions(TestCase):
         ]
         self.assert_caches(cache_on_date)
 
-    def test_single_transaction_empty(self):
+    def test_single_transaction_zero(self):
         tr = self.create_transaction(datetime(2000, 1, 2), 0)
+
+        balance_on_date_time = [
+            ( 0, datetime(2000, 1, 1)),
+            ( 0, datetime(2000, 1, 2)),
+            ( 0, datetime(2000, 1, 3)),
+        ]
+        self.assert_balances_on_date(balance_on_date_time)
+
+        cache_on_date = [
+            ( 0, date(2000, 1, 3)),
+        ]
+        self.assert_caches(cache_on_date)
+
+    def test_single_transaction_empty(self):
+        tr = self.create_transaction(datetime(2000, 1, 2), None)
 
         balance_on_date_time = [
             ( 0, datetime(2000, 1, 1)),
@@ -328,6 +346,7 @@ class TestTransactions(TestCase):
         self.assert_balances_on_date(balance_on_date_time)
 
         cache_on_date = [
+            ( 0, date(2000, 1, 3)),
             ( 50, date(2000, 1, 4)),
         ]
         self.assert_caches(cache_on_date)
@@ -372,4 +391,3 @@ class TestTransactions(TestCase):
             ( 70, date(2000, 1, 4)),
         ]
         self.assert_caches(cache_on_date)
-

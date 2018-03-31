@@ -88,6 +88,39 @@ class TestAccountSync(TestCase):
 
         self.verify_account_sync_create()
 
+    def verify_account_sync_create_nodiff(self):
+        balance_on_date_time = [
+            ( 0, datetime(2000, 1, 1)),
+            ( 0, datetime(2000, 1, 2, 10, 0, 0)),
+            ( 100, datetime(2000, 1, 2, 10, 0, 1)),
+            ( 100, datetime(2000, 1, 2, 11, 0, 0)),
+            ( 100, datetime(2000, 1, 2, 11, 0, 1)),
+            ( 100, datetime(2000, 1, 2, 12, 0, 0)),
+            ( 150, datetime(2000, 1, 2, 12, 0, 1)),
+        ]
+        self.assert_balances_on_date(balance_on_date_time)
+
+        cache_on_date = [
+            ( 150, date(2000, 1, 3)),
+        ]
+        self.assert_caches(cache_on_date)
+
+    def test_account_sync_create_nodiff(self):
+        self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
+        self.create_transaction(datetime(2000, 1, 2, 12, 0, 1), 50)
+
+        sync_create(self.account, datetime(2000, 1, 2, 11, 0, 1), 100)
+
+        self.verify_account_sync_create_nodiff()
+
+    def test_account_sync_create_nodiff_before_transactions(self):
+        sync_create(self.account, datetime(2000, 1, 2, 11, 0, 1), 100)
+
+        self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
+        self.create_transaction(datetime(2000, 1, 2, 12, 0, 1), 50)
+
+        self.verify_account_sync_create_nodiff()
+
     def verify_account_sync_create_at_end(self):
         balance_on_date_time = [
             ( 0, datetime(2000, 1, 1)),
