@@ -161,7 +161,7 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
         for form in tags_form.forms:
             tag_id = form.cleaned_data['tag_id']
             checked_tags[tag_id] = form.cleaned_data['checked']
-        update_transaction_tags(self.request.user, transaction, checked_tags)
+        update_transaction_tags(transaction, checked_tags)
 
         return HttpResponseRedirect(self.get_success_url())
 

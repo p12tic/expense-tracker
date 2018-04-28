@@ -25,18 +25,24 @@
 {% endblock %}
 
 {% block table_row %}
-    <td><a href="/transactions/{{ row.0.transaction.id }}">{{ row.0.transaction.desc }}</a></td>
-    <td>{{ row.0.transaction.date_time|date:"Y-m-d H:i" }}</td>
-    <td>{{ row.0.amount }}</td>
-    <td>{{ row.1 }}</td>
+    {% if row.0 != None %}
+    <td><a href="/sync/{{ row.0.id }}">Sync event</a></td>
+    {% else %}
+    <td><a href="/transactions/{{ row.0.transaction.id }}">{{ row.1.transaction.desc }}</a></td>
+    {% endif %}
+    <td>{{ row.1.transaction.date_time|date:"Y-m-d H:i" }}</td>
+    <td>{{ row.1.amount }}</td>
+    <td>{{ row.2 }}</td>
     <td>
 <div class="dropdown pull-right">
+    {% if row.0 == None %}
     <button class="btn-xs btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
         <span class="caret"></span>
     </button>
     <ul class="dropdown-menu pull-left" role="menu">
-        <li role="presentation"><a role="menuitem" tabindex="-1" href="/accounts/{{ account.id }}/syncafter/{{ row.0.transaction.id }}">Sync after</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="/accounts/{{ account.id }}/sync?after_tr={{ row.0.transaction.id }}">Sync after</a></li>
     </ul>
+    {% endif %}
 </div></td>
 {% endblock %}
 

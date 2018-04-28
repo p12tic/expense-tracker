@@ -69,9 +69,18 @@ def get_transactions_actions_and_tags(transactions_queryset):
     accounts_descs = { b.id : b.name for b in Account.objects.all() }
 
     for transaction in transactions:
-        subtransactions = Subtransaction.objects.filter(transaction=transaction)
+        subtransactions = Subtransaction.objects \
+                .filter(transaction=transaction) \
+                .prefetch_related('sync_event')
+
         subtransactions_data = []
+        sync_event = None
+
         for sub in subtransactions:
+            sync_event_sub = sub.sync_event.first()
+            if sync_event_sub is not None:
+                sync_event = sync_event_sub
+
             subtransactions_data.append((sub.account.id,
                                          accounts_descs[sub.account.id],
                                          '{0:+d}'.format(sub.amount)))
@@ -80,7 +89,7 @@ def get_transactions_actions_and_tags(transactions_queryset):
         for tr_tag in TransactionTag.objects.filter(transaction=transaction):
             tag_names.append(tr_tag.tag.name)
 
-        ret.append((transaction, subtransactions_data, tag_names))
+        ret.append((transaction, subtransactions_data, tag_names, sync_event))
     return ret
 
 def get_preset_accounts_and_tags(presets_queryset):

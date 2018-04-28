@@ -26,11 +26,13 @@ urlpatterns = [
     url(r'^accounts/(?P<pk>\d+)/delete$', account.AccountDeleteView.as_view()),
     url(r'^accounts/add$', account.AccountCreateView.as_view()),
 
+    url(r'^sync/(?P<pk>\d+)$',
+        account_sync.AccountSyncDetailView.as_view()),
     url(r'^sync/(?P<pk>\d+)/edit$',
         account_sync.AccountSyncUpdateView.as_view()),
     url(r'^sync/(?P<pk>\d+)/delete$',
         account_sync.AccountSyncDeleteView.as_view()),
-    url(r'^sync/add/(?P<account_pk>\d+)$',
+    url(r'^accounts/(?P<account_pk>\d+)/sync$',
         account_sync.AccountSyncCreateView.as_view()),
 
     url(r'^presets$', preset.PresetListView.as_view()),

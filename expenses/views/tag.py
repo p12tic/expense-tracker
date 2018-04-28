@@ -47,5 +47,4 @@ class TagTransactionListView(AppLoginRequiredMixin, ListView):
         tag = Tag.objects.get(id=self.kwargs['pk'])
         if tag.user != self.request.user:
             raise PermissionDenied()
-        return Transaction.objects.filter(transactiontag__tag=tag).order_by('date_time')
-
+        return tag.user.transactions.filter(transaction_tags__tag=tag).order_by('date_time')

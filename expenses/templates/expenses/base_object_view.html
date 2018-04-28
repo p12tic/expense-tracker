@@ -1,0 +1,15 @@
+{% extends "expenses/base_nav.html" %}
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% block object_heading %}{% endblock %}
+<div class='pull-right'>
+{% block object_button %}
+{% endblock %}
+</div>
+</h1>
+{% block object_data %}
+{% endblock %}
+
+{% endblock %}

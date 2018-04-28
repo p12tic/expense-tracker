@@ -1,0 +1,20 @@
+{% extends "expenses/base_object_view.html" %}
+{% load i18n %}
+{% load capture_tags i18n %}
+
+{% block object_heading %}{% trans "Account sync event" %}{% endblock %}
+{% block object_button %}
+{% capture as table_button_link silent %}/sync/{{ event.id }}/edit{% endcapture %}
+{% include "expenses/i_table_button.html" with text="Edit" link=table_button_link %}
+{% capture as table_button_link silent %}/sync/{{ event.id }}/delete{% endcapture %}
+{% include "expenses/i_table_button.html" with class="btn-danger" text="Delete" link=table_button_link %}
+{% endblock %}
+
+{% block object_data %}
+{% include "expenses/i_static_field.html" with label="Account name" content=event.account.desc %}
+{% capture as date_time silent %}
+  {{ event.subtransaction.transaction.date_time|date:"Y-m-d H:i" }}
+{% endcapture %}
+{% include "expenses/i_static_field.html" with label="Time" content=date_time %}
+{% include "expenses/i_static_field.html" with label="Balance" content=event.balance %}
+{% endblock %}
