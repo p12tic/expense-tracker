@@ -9,8 +9,13 @@ class Transaction(models.Model):
         accounts. The exact change in each account is identified by the
         "Subtransaction" object. Transactions are ordered by date and time.
     '''
-    desc = models.CharField(max_length=256, verbose_name="description")
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    desc = models.CharField(max_length=256,
+            verbose_name="description")
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,
+            on_delete=models.CASCADE,
+            related_name='transactions')
+
     date_time = models.DateTimeField()
 
 class Account(models.Model):
@@ -18,16 +23,25 @@ class Account(models.Model):
         liabilities (negative) of a certain user. An user may have multiple
         accounts related to different actors.
     '''
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,
+            on_delete=models.CASCADE,
+            related_name='accounts')
+
     name = models.CharField(max_length=256)
-    desc = models.CharField(max_length=256, verbose_name="description",
-                            blank=True)
+    desc = models.CharField(max_length=256,
+            verbose_name="description",
+            blank=True)
 
 class Subtransaction(models.Model):
     ''' Subtransaction is a change in a account due to a single transaction
     '''
-    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
-    account = models.ForeignKey(Account, on_delete=models.CASCADE)
+    transaction = models.ForeignKey(Transaction,
+            on_delete=models.CASCADE,
+            related_name='subtransactions')
+
+    account = models.ForeignKey(Account,
+            on_delete=models.CASCADE,
+            related_name='subtransactions')
     amount = models.IntegerField(default=0)
 
 # ------------------------------------------------------------------------------
@@ -38,15 +52,22 @@ class Tag(models.Model):
         attached to any number of transactions.
     '''
     name = models.CharField(max_length=256)
-    desc = models.CharField(max_length=256, verbose_name="description",
-                            blank=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    desc = models.CharField(max_length=256,
+            verbose_name="description",
+            blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,
+            on_delete=models.CASCADE,
+            related_name='tags')
 
 class TransactionTag(models.Model):
     ''' This table identifies attachment of tags to transactions
     '''
-    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
-    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+    transaction = models.ForeignKey(Transaction,
+            on_delete=models.CASCADE,
+            related_name='transaction_tags')
+    tag = models.ForeignKey(Tag,
+            on_delete=models.CASCADE,
+            related_name='transaction_tags')
 
 # ------------------------------------------------------------------------------
 # Friends and chained accounts
@@ -58,21 +79,31 @@ class ChainedAccount(models.Model):
         subtransaction. Approved subtransactions create an entry in specific
         account and a dummy transaction.
     '''
-    master_account = models.ForeignKey(Account, related_name='master_account',
-                                       on_delete=models.CASCADE)
-    slave_account = models.ForeignKey(Account, related_name='slave_account',
-                                      on_delete=models.CASCADE)
+    master_account = models.ForeignKey(Account,
+            related_name='master_account',
+            on_delete=models.CASCADE)
+
+    slave_account = models.ForeignKey(Account,
+            related_name='slave_account',
+            on_delete=models.CASCADE)
+
     relation = models.IntegerField(default=0)
 
 class ChainedAccountRequestPendingNew(models.Model):
     ''' Identifies a request to create a ChainedAccount relation
     '''
-    master = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='master',
-                               on_delete=models.CASCADE)
-    slave = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='slave',
-                              on_delete=models.CASCADE)
-    desc = models.CharField(max_length=256, verbose_name="description",
-                            blank=True)
+    master = models.ForeignKey(settings.AUTH_USER_MODEL,
+            related_name='master',
+            on_delete=models.CASCADE)
+
+    slave = models.ForeignKey(settings.AUTH_USER_MODEL,
+            related_name='slave',
+            on_delete=models.CASCADE)
+
+    desc = models.CharField(max_length=256,
+            verbose_name="description",
+            blank=True)
+
     relation = models.IntegerField(default=0)
 
 class ChainedSubtransaction(models.Model):
@@ -89,17 +120,23 @@ class ChainedSubtransaction(models.Model):
         This is tracked in ChainedSubtransactionPendingChange table.
     '''
     master_subtransaction = models.ForeignKey(Subtransaction,
-        related_name='master_subtransaction', on_delete=models.CASCADE)
+            related_name='master_subtransaction',
+            on_delete=models.CASCADE)
+
     slave_subtransaction = models.ForeignKey(Subtransaction,
-        related_name='slave_subransaction', on_delete=models.CASCADE)
+            related_name='slave_subransaction',
+            on_delete=models.CASCADE)
+
     relation = models.IntegerField(default=0)
 
 class ChainedSubtransactionPendingChange(models.Model):
     ''' Tracks master subtransaction chains in approved subtransaction chains.
     '''
     slave_user = models.ForeignKey(settings.AUTH_USER_MODEL,
-                                   on_delete=models.CASCADE)
-    chained = models.ForeignKey(ChainedSubtransaction, on_delete=models.CASCADE)
+            on_delete=models.CASCADE)
+
+    chained = models.ForeignKey(ChainedSubtransaction,
+            on_delete=models.CASCADE)
 
 class ChainedSubtransactionPendingNew(models.Model):
     ''' Tracks new subtransaction chain requests. If an entry is removed from
@@ -107,21 +144,25 @@ class ChainedSubtransactionPendingNew(models.Model):
         ChainedSubtransactionIgnored table.
     '''
     slave_user = models.ForeignKey(settings.AUTH_USER_MODEL,
-                                   on_delete=models.CASCADE)
+            on_delete=models.CASCADE)
+
     master_subtransaction = models.ForeignKey(Subtransaction,
-                                              on_delete=models.CASCADE)
+            on_delete=models.CASCADE)
+
     chained_account = models.ForeignKey(ChainedAccount,
-                                        on_delete=models.CASCADE)
+            on_delete=models.CASCADE)
 
 class ChainedSubtransactionIgnored(models.Model):
     ''' Tracks ignored subtransaction chain requests
     '''
     slave_user = models.ForeignKey(settings.AUTH_USER_MODEL,
-                                   on_delete=models.CASCADE)
+            on_delete=models.CASCADE)
+
     master_subtransaction = models.ForeignKey(Subtransaction,
-                                              on_delete=models.CASCADE)
+            on_delete=models.CASCADE)
+
     chained_account = models.ForeignKey(ChainedAccount,
-                                        on_delete=models.CASCADE)
+            on_delete=models.CASCADE)
 
 # ------------------------------------------------------------------------------
 # Presets
@@ -157,7 +198,10 @@ class AccountBalanceCache(models.Model):
         day. The time point of the cached balance is after all transactions of
         the previous day and before all transactions of the current day.
     '''
-    account = models.ForeignKey(Account, on_delete=models.CASCADE)
+    account = models.ForeignKey(Account,
+            on_delete=models.CASCADE,
+            related_name='balance_caches')
+
     balance = models.IntegerField()
     date = models.DateField()
 
@@ -171,6 +215,12 @@ class AccountSyncEvent(models.Model):
         that occur before or on the specified time point and before all
         transactions that occur after the specified time point.
     '''
-    account = models.ForeignKey(Account, on_delete=models.CASCADE)
+    account = models.ForeignKey(Account,
+            on_delete=models.CASCADE,
+            related_name='sync_events')
+
     balance = models.IntegerField()
-    subtransaction = models.ForeignKey(Subtransaction, on_delete=models.CASCADE)
+
+    subtransaction = models.ForeignKey(Subtransaction,
+            on_delete=models.CASCADE,
+            related_name='sync_event')
