@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block before_table %}
-<p>{{ tag.desc }}</p>
+{% include "expenses/i_static_field.html" with label="Description" content=tag.desc %}
 <h3>{% trans "Transactions" %}</h3>
 {% endblock %}
 

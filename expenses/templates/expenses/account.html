@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block before_table %}
-{{ account.desc }}
+{% include "expenses/i_static_field.html" with label="Description" content=account.desc %}
 <h3>Transactions</h3>
 {% endblock %}
 

@@ -10,7 +10,8 @@
 {% endblock %}
 
 {% block before_table %}
-Time: {{ transaction.date_time|date:"Y-m-d H:i" }}
+{% capture as date_time silent %}{{ transaction.date_time|date:"Y-m-d H:i" }}{% endcapture %}
+{% include "expenses/i_static_field.html" with label="Date and time" content=date_time %}
 <h3>Tags</h3>
 {% for tag in tag_list %}
 <button class="btn" role="button">{{ tag.tag.name }}</button>
