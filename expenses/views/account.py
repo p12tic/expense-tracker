@@ -45,7 +45,7 @@ class AccountSubtransactionsListView(AppLoginRequiredMixin, ListView):
         account = Account.objects.get(id=self.kwargs['pk'])
         context = super().get_context_data(**kwargs)
 
-        queryset = context['object_list'].prefetch_related('sync_event')
+        queryset = context['object_list']
         data = get_account_balances_for_subtransactions_range(account,
                                                               queryset)
 

@@ -409,3 +409,39 @@ class TestAccountSync(TestCase):
         self.create_transaction(datetime(2000, 1, 7, 12, 0, 1), 1)
 
         self.verify_account_sync_create_updates_all_following_caches()
+
+class TestDbUtils(TestCase):
+    def setUp(self):
+        self.user = User.objects.create(username='test')
+        self.account = Account.objects.create(user=self.user,
+                                              name='acc', desc='desc')
+
+    def create_transaction(self, date_time, amount):
+        tr = Transaction.objects.create(desc='test', user=self.user,
+                                        date_time=date_time)
+        transaction_update_date_or_amount(tr, date_time,
+                                          { self.account.id : amount })
+
+        return tr
+
+    def test_get_account_balances_for_subtransactions_range_with_sync(self):
+        sync_create(self.account, datetime(2000, 1, 2, 11, 0, 1), 70)
+
+        sub_queryset = Subtransaction.objects.filter(account=self.account) \
+                                     .order_by('transaction__date_time')
+        sub_balances = get_account_balances_for_subtransactions_range(
+                self.account, sub_queryset)
+        self.assertEqual(1, len(sub_balances))
+        self.assertEqual(70, sub_balances[0][1])
+
+    def test_get_account_balances_for_subtransactions_range_with_no_sync(self):
+        self.create_transaction(datetime(2000, 1, 6, 12, 0, 1), 10)
+        self.create_transaction(datetime(2000, 1, 7, 12, 0, 1), 10)
+
+        sub_queryset = Subtransaction.objects.filter(account=self.account) \
+                                     .order_by('transaction__date_time')
+        sub_balances = get_account_balances_for_subtransactions_range(
+                self.account, sub_queryset)
+        self.assertEqual(2, len(sub_balances))
+        self.assertEqual(10, sub_balances[0][1])
+        self.assertEqual(20, sub_balances[1][1])

@@ -39,13 +39,17 @@ def get_account_balance(account, date_time):
 #   date/time range.
 def get_account_balances_for_subtransactions_range(account,
                                                    subtransactions_queryset):
-    subtransactions = list(subtransactions_queryset)
+    queryset = subtransactions_queryset.prefetch_related('sync_event')
+    subtransactions = list(queryset)
     if len(subtransactions) == 0:
         return []
     balance = get_account_balance(account,
                                   subtransactions[0].transaction.date_time)
     ret = []
-    for sub in subtransactions:
+    # get_account_balance already takes into account the first subtransaction
+    ret.append((subtransactions[0], balance))
+
+    for sub in subtransactions[1:]:
         balance += sub.amount
         ret.append((sub, balance))
     return ret
