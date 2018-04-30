@@ -11,6 +11,7 @@ from datetime import datetime
 
 class AccountSyncForm(forms.ModelForm):
     date_time = forms.DateTimeField(required=True)
+    balance = forms.FloatField(required=True)
 
     class Meta:
         model = AccountSyncEvent
@@ -82,12 +83,12 @@ class AccountSyncUpdateView(AppLoginRequiredMixin, VerifyAccountUserMixin,
         initial = super().get_initial()
         initial['date_time'] = \
                 self.get_object().subtransaction.transaction.date_time
-        initial['balance'] = self.get_object().balance
+        initial['balance'] = self.get_object().balance / 100.0
         return initial
 
     def form_valid(self, form):
         date_time = form.cleaned_data['date_time']
-        balance = form.cleaned_data['balance']
+        balance = int(form.cleaned_data['balance'] * 100)
 
         sync_update_date_or_amount(self.get_object(), date_time, balance)
 
