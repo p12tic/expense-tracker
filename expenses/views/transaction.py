@@ -134,7 +134,7 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
             r[preset.id] = {
                 'subtransactions' : subs,
                 'tags' : tags,
-                'description' : preset.desc,
+                'description' : preset.transaction_desc,
             }
         return json.dumps(r)
 
