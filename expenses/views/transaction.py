@@ -8,6 +8,7 @@ from expenses.views.auth import AppLoginRequiredMixin, VerifyOwnerMixin
 from expenses.views.formsets import *
 from expenses.models import *
 from expenses.db_utils import *
+from datetime import datetime
 import json
 
 class TransactionListView(AppLoginRequiredMixin, ListView):
@@ -39,7 +40,7 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
 
     # Note that account amounts are sent to the form as floating point number
     # denominating full currency amount, not cents
-    def get_initial_data(self, user, tr=None):
+    def get_formsets(self, user, tr=None):
 
         tr_subs = {}
         tr_tags = {}
@@ -79,6 +80,12 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
 
         return accounts_form, tags_form
 
+    def get_initial(self):
+        return {
+            'desc' : '',
+            'date_time' : datetime.now(),
+        }
+
     def get(self, request, *args, **kwargs):
         tr = None
         if 'pk' in kwargs:
@@ -89,9 +96,9 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
         if tr:
             form = TransactionForm(instance=tr)
         else:
-            form = self.get_form(self.get_form_class())
+            form = self.get_form()
 
-        accounts_form, tags_form = self.get_initial_data(self.request.user, tr)
+        accounts_form, tags_form = self.get_formsets(self.request.user, tr)
 
         data = self.get_context_data(form=form, accounts_form=accounts_form,
                                      tags_form=tags_form)
