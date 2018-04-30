@@ -1,5 +1,5 @@
 {% extends "expenses/base_table_view.html" %}
-{% load capture_tags i18n %}
+{% load capture_tags i18n expense_filters %}
 
 {% block table_heading %}{% trans "Tag " %}"{{ tag.name }}"{% endblock %}
 {% block table_button %}
