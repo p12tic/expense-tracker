@@ -1,6 +1,5 @@
 {% extends "expenses/base_object_view.html" %}
-{% load i18n %}
-{% load capture_tags i18n %}
+{% load capture_tags i18n expense_filters %}
 
 {% block object_heading %}{% trans "Account sync event" %}{% endblock %}
 {% block object_button %}
@@ -16,5 +15,6 @@
   {{ event.subtransaction.transaction.date_time|date:"Y-m-d H:i" }}
 {% endcapture %}
 {% include "expenses/i_static_field.html" with label="Time" content=date_time %}
-{% include "expenses/i_static_field.html" with label="Balance" content=event.balance %}
+{% capture as balance_str silent %}{{ event.balance|cents_to_string }}{% endcapture %}
+{% include "expenses/i_static_field.html" with label="Balance" content=balance_str %}
 {% endblock %}
