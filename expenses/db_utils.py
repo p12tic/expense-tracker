@@ -97,7 +97,9 @@ def get_transactions_actions_and_tags(transactions_queryset):
     return ret
 
 def get_preset_accounts_and_tags(presets_queryset):
-    presets = list(presets_queryset)
+    queryset = presets_queryset.prefetch_related('preset_subtransactions') \
+                               .prefetch_related('preset_tags')
+    presets = list(queryset)
     if len(presets) == 0:
         return []
     ret = []
@@ -105,7 +107,7 @@ def get_preset_accounts_and_tags(presets_queryset):
     accounts_descs = { b.id : b.name for b in Account.objects.all() }
 
     for preset in presets:
-        preset_sub = PresetSubtransaction.objects.filter(preset=preset)
+        preset_sub = preset.preset_subtransactions.all()
         preset_sub_data = []
         for sub in preset_sub:
             preset_sub_data.append((sub.account.id,

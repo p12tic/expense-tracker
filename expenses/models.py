@@ -180,13 +180,17 @@ class Preset(models.Model):
 class PresetTransactionTag(models.Model):
     ''' Identifies what transaction tags to assign to a new transaction
     '''
-    preset = models.ForeignKey(Preset, on_delete=models.CASCADE)
+    preset = models.ForeignKey(Preset,
+            on_delete=models.CASCADE,
+            related_name='preset_tags')
     tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
 
 class PresetSubtransaction(models.Model):
     ''' Identifies what subtransactions to create for a new transaction
     '''
-    preset = models.ForeignKey(Preset, on_delete=models.CASCADE)
+    preset = models.ForeignKey(Preset,
+            on_delete=models.CASCADE,
+            related_name='preset_subtransactions')
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
     fraction = models.FloatField(default=1)
 
