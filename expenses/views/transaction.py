@@ -155,7 +155,10 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
         account_amounts = {}
         for form in accounts_form.forms:
             account_id = form.cleaned_data['account_id']
-            account_amounts[account_id] = int(form.cleaned_data['amount'] * 100)
+            amount = form.cleaned_data['amount']
+            if amount is not None:
+                amount = int(amount * 100)
+            account_amounts[account_id] = amount
 
         transaction_update_date_or_amount(transaction, new_date_time,
                                           account_amounts)
