@@ -1,5 +1,5 @@
 {% extends "expenses/base_table_view.html" %}
-{% load i18n %}
+{% load i18n expense_filters %}
 
 {% block table_heading %}{% trans "Accounts" %}{% endblock %}
 {% block table_button %}
@@ -16,7 +16,7 @@
 {% block table_row %}
     <td><a href="/accounts/{{ row.0.id }}">{{ row.0.name }}</a></td>
     <td>{{ row.0.desc }}</td>
-    <td>{{ row.1 }}</td>
+    <td>{{ row.1 | cents_to_string }}</td>
     <td><a href="/accounts/{{ row.0.id }}/sync" class="btn btn-xs btn-default pull-right" role="button">{% trans "Sync" %}</a></td>
 {% endblock %}
 

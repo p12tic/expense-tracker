@@ -67,9 +67,10 @@ $(function() {
             $(this).TouchSpin({
                 min: -10000000,
                 max: 10000000,
-                step: {% if step %}{{ step }}{% else %}1{% endif %},
+                step: {% if touchstep %}{{ touchstep }}{% else %}1{% endif %},
                 {% if decimals %}decimals: {{ decimals }},{% endif %}
                 maxboostedstep: 10,
+                forcestepdivisibility: 'none',
             });
             if ($(this).val() == '') {
                 showAccount($(self), false);

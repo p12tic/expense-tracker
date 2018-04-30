@@ -1,5 +1,5 @@
 {% extends "expenses/base_table_view.html" %}
-{% load capture_tags i18n %}
+{% load capture_tags i18n expense_filters %}
 
 {% block table_heading %}{% trans "Transaction " %}"{{ transaction.desc }}"{% endblock %}
 {% block table_button %}
@@ -30,7 +30,7 @@
 
 {% block table_row %}
     <td><a href="/accounts/{{ row.account.id }}">{{ row.account.name }}</a></td>
-    <td>{{ row.amount }}</td>
+    <td>{{ row.amount | cents_to_string }}</td>
 {% endblock %}
 
 {% block table_empty_text %}

@@ -1,5 +1,5 @@
 {% extends "expenses/base_table_view.html" %}
-{% load i18n %}
+{% load i18n expense_filters %}
 
 {% block table_heading %}{% trans "Transactions" %}{% endblock %}
 {% block table_button %}
@@ -19,13 +19,13 @@
 {% else %}
     <td>
         <a href="/sync/{{ row.3.id }}">Sync event</a>
-        <button class="btn btn-xs" role="button">{{ row.1.0.1 }}&nbsp;{{ row.3.balance }}</button>
+        <button class="btn btn-xs" role="button">{{ row.1.0.1 }}&nbsp;{{ row.3.balance|cents_to_string }}</button>
     </td>
 {% endif %}
 <td>{{ row.0.date_time|date:"Y-m-d H:i" }}</td>
 <td>
     {% for sub_tr in row.1 %}
-    <button class="btn btn-xs" role="button">{{ sub_tr.1 }}&nbsp;{{ sub_tr.2 }}</button>
+    <button class="btn btn-xs" role="button">{{ sub_tr.1 }}&nbsp;{{ sub_tr.2|cents_to_string }}</button>
     {% endfor %}
 </td>
 <td>

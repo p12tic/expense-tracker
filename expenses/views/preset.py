@@ -25,7 +25,7 @@ class PresetForm(forms.ModelForm):
         fields = ['name', 'desc', 'transaction_desc']
 
     # the following are handled in the views
-    #accounts = AccountFormSet()
+    #accounts = FloatAccountFormSet()
     #tags = TagFormSet()
 
 class PresetBaseFormView(AppLoginRequiredMixin, FormView):

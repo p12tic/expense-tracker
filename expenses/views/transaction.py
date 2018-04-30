@@ -28,12 +28,14 @@ class TransactionForm(forms.ModelForm):
         fields = ['desc', 'date_time']
 
     # the following are handled in the TransactionCreateView class
-    #accounts = AccountFormSet()
+    #accounts = FloatAccountFormSet()
     #tags = TagFormSet()
 
 class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
     form_class = TransactionForm
 
+    # Note that account amounts are sent to the form as floating point number
+    # denominating full currency amount, not cents
     def get_initial_data(self, user, tr=None):
 
         tr_subs = {}
@@ -53,11 +55,11 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
             data = {
                 'account_id' : a.id,
                 'name' : a.name,
-                'amount' : amount
+                'amount' : amount / 100.0
             }
             initial.append(data)
 
-        accounts_form = AccountFormSet(initial=initial, prefix="accounts")
+        accounts_form = FloatAccountFormSet(initial=initial, prefix="accounts")
         tag_list = Tag.objects.filter(user=self.request.user).order_by('name')
         initial = []
         for t in tag_list:
@@ -95,8 +97,8 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
     def post(self, request, *args, **kwargs):
         form = self.get_form(self.get_form_class())
 
-        accounts_form = AccountFormSet(self.request.POST, prefix="accounts",
-                                       user=request.user)
+        accounts_form = FloatAccountFormSet(self.request.POST, prefix="accounts",
+                                            user=request.user)
         tags_form = TagFormSet(self.request.POST, prefix="tags", user=request.user)
 
         if form.is_valid() and accounts_form.is_valid() and tags_form.is_valid():
@@ -121,7 +123,8 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
                 })
             r[preset.id] = {
                 'subtransactions' : subs,
-                'tags' : tags
+                'tags' : tags,
+                'description' : preset.desc,
             }
         return json.dumps(r)
 
@@ -152,7 +155,7 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
         account_amounts = {}
         for form in accounts_form.forms:
             account_id = form.cleaned_data['account_id']
-            account_amounts[account_id] = form.cleaned_data['amount']
+            account_amounts[account_id] = int(form.cleaned_data['amount'] * 100)
 
         transaction_update_date_or_amount(transaction, new_date_time,
                                           account_amounts)
