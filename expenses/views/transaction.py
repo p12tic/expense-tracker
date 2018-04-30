@@ -20,6 +20,9 @@ class TransactionListView(AppLoginRequiredMixin, ListView):
                 get_transactions_actions_and_tags(context['object_list'])
         return context
 
+    def get_queryset(self):
+        return self.request.user.transactions.all().order_by('-date_time')
+
 # the creation form
 
 class TransactionForm(forms.ModelForm):
