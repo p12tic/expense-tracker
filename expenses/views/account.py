@@ -60,7 +60,7 @@ class AccountSubtransactionsListView(AppLoginRequiredMixin, ListView):
         account = Account.objects.get(id=self.kwargs['pk'])
         if account.user != self.request.user:
             raise PermissionDenied()
-        return Subtransaction.objects.filter(account=account).order_by('transaction__date_time')
+        return account.subtransactions.all().order_by('-transaction__date_time')
 
 class ChainedAccountListView(AppLoginRequiredMixin, ListView):
     model = ChainedAccount
