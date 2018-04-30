@@ -10,7 +10,7 @@ def cents_to_string(value):
         return ''
     # don't use floating-point numbers here due to potential rounding
     if value % 100 == 0:
-        return str(value)
+        return str(value // 100)
 
     negative = value < 0
     if negative:
