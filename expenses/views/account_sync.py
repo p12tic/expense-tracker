@@ -51,7 +51,7 @@ class AccountSyncCreateView(AppLoginRequiredMixin, VerifyAccountUserMixin,
             date_time = tr.date_time
 
         initial['date_time'] = date_time
-        initial['balance'] = get_account_balance(self.get_account(), date_time)
+        initial['balance'] = get_account_balance(self.get_account(), date_time) / 100
         return initial
 
     def get_context_data(self, **kwargs):
@@ -64,7 +64,7 @@ class AccountSyncCreateView(AppLoginRequiredMixin, VerifyAccountUserMixin,
 
     def form_valid(self, form):
         date_time = form.cleaned_data['date_time']
-        balance = form.cleaned_data['balance']
+        balance = int(form.cleaned_data['balance'] * 100)
 
         sync_create(self.get_account(), date_time, balance)
 
