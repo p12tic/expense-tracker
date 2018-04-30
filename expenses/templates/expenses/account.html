@@ -31,7 +31,7 @@
     <td><a href="/transactions/{{ row.0.transaction.id }}">{{ row.1.transaction.desc }}</a></td>
     {% endif %}
     <td>{{ row.1.transaction.date_time|date:"Y-m-d H:i" }}</td>
-    <td>{{ row.1.amount }}</td>
+    <td>{{ row.1.amount |floatformat:2 }}</td>
     <td>{{ row.2 }}</td>
     <td>
 <div class="dropdown pull-right">
