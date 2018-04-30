@@ -19,6 +19,6 @@ def cents_to_string(value):
     value = value // 100
 
     if negative:
-        return '{0}.{1:02}'.format(value, cents)
-    else:
         return '-{0}.{1:02}'.format(value, cents)
+    else:
+        return '{0}.{1:02}'.format(value, cents)
