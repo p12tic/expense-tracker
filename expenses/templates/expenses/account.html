@@ -28,7 +28,7 @@
     {% if row.0 != None %}
     <td><a href="/sync/{{ row.0.id }}">Sync event</a></td>
     {% else %}
-    <td><a href="/transactions/{{ row.0.transaction.id }}">{{ row.1.transaction.desc }}</a></td>
+    <td><a href="/transactions/{{ row.1.transaction.id }}">{{ row.1.transaction.desc }}</a></td>
     {% endif %}
     <td>{{ row.1.transaction.date_time|date:"Y-m-d H:i" }}</td>
     <td>{{ row.1.amount|cents_to_string }}</td>
