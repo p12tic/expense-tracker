@@ -22,7 +22,7 @@ class TransactionListView(AppLoginRequiredMixin, ListView):
         return context
 
     def get_queryset(self):
-        return self.request.user.transactions.all().order_by('-date_time')
+        return self.request.user.transactions.order_by('-date_time')
 
 # the creation form
 
@@ -50,7 +50,8 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
             for s in TransactionTag.objects.filter(transaction=tr):
                 tr_tags[s.tag.id] = True
 
-        account_list = Account.objects.filter(user=self.request.user).order_by('name')
+        account_list = Account.objects.filter(user=self.request.user) \
+                              .order_by('name')
         initial = []
         for a in account_list:
             amount = 0

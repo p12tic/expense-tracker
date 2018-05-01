@@ -64,33 +64,36 @@ def get_account_balances_for_accounts(accounts_queryset):
         ret.append((account, balance))
     return ret
 
-def get_transactions_actions_and_tags(transactions_queryset):
-    transactions = list(transactions_queryset)
-    if len(transactions) == 0:
+def get_transactions_actions_and_tags(transactions_qs):
+    qs = transactions_qs \
+            .prefetch_related('subtransactions') \
+            .prefetch_related('subtransactions__account') \
+            .prefetch_related('subtransactions__sync_event') \
+            .prefetch_related('transaction_tags') \
+            .prefetch_related('transaction_tags__tag')
+
+    if len(qs) == 0:
         return []
     ret = []
 
     accounts_descs = { b.id : b.name for b in Account.objects.all() }
 
-    for transaction in transactions:
-        subtransactions = Subtransaction.objects \
-                .filter(transaction=transaction) \
-                .prefetch_related('sync_event')
-
+    for transaction in qs:
         subtransactions_data = []
         sync_event = None
 
-        for sub in subtransactions:
-            sync_event_sub = sub.sync_event.first()
-            if sync_event_sub is not None:
-                sync_event = sync_event_sub
+        for sub in transaction.subtransactions.all():
+            # don't use first() because prefetching breaks in that case
+            sync_event_sub = list(sub.sync_event.all())
+            if len(sync_event_sub) > 0:
+                sync_event = sync_event_sub[0]
 
             subtransactions_data.append((sub.account.id,
                                          accounts_descs[sub.account.id],
                                          '{0:+d}'.format(sub.amount)))
 
         tag_names = []
-        for tr_tag in TransactionTag.objects.filter(transaction=transaction):
+        for tr_tag in transaction.transaction_tags.all():
             tag_names.append(tr_tag.tag.name)
 
         ret.append((transaction, subtransactions_data, tag_names, sync_event))
