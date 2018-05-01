@@ -46,8 +46,13 @@ class AccountSubtransactionsListView(AppLoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
 
         queryset = context['object_list']
+
+        # we reverse the order of the transaction list to satisfy the
+        # requirements of get_account_balances_for_subtransactions_range and
+        # then reverse the returned data back
         data = get_account_balances_for_subtransactions_range(account,
-                                                              queryset)
+                queryset.order_by('transaction__date_time'))
+        data.reverse()
 
         data = [ ( sub.sync_event.first(), sub, balance ) for sub, balance in data ]
 
