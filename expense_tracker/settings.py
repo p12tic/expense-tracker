@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'widget_tweaks',
     'capture_tag',
+    'rest_framework',
+    'corsheaders'
 ]
 
 INTERNAL_IPS = [
@@ -54,7 +56,13 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
+
+REST_FRAMEWORK = {'DEFAULT_PERMISSION_CLASSES': [
+    'rest_framework.permissions.AllowAny'
+]}
+CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = 'expense_tracker.urls'
 
