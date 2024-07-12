@@ -6,7 +6,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
 from . views import (auth, account, account_sync,
-                            json, preset, tag, transaction)
+                            json, preset, tag, transaction, api_views)
 
 urlpatterns = [
     re_path(r'^$', RedirectView.as_view(url='/transactions')),
@@ -52,4 +52,7 @@ urlpatterns = [
     re_path(r'^user/logout$', auth.logout),
     re_path(r'^user/profile$', auth.logged_in),
     re_path(r'^user/edit$', auth.user_edit),
+
+    #api views
+    path('api/accounts', api_views.AccountView.as_view()),
 ]
