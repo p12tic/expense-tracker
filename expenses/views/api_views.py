@@ -7,3 +7,10 @@ class AccountView(generics.ListAPIView):
     def get_queryset(self):
         queryset = super().get_queryset()
         return queryset
+
+class TagView(generics.ListAPIView):
+    queryset = models.Tag.objects.all()
+    serializer_class = serializers.TagSerializer
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset
