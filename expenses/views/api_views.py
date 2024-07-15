@@ -53,6 +53,15 @@ class SubtransactionView(generics.ListAPIView):
         transaction = self.request.query_params.get('transaction')
         if transaction is not None:
             queryset = queryset.filter(transaction=transaction)
+        account = self.request.query_params.get('account')
+        if account is not None:
+            queryset = queryset.filter(account=account)
+        date_lte = self.request.query_params.get('date_lte')
+        if date_lte is not None:
+            queryset = queryset.filter(transaction__date_time__lte=date_lte)
+        date_gte = self.request.query_params.get('date_gte')
+        if date_gte is not None:
+            queryset = queryset.filter(transaction__date_time__gte=date_gte)
         return queryset
 
 class AccountSyncEventView(generics.ListAPIView):
