@@ -40,3 +40,13 @@ class AccountBalanceCacheSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.AccountBalanceCache
         fields = '__all__'
+
+class PresetTransactionTagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.PresetTransactionTag
+        fields = '__all__'
+
+class PresetSubtransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.PresetSubtransaction
+        fields = '__all__'

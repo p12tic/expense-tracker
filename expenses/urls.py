@@ -62,4 +62,6 @@ urlpatterns = [
     path('api/subtransactions', api_views.SubtransactionView.as_view()),
     path('api/account_sync_event', api_views.AccountSyncEventView.as_view()),
     path('api/account_balance_cache', api_views.AccountBalanceCacheView.as_view()),
+    path('api/preset_subtransactions', api_views.PresetSubtransactionView.as_view()),
+    path('api/preset_transaction_tags', api_views.PresetTransactionTagView.as_view()),
 ]

@@ -31,6 +31,9 @@ class PresetView(generics.ListAPIView):
     serializer_class = serializers.PresetSerializer
     def get_queryset(self):
         queryset = super().get_queryset()
+        id = self.request.query_params.get("id")
+        if id is not None:
+            queryset = queryset.filter(id=id)
         return queryset
 
 class TransactionTagsView(generics.ListAPIView):
@@ -79,4 +82,24 @@ class AccountBalanceCacheView(generics.ListAPIView):
     serializer_class = serializers.AccountBalanceCacheSerializer
     def get_queryset(self):
         queryset = super().get_queryset()
+        return queryset
+
+class PresetSubtransactionView(generics.ListAPIView):
+    queryset = models.PresetSubtransaction.objects.all()
+    serializer_class = serializers.PresetSubtransactionSerializer
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        preset = self.request.query_params.get('preset')
+        if preset is not None:
+            queryset = queryset.filter(preset=preset)
+        return queryset
+
+class PresetTransactionTagView(generics.ListAPIView):
+    queryset = models.PresetTransactionTag.objects.all()
+    serializer_class = serializers.PresetTransactionTagSerializer
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        preset = self.request.query_params.get('preset')
+        if preset is not None:
+            queryset = queryset.filter(preset=preset)
         return queryset
