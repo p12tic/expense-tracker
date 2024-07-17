@@ -20,10 +20,11 @@ class TagView(generics.ListAPIView):
         return queryset
 
 class TransactionView(generics.ListAPIView):
-    queryset = models.Transaction.objects.all().order_by('-date_time')
+    queryset = models.Transaction.objects.all()
     serializer_class = serializers.TransactionSerializer
     def get_queryset(self):
         queryset = super().get_queryset()
+        queryset = queryset.order_by('-date_time')
         return queryset
 
 class PresetView(generics.ListAPIView):

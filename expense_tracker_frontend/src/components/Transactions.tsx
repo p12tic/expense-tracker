@@ -4,6 +4,7 @@ import axios from "axios";
 import {Link} from "react-router-dom";
 import {TableButton} from "./TableButton.tsx";
 import {formatDate} from "./Tools.tsx";
+import {AuthData} from "./AuthData.tsx";
 
 interface Transaction {
     id: number;
@@ -46,9 +47,10 @@ interface Account {
     desc: string;
     user: string;
 }
-export function TransactionsList() {
-    const [state, setState] = useState<Transaction[]>([]);
 
+export function TransactionsList(transactionsProps) {
+    const [state, setState] = useState<Transaction[]>([]);
+    axios.defaults.headers.common = {Authorization: `Bearer ${transactionsProps.token.getToken().token}`};
     useEffect(() => {
         const fetchTransactions = async() => {
             try {
