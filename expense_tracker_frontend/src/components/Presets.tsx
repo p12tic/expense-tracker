@@ -26,7 +26,7 @@ interface PresetTransactionTag {
     tag: string;
 }
 
-export function PresetsList() {
+export function PresetsList(presetsProps) {
     const [state, setState] = useState<Presets[]>([]);
 
     useEffect(() => {

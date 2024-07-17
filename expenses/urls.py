@@ -7,6 +7,7 @@ from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
 from . views import (auth, account, account_sync,
                             json, preset, tag, transaction, api_views)
+from rest_framework.authtoken import views
 
 urlpatterns = [
     re_path(r'^$', RedirectView.as_view(url='/transactions')),
@@ -64,4 +65,5 @@ urlpatterns = [
     path('api/account_balance_cache', api_views.AccountBalanceCacheView.as_view()),
     path('api/preset_subtransactions', api_views.PresetSubtransactionView.as_view()),
     path('api/preset_transaction_tags', api_views.PresetTransactionTagView.as_view()),
+    path('api/api-token-auth/', views.obtain_auth_token),
 ]
