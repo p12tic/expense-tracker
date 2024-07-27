@@ -122,6 +122,39 @@ class PresetView(generics.ListCreateAPIView):
             preset = models.Preset.objects.get(id=self.request.data['id'])
             preset.delete()
             return Response(status=status.HTTP_200_OK)
+        elif self.request.data['action'] == "edit":
+            preset = models.Preset.objects.get(id=self.request.data['id'])
+            preset.name = self.request.data['name']
+            preset.desc = self.request.data['desc']
+            preset.transaction_desc = self.request.data['transDesc']
+            preset.save()
+            for tag in self.request.data['tags']:
+                tag_obj = models.Tag.objects.get(id=tag['id'])
+                if tag['isChecked']:
+                    if models.PresetTransactionTag.objects.filter(tag=tag_obj, preset=preset).count()==0:
+                        PreTransTag = models.PresetTransactionTag.objects.create(tag=tag_obj, preset=preset)
+                        PreTransTag.save()
+                else:
+                    if models.PresetTransactionTag.objects.filter(tag=tag_obj, preset=preset).count() > 0:
+                        PreTransTag = models.PresetTransactionTag.objects.get(tag=tag_obj, preset=preset)
+                        PreTransTag.delete()
+            for acc in self.request.data['accounts']:
+                acc_obj = models.Account.objects.get(id=acc['id'])
+                if acc['isUsed']:
+                    if models.PresetSubtransaction.objects.filter(account=acc_obj, preset=preset).count()==0:
+                        preSub = models.PresetSubtransaction.objects.create(account=acc_obj, preset=preset, fraction=acc['fraction'])
+                        preSub.save()
+                    else:
+                        preSub = models.PresetSubtransaction.objects.get(account=acc_obj, preset=preset)
+                        preSub.fraction = acc['fraction']
+                        preSub.save()
+                else:
+                    if models.PresetSubtransaction.objects.filter(account=acc_obj, preset=preset).count() > 0:
+                        preSub = models.PresetSubtransaction.objects.get(account=acc_obj, preset=preset)
+                        preSub.delete()
+            return Response(status=status.HTTP_200_OK)
+
+
 
 
 class TransactionTagsView(generics.ListAPIView):
@@ -193,6 +226,9 @@ class PresetSubtransactionView(generics.ListAPIView):
         preset = self.request.query_params.get('preset')
         if preset is not None:
             queryset = queryset.filter(preset=preset)
+        account = self.request.query_params.get('account')
+        if account is not None:
+            queryset = queryset.filter(account=account)
         return queryset
 
 class PresetTransactionTagView(generics.ListAPIView):
@@ -203,6 +239,9 @@ class PresetTransactionTagView(generics.ListAPIView):
         preset = self.request.query_params.get('preset')
         if preset is not None:
             queryset = queryset.filter(preset=preset)
+        tag = self.request.query_params.get('tag')
+        if tag is not None:
+            queryset = queryset.filter(tag=tag)
         return queryset
 
 class TokenView(generics.ListAPIView):
