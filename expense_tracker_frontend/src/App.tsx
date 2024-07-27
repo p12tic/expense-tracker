@@ -15,6 +15,7 @@ import {Account} from "./components/Accounts/Account.tsx";
 import {AccountDelete} from "./components/Accounts/AccountDelete.tsx";
 import {AccountEdit} from "./components/Accounts/AccountEdit.tsx";
 import {PresetCreate} from "./components/Presets/PresetCreate.tsx";
+import {Preset} from "./components/Presets/Preset.tsx";
 
 
 
@@ -32,6 +33,7 @@ function App() {
                 <Route path="transactions" element={<TransactionsList />}></Route>
                 <Route path="presets" element={<PresetsList />}></Route>
                 <Route path="presets/add" element={<PresetCreate />}></Route>
+                <Route path="presets/:id" element={<Preset />}></Route>
                 <Route path="login" element={<Login />}></Route>
                 <Route path="user/edit" element={<UserEdit />}></Route>
                 <Route path="tags/add" element={<TagCreate />}></Route>
