@@ -86,7 +86,7 @@ class TransactionView(generics.ListAPIView):
             queryset = queryset.filter(id=id)
         return queryset
 
-class PresetView(generics.ListAPIView):
+class PresetView(generics.ListCreateAPIView):
     queryset = models.Preset.objects.all()
     serializer_class = serializers.PresetSerializer
     def get_queryset(self):
@@ -99,6 +99,26 @@ class PresetView(generics.ListAPIView):
         if tag is not None:
             queryset = queryset.filter(tag=tag)
         return queryset
+
+    def post(self, request, *args, **kwargs):
+        if self.request.data['action'] == "create":
+            preset = models.Preset.objects.create(name=self.request.data['name'], desc=self.request.data['desc'],
+                                                  transaction_desc=self.request.data['transDesc'],
+                                                  user=self.request.user)
+            preset.save()
+            for tag in self.request.data['tags']:
+                if tag['isChecked']:
+                    tag_obj = models.Tag.objects.get(id=tag['id'])
+                    tag_preset = models.PresetTransactionTag.objects.create(preset=preset, tag=tag_obj)
+                    tag_preset.save()
+            for acc in self.request.data['accounts']:
+                if acc['isUsed']:
+                    accObj = models.Account.objects.get(id=acc['id'])
+                    preset_sub = models.PresetSubtransaction.objects.create(preset=preset, account=accObj,
+                                                                            fraction=acc['fraction'])
+                    preset_sub.save()
+            return Response(status=status.HTTP_201_CREATED)
+
 
 class TransactionTagsView(generics.ListAPIView):
     queryset = models.TransactionTag.objects.all()
