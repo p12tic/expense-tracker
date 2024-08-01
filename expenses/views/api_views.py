@@ -103,6 +103,10 @@ class TransactionView(generics.ListCreateAPIView):
                     transactionTag = models.TransactionTag.objects.create(transaction=transaction, tag=tagElement)
                     transactionTag.save()
             return Response(status=status.HTTP_201_CREATED)
+        if self.request.data['action'] == "delete":
+            transaction = models.Transaction.objects.get(id=self.request.data['id'])
+            transaction.delete()
+            return Response(status=status.HTTP_200_OK)
 
 class PresetView(generics.ListCreateAPIView):
     queryset = models.Preset.objects.all()
