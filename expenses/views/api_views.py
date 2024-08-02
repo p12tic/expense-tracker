@@ -95,7 +95,9 @@ class TransactionView(generics.ListCreateAPIView):
             for acc in self.request.data['preset']['accounts']:
                 if acc['isUsed']:
                     accountElement = models.Account.objects.get(id=acc['id'])
-                    subtransaction = models.Subtransaction.objects.create(transaction=transaction, account=accountElement, amount=(acc['amount']*100))
+                    subtransaction = models.Subtransaction.objects.create(transaction=transaction,
+                                                                          account=accountElement,
+                                                                          amount=(acc['amount'] * 100))
                     subtransaction.save()
             for tag in self.request.data['preset']['tags']:
                 if tag['isChecked']:
@@ -106,6 +108,46 @@ class TransactionView(generics.ListCreateAPIView):
         if self.request.data['action'] == "delete":
             transaction = models.Transaction.objects.get(id=self.request.data['id'])
             transaction.delete()
+            return Response(status=status.HTTP_200_OK)
+        if self.request.data['action'] == "edit":
+            transaction = models.Transaction.objects.get(id=self.request.data['id'])
+            transaction.desc = self.request.data['desc']
+            transaction.date_time = self.request.data['date']
+            transaction.save()
+            for tag in self.request.data['preset']['tags']:
+                tagElement = models.Tag.objects.get(id=tag['id'])
+                if tag['isChecked']:
+                    if models.TransactionTag.objects.filter(transaction=transaction, tag=tagElement).count() == 0:
+                        transactionTag = models.TransactionTag.objects.create(transaction=transaction, tag=tagElement)
+                        transactionTag.save()
+                else:
+                    if models.TransactionTag.objects.filter(transaction=transaction, tag=tagElement).count() != 0:
+                        transactionTag = models.TransactionTag.objects.get(transaction=transaction, tag=tagElement)
+                        transactionTag.delete()
+            for acc in self.request.data['preset']['accounts']:
+                accountElement = models.Account.objects.get(id=acc['id'])
+                if acc['isUsed']:
+                    if models.Subtransaction.objects.filter(transaction=transaction,
+                                                            account=accountElement).count() == 0:
+                        subtransaction = models.Subtransaction.objects.create(transaction=transaction,
+                                                                              account=accountElement,
+                                                                              amount=(acc['amount'] * 100))
+                        subtransaction.save()
+                    else:
+                        if models.Subtransaction.objects.filter(transaction=transaction,
+                                                                account=accountElement,
+                                                                amount=(acc['amount'] * 100)).count() == 0:
+                            subtransaction = models.Subtransaction.objects.get(transaction=transaction,
+                                                                               account=accountElement)
+                            subtransaction.amount = (acc['amount'] * 100)
+                            subtransaction.save()
+                else:
+                    if models.Subtransaction.objects.filter(transaction=transaction,
+                                                            account=accountElement).count() != 0:
+                        subtransaction = models.Subtransaction.objects.get(transaction=transaction,
+                                                                           account=accountElement)
+                        subtransaction.delete()
+
             return Response(status=status.HTTP_200_OK)
 
 class PresetView(generics.ListCreateAPIView):
