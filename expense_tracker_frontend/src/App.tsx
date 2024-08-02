@@ -22,6 +22,7 @@ import {TransactionCreate} from "./components/Transactions/TransactionCreate.tsx
 import {Transaction} from "./components/Transactions/Transaction.tsx";
 import {TransactionDelete} from "./components/Transactions/TransactionDelete.tsx";
 import {TransactionEdit} from "./components/Transactions/TransactionEdit.tsx";
+import {AccountSync} from "./components/Accounts/AccountSync.tsx";
 
 
 
@@ -40,6 +41,7 @@ function App() {
                 <Route path="accounts/:id" element={<Account />}></Route>
                 <Route path="accounts/:id/delete" element={<AccountDelete />}></Route>
                 <Route path="accounts/:id/edit" element={<AccountEdit />}></Route>
+                <Route path="accounts/:id/sync" element={<AccountSync />}></Route>
                 {/*Tag routes*/}
                 <Route path="tags" element={<Tags />}></Route>
                 <Route path="tags/add" element={<TagCreate />}></Route>

@@ -256,7 +256,7 @@ class SubtransactionView(generics.ListAPIView):
             queryset = queryset.filter(transaction__date_time__gte=date_gte)
         return queryset
 
-class AccountSyncEventView(generics.ListAPIView):
+class AccountSyncEventView(generics.ListCreateAPIView):
     queryset = models.AccountSyncEvent.objects.all()
     serializer_class = serializers.AccountSyncEventSerializer
     def get_queryset(self):
@@ -265,6 +265,23 @@ class AccountSyncEventView(generics.ListAPIView):
         if subtransaction is not None:
             queryset = queryset.filter(subtransaction=subtransaction)
         return queryset
+    def post(self, request, *args, **kwargs):
+        account = models.Account.objects.get(id=self.request.data['id'])
+        transaction = models.Transaction.objects.create(date_time=self.request.data['date'], user=self.request.user)
+        cache_queryset = models.AccountBalanceCache.objects.filter(date__lte=self.request.data['dateYear'], account=account)
+        if cache_queryset.count() == 0:
+            sum = 0
+            subs_queryset = models.Subtransaction.objects.filter(account=account, transaction__date_time__lte=self.request.data['date'])
+
+        else:
+            sum = (cache_queryset.last()).balance
+            subs_queryset = models.Subtransaction.objects.filter(account=account, transaction__date_time__gt=(cache_queryset.last()).date, transaction__date_time__lte=self.request.data['date'])
+        for sub in subs_queryset:
+            sum = sum + sub.amount
+        sumDif = self.request.data['balance']-sum
+        subtransaction = models.Subtransaction.objects.create(transaction=transaction, account=account, amount=sumDif)
+        acc_sync = models.AccountSyncEvent.objects.create(account=account, balance=self.request.data['balance'], subtransaction=subtransaction)
+        return Response(status=status.HTTP_201_CREATED)
 
 class AccountBalanceCacheView(generics.ListAPIView):
     queryset = models.AccountBalanceCache.objects.all()
