@@ -13,6 +13,9 @@ export const TagCreate = observer(function TagCreate() {
     axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
     const [name, setName] = useState('');
     const [desc, setDesc] = useState('');
+    if(Auth.getToken() === '') {
+        navigate('/login');
+    }
     let bodyParameters = {
         'Name': ``,
         'Description': ``,

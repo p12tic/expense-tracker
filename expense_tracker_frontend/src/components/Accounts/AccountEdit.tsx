@@ -17,6 +17,9 @@ export const AccountEdit = observer(function AccountEdit() {
     const navigate = useNavigate();
     const {id} = useParams();
     axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
+    if(Auth.getToken() === '') {
+        navigate('/login');
+    }
     const [name, setName] = useState('');
     const [desc, setDesc] = useState('');
     useEffect(() => {

@@ -30,7 +30,7 @@ export const AccountSync = observer(function AccountSync() {
     const navigate = useNavigate();
     const {id} = useParams();
     if(Auth.getToken() === '') {
-        navigate('/accounts');
+        navigate('/login');
     }
     axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
     useEffect(() => {

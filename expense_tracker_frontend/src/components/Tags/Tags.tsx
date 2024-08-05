@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import axios from "axios";
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import {Navbar} from "../Navbar.tsx";
 import {TableButton} from "../TableButton.tsx";
 import {useToken} from "../Auth/AuthContext.tsx";
@@ -16,6 +16,11 @@ export const Tags = observer(function Tags() {
     const Auth = useToken();
     axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
     const [state, setState] = useState<Tag[]>([]);
+    const navigate = useNavigate();
+    if(Auth.getToken() === '') {
+        navigate('/login');
+    }
+
     useEffect(() => {
         axios.get("http://localhost:8000/api/tags").then(res => {
             const data: Tag[] = res.data;

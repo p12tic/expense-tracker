@@ -17,6 +17,9 @@ export const Login = function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
+    if(Auth.getToken() !== '') {
+        navigate('/transactions');
+    }
     const submitHandler = (e) => {
         e.preventDefault();
         bodyParameters.username = username;

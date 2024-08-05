@@ -54,7 +54,9 @@ export const TransactionCreate = observer(function TransactionCreate() {
     const [presetInUse, setPresetInUse] = useState<Preset>();
     const [desc, setDesc] = useState("");
     const [date, setDate] = useState<Date>(new Date(Date.now()));
-
+    if(Auth.getToken() === '') {
+        navigate('/login');
+    }
     const intervalRef = useRef<number | null>(null);
     const timeoutRef = useRef<number | null>(null);
     const intervalRefPreset = useRef<number | null>(null);

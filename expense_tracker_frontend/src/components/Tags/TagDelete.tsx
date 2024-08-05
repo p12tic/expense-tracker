@@ -8,6 +8,11 @@ import {useState} from "react";
 export const TagDelete = observer(function TagDelete() {
     const {id} = useParams();
     const backLink: string = `/tags/${id}`;
+    const Auth = useToken();
+    const navigate = useNavigate();
+    if(Auth.getToken() === '') {
+        navigate('/login');
+    }
     return (
         <div className="container">
             <Navbar />

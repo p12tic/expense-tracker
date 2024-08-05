@@ -34,6 +34,9 @@ export const PresetCreate = observer(function PresetCreate() {
     const [transactionDesc, setTransactionDesc] = useState('');
     const intervalRef = useRef<number | null>(null);
     const timeoutRef = useRef<number | null>(null);
+    if(Auth.getToken() === '') {
+        navigate('/login');
+    }
     const handleTagClick = useCallback((clickedTag: TagElement) => {
         setTags(prevTags =>
             prevTags.map(tag =>

@@ -1,7 +1,7 @@
 import {Navbar} from "../Navbar.tsx";
 import React, {useEffect, useState} from "react";
 import axios from "axios";
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import {TableButton} from "../TableButton.tsx";
 import {formatDate, centsToString} from "../Tools.tsx";
 import {AuthData} from "../Auth/AuthData.tsx";
@@ -54,7 +54,10 @@ export const TransactionsList = observer(function TransactionsList(transactionsP
     const Auth = useToken();
     axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
     const [state, setState] = useState<Transaction[]>([]);
-    axios.defaults.headers.common = {Authorization: `Bearer ${transactionsProps.token.getToken().token}`};
+    const navigate = useNavigate();
+    if(Auth.getToken() === '') {
+        navigate('/login');
+    }
     useEffect(() => {
         const fetchTransactions = async() => {
             try {

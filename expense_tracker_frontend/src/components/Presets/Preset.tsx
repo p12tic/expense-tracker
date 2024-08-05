@@ -5,7 +5,7 @@ import {StaticField} from "../StaticField.tsx";
 import {Navbar} from "../Navbar.tsx";
 import {useToken} from "../Auth/AuthContext.tsx";
 import axios from "axios";
-import {Link, useParams} from "react-router-dom";
+import {Link, useNavigate, useParams} from "react-router-dom";
 
 interface Preset {
     id: number;
@@ -38,6 +38,10 @@ export const Preset = observer(function Preset() {
     axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
     const [state, setState] = useState<Preset>();
     const {id} = useParams();
+    const navigate = useNavigate();
+    if(Auth.getToken() === '') {
+        navigate('/login');
+    }
     useEffect(() => {
         const fetchPreset = async () => {
             const presetRes = await axios.get(`http://localhost:8000/api/presets?id=${id}`);

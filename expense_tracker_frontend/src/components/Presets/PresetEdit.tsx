@@ -42,7 +42,9 @@ export const PresetEdit = observer(function PresetEdit() {
     const Auth = useToken();
     axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
     const {id} = useParams();
-
+    if(Auth.getToken() === '') {
+        navigate('/login');
+    }
     useEffect(() => {
         const FetchPreset = async () => {
             const presetRes = await axios.get(`http://localhost:8000/api/presets?id=${id}`);

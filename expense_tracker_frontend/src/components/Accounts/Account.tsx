@@ -2,7 +2,7 @@ import {observer} from "mobx-react-lite";
 import {useToken} from "../Auth/AuthContext.tsx";
 import axios from "axios";
 import React, {useEffect, useState} from "react";
-import {Link, useParams} from "react-router-dom";
+import {Link, useNavigate, useParams} from "react-router-dom";
 import {Navbar} from "../Navbar.tsx";
 import {TableButton} from "../TableButton.tsx";
 import {StaticField} from "../StaticField.tsx";
@@ -42,7 +42,10 @@ const Auth = useToken();
     axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
     const [state, setState] = useState<AccountElement>({id:0, name:"", desc:"", user:0, subtransactions:[], balances:[]});
     const {id} = useParams();
-
+    const navigate = useNavigate();
+    if(Auth.getToken() === '') {
+        navigate('/login');
+    }
     useEffect(() => {
         const fetchTag = async() => {
 

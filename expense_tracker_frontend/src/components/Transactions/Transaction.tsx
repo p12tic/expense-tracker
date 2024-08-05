@@ -5,7 +5,7 @@ import {StaticField} from "../StaticField.tsx";
 import React, {useEffect, useState} from "react";
 import {useToken} from "../Auth/AuthContext.tsx";
 import axios from "axios";
-import {Link, useParams} from "react-router-dom";
+import {Link, useNavigate, useParams} from "react-router-dom";
 import {centsToString, formatDate} from "../Tools.tsx";
 
 interface TransactionElement {
@@ -43,6 +43,10 @@ export const Transaction = observer(function Transaction() {
     axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
     const [state, setState] = useState<TransactionElement>({desc:"", user:0, dateTime:new Date(), tags:[], subs:[]});
     const {id} = useParams();
+    const navigate = useNavigate();
+    if(Auth.getToken() === '') {
+        navigate('/login');
+    }
     useEffect(() => {
         const FetchTransaction = async() => {
             await axios.get(`http://localhost:8000/api/transactions?id=${id}`).then(async (res) => {

@@ -62,7 +62,9 @@ export const TransactionEdit = observer(function TransactionCreate() {
     const timeoutRef = useRef<number | null>(null);
     const intervalRefPreset = useRef<number | null>(null);
     const timeoutRefPreset = useRef<number | null>(null);
-
+    if(Auth.getToken() === '') {
+        navigate('/login');
+    }
     useEffect(() => {
         const FetchTransaction = async () => {
             await axios.get(`http://localhost:8000/api/transactions?id=${id}`).then(async (transactionRes) => {

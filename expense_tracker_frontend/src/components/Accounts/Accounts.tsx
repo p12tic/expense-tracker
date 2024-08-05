@@ -27,7 +27,7 @@ export const Accounts = observer(function Accounts() {
     const Auth = useToken();
     const navigate = useNavigate();
     if(Auth.getToken() === '') {
-        navigate('/accounts');
+        navigate('/login');
     }
     axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
     const [state, setState] = useState<Account[]>([]);

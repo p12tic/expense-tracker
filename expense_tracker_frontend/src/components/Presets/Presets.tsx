@@ -1,7 +1,7 @@
 import {Navbar} from "../Navbar.tsx";
 import React, {useEffect, useState} from "react";
 import axios from "axios";
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import {TableButton} from "../TableButton.tsx";
 import {useToken} from "../Auth/AuthContext.tsx";
 import {observer} from "mobx-react-lite";
@@ -32,7 +32,10 @@ export const PresetsList = observer(function PresetsList(presetsProps) {
     const Auth = useToken();
     axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
     const [state, setState] = useState<Presets[]>([]);
-
+    const navigate = useNavigate();
+    if(Auth.getToken() === '') {
+        navigate('/login');
+    }
     useEffect(() => {
         const fetchPresets = async() => {
             try {

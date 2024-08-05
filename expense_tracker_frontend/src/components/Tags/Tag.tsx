@@ -49,7 +49,10 @@ export const Tag = observer(function Tag() {
     const [state, setState] = useState<TagElement>({id:0, name:"", desc:"", user:0,
         transTag:[]});
     const {id} = useParams();
-
+    const navigate = useNavigate();
+    if(Auth.getToken() === '') {
+        navigate('/login');
+    }
     useEffect(() => {
 
         const fetchTag = async() => {
