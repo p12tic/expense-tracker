@@ -7,13 +7,13 @@ import axios from "axios";
 
 export function DefaultDelete(defaultDeleteProps) {
     const navigate = useNavigate();
-    const submitHandle = (e) => {
+    const submitHandle = async (e) => {
         e.preventDefault();
         let bodyParameters = {
             'id': defaultDeleteProps.id,
             'action': `delete`
         };
-        axios.post(`http://localhost:8000${defaultDeleteProps.deleteRequestUrl}`, bodyParameters);
+        await axios.post(`http://localhost:8000${defaultDeleteProps.deleteRequestUrl}`, bodyParameters);
         navigate(`${defaultDeleteProps.returnPoint}`);
     };
     return (

@@ -79,23 +79,31 @@ export const Accounts = observer(function Accounts() {
             </h1>
             <table className="table table-condensed">
                 <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Balance</th>
-                        <th></th>
-                    </tr>
+                    {state.length > 0 ?
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Balance</th>
+                            <th></th>
+                        </tr>
+                        :
+                        <></>
+                    }
                 </thead>
                 <tbody>
-                    {state.map((output, id) => (
-                        <tr key={id}>
-                            <td><Link to={`/accounts/${output.id}`}>{output.name}</Link></td>
-                            <td>{output.desc}</td>
-                            <td>{output.balance/100}</td>
-                            <td><Link to={`/accounts/${output.id}/sync`} role="button"
-                                      className="btn btn-xs btn-default pull-right">Sync</Link></td>
-                        </tr>
-                    ))}
+                    {state.length > 0 ?
+                        state.map((output, id) => (
+                            <tr key={id}>
+                                <td><Link to={`/accounts/${output.id}`}>{output.name}</Link></td>
+                                <td>{output.desc}</td>
+                                <td>{output.balance/100}</td>
+                                <td><Link to={`/accounts/${output.id}/sync`} role="button"
+                                          className="btn btn-xs btn-default pull-right">Sync</Link></td>
+                            </tr>
+                        ))
+                        :
+                        <tr><td>No accounts yet</td></tr>
+                    }
                 </tbody>
             </table>
         </div>

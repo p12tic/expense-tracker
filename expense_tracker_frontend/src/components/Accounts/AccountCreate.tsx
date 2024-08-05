@@ -21,11 +21,11 @@ export const AccountCreate = observer(function AccountCreate() {
         'action': `create`
     };
 
-    const submitHandler = (e) => {
+    const submitHandler = async (e) => {
         e.preventDefault();
         bodyParameters.Name = name;
         bodyParameters.Description = desc;
-        axios.post("http://localhost:8000/api/accounts", bodyParameters).catch(err => console.error(err));
+        await axios.post("http://localhost:8000/api/accounts", bodyParameters).catch(err => console.error(err));
         navigate('/accounts');
     }
     return <div className='container'>

@@ -100,30 +100,37 @@ export const Tag = observer(function Tag() {
                 <h3>Transactions</h3>
                 <table className="table table-condensed">
                     <thead>
-                        <tr>
-                            <th>Description</th>
-                            <th>Date/Time</th>
-                            <th>Actions</th>
-                        </tr>
+                        {state.transTag.length > 0 ?
+                            <tr>
+                                <th>Description</th>
+                                <th>Date/Time</th>
+                                <th>Actions</th>
+                
+                            </tr>
+                            :
+                            <></>}
                     </thead>
                     <tbody>
-                        {state.transTag.map((output, id) => (
-                            <tr key={id}>
-                                <td><Link to={`/transactions/${output.transactionElement.id}`}>{output.transactionElement.desc}</Link></td>
-                                <td>{formatDate(new Date(output.transactionElement.dateTime))}</td>
-                                <td>
-                                    {output.transactionElement.subs?(
-                                        output.transactionElement.subs.map((sub, id)=> (
-                                        <button className="btn btn-xs" style={{marginLeft: 5}} role="button"
-                                                key={id}>{sub.accountElement.name}&nbsp;{centsToString(sub.amount)}</button>)))
-                                            :
-                                        (
-                                        <></>
-                                        )
-                                    }
-                                </td>
-                            </tr>
-                        ))}
+                        {state.transTag.length > 0 ?
+                            state.transTag.map((output, id) => (
+                                <tr key={id}>
+                                    <td><Link to={`/transactions/${output.transactionElement.id}`}>{output.transactionElement.desc}</Link></td>
+                                    <td>{formatDate(new Date(output.transactionElement.dateTime))}</td>
+                                    <td>
+                                        {output.transactionElement.subs ? (
+                                            output.transactionElement.subs.map((sub, id) => (
+                                            <button className="btn btn-xs" style={{marginLeft: 5}} role="button"
+                                                    key={id}>{sub.accountElement.name}&nbsp;{centsToString(sub.amount)}</button>)))
+                                                :
+                                            (
+                                            <></>
+                                            )
+                                        }
+                                    </td>
+                                </tr>
+                            ))
+                                :
+                                <tr><td>No transactions yet</td></tr>}
                     </tbody>
                 </table>
             </>

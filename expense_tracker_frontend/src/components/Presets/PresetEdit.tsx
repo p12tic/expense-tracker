@@ -264,15 +264,27 @@ export const PresetEdit = observer(function PresetEdit() {
                 </div>
                 <div className="form-horizontal">
                     <h4>Accounts</h4>
-                    <div id="tmp-accounts">
-                        {renderAccounts}
-                    </div>
+                    {accounts.length > 0 ?
+                        <div id="tmp-accounts">
+                            {renderAccounts}
+                        </div>
+                        :
+                        <div className="alert alert-info" role="alert">
+                            No accounts have been created
+                        </div>
+                    }
                 </div>
                 <div className="form-horizontal">
                     <h4>Tags</h4>
-                    <div id="tmp-tags">
-                        {renderTags}
-                    </div>
+                    {tags.length > 0 ?
+                        <div id="tmp-tags">
+                            {renderTags}
+                        </div>
+                        :
+                        <div className="alert alert-info" role="alert">
+                            No tags have been created
+                        </div>
+                    }
                 </div>
                 <SubmitButton text="save" />
             </form>

@@ -108,44 +108,52 @@ export const TransactionsList = observer(function TransactionsList(transactionsP
             </h1>
             <table className="table table-condensed">
                 <thead>
-                    <tr>
-                        <th>Description</th>
-                        <th>Date/Time</th>
-                        <th>Actions</th>
-                        <th>Tags</th>
-                    </tr>
+                    {state.length>0 ?
+                        <tr>
+                            <th>Description</th>
+                            <th>Date/time</th>
+                            <th>Actions</th>
+                            <th>Tags</th>
+                        </tr>
+                        :
+                        <></>
+                    }
                 </thead>
                 <tbody>
-                    {state.map((output, id) => (
-                        <tr key={id}>
-                            {output.desc ? <td><Link to={`/transactions/${output.id}`}>{output.desc}</Link></td> :
-                                (
-                                    <td>
-                                        <Link to={`/sync/${output.syncEvent.id}`}>Sync event</Link>
+                    {state.length>0 ?
+                        state.map((output, id) => (
+                            <tr key={id}>
+                                {output.desc ? <td><Link to={`/transactions/${output.id}`}>{output.desc}</Link></td>
+                                    :
+                                    (<td><Link to={`/sync/${output.syncEvent.id}`}>Sync event</Link>
                                         <button className="btn btn-xs" style={{marginLeft: 5}} role="button"
                                                 key={id}>{output.syncEvent.accountElement.name}&nbsp;{output.syncEvent.balance/100}</button>
-                                    </td>
-                                )
-                            }
-                            <td>{formatDate(new Date(output.dateTime))}</td>
-                            <td>
-                                {output.subtransaction ?
-                                    output.subtransaction.map((sub:Subtransaction, id) => (
+                                    </td>)}
+
+                                <td>{formatDate(new Date(output.dateTime))}</td>
+                                <td>{output.subtransaction ?
+                                    output.subtransaction.map((sub: Subtransaction, id) => (
                                     <button className="btn btn-xs" style={{marginLeft: 5}} role="button" key={id}>{sub.accountElement.name}&nbsp;{centsToString(sub.amount)}</button>
-                                    )):
+                                ))
+                                    :
                                     <></>
                                 }
-                            </td>
-                            <td>
-                                {output.transactionTag?
-                                    output.transactionTag.map((tags:TransactionTag, id)=> (
-                                    <button className="btn btn-xs" role="button" style={{marginLeft: 5}} key={id}>{tags.tagElement.name}</button>
-                                    )):
-                                    <></>
-                                }
-                            </td>
+                                </td>
+                                <td>
+                                    {output.transactionTag ?
+                                        output.transactionTag.map((tags: TransactionTag, id) => (
+                                        <button className="btn btn-xs" role="button" style={{marginLeft: 5}} key={id}>{tags.tagElement.name}</button>
+                                    ))
+                                        :
+                                    <></>}
+                                </td>
+                            </tr>
+                        ))
+                        :
+                        <tr>
+                            <td>No transactions yet</td>
                         </tr>
-                    ))}
+                    }
                 </tbody>
             </table>
         </div>

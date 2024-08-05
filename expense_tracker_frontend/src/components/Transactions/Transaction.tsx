@@ -90,24 +90,38 @@ export const Transaction = observer(function Transaction() {
             </h1>
             <StaticField label="Date and time" content={formatDate(state?.dateTime)} />
             <h3>Tags</h3>
-            {state.tags.map((tag) => (
-                <button className="btn" role="button" style={{marginRight: 4}}>{tag.name}</button>
-            ))}
+            {state.tags.length > 0 ?
+                state.tags.map((tag) => (
+                    <button className="btn" role="button" style={{marginRight: 4}}>{tag.name}</button>
+                ))
+                :
+                <div className="alert alert-info" role="alert">
+                    No tags have been defined for this transaction
+                </div>
+            }
             <h3>Affected accounts</h3>
             <table className="table table-condensed">
                 <thead>
+                {state.subs.length > 0 ?
                     <tr>
                         <th>Account</th>
                         <th>Amount</th>
                     </tr>
+                    :
+                    <></>
+                }
                 </thead>
                 <tbody>
-                    {state.subs.map((sub: Subtransaction, id) => (
-                        <tr key={id}>
-                            <td><Link to={`/accounts/${sub.account}`}>{sub.accountName}</Link></td>
-                            <td>{centsToString(sub.amount)}</td>
-                        </tr>
-                    ))}
+                    {state.subs.length > 0 ?
+                        state.subs.map((sub: Subtransaction, id) => (
+                            <tr key={id}>
+                                <td><Link to={`/accounts/${sub.account}`}>{sub.accountName}</Link></td>
+                                <td>{centsToString(sub.amount)}</td>
+                            </tr>
+                        ))
+                        :
+                        <tr><td>This transaction does not affect any accounts</td></tr>
+                    }
                 </tbody>
             </table>
         </div>

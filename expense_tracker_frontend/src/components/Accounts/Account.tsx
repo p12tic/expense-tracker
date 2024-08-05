@@ -107,44 +107,52 @@ const Auth = useToken();
                 <h3>Transactions</h3>
                 <table className="table table-condensed">
                     <thead>
-                        <tr>
-                            <th>Description</th>
-                            <th>Date</th>
-                            <th>Amount</th>
-                            <th>Balance</th>
-                            <th></th>
-                        </tr>
+                        {state.subtransactions.length > 0 ?
+                            <tr>
+                                <th>Description</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Balance</th>
+                                <th></th>
+                            </tr>
+                            :
+                            <></>
+                        }
                     </thead>
                     <tbody>
-                        {state.subtransactions.map((sub, id) => (
-                            <tr key={id}>
-                                <td>{sub.transactionElement.desc ?
-                                    <Link to={`/transactions/${sub.transactionElement.id}`}>
-                                        {sub.transactionElement.desc}</Link>
-                                    :
-                                    <Link to={`/sync/${sub.transactionElement.syncEvent.id}`}>
-                                        Sync event</Link>}</td>
-                                <td>{formatDate(new Date(sub.transactionElement.dateTime))}</td>
-                                <td>{centsToString(sub.amount)}</td>
-                                <td>{centsToString(state.balances[state.balances.length - 1 - id])}</td>
-                                <td>
-                                    {sub.transactionElement.desc ?
-                                        <div className="dropdown pull-right">
-                                            <button className="btn-xs btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                                                <span className="caret"></span>
-                                            </button>
-                                            <ul className="dropdown-menu pull-left" role="menu">
-                                                <li role="presentation"><a role="menuitem" tabIndex={-1}
-                                                                           href={`/accounts/${state.id}/sync?after_tr=${sub.transactionElement.id}`}>Sync
-                                                    after</a></li>
-                                            </ul>
-                                        </div>
+                        {state.subtransactions.length > 0 ?
+                            state.subtransactions.map((sub, id) => (
+                                <tr key={id}>
+                                    <td>{sub.transactionElement.desc ?
+                                        <Link to={`/transactions/${sub.transactionElement.id}`}>
+                                            {sub.transactionElement.desc}</Link>
                                         :
-                                        <></>
-                                    }
-                                </td>
-                            </tr>
-                        ))}
+                                        <Link to={`/sync/${sub.transactionElement.syncEvent.id}`}>
+                                            Sync event</Link>}</td>
+                                    <td>{formatDate(new Date(sub.transactionElement.dateTime))}</td>
+                                    <td>{centsToString(sub.amount)}</td>
+                                    <td>{centsToString(state.balances[state.balances.length - 1 - id])}</td>
+                                    <td>
+                                        {sub.transactionElement.desc ?
+                                            <div className="dropdown pull-right">
+                                                <button className="btn-xs btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                                                    <span className="caret"></span>
+                                                </button>
+                                                <ul className="dropdown-menu pull-left" role="menu">
+                                                    <li role="presentation"><a role="menuitem" tabIndex={-1}
+                                                                               href={`/accounts/${state.id}/sync?after_tr=${sub.transactionElement.id}`}>Sync
+                                                        after</a></li>
+                                                </ul>
+                                            </div>
+                                            :
+                                            <></>
+                                        }
+                                    </td>
+                                </tr>
+                            ))
+                            :
+                            <tr><td>No transactions yet</td></tr>
+                        }
                     </tbody>
                 </table>
             </>

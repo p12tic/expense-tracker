@@ -80,30 +80,42 @@ export const PresetsList = observer(function PresetsList(presetsProps) {
             </h1>
             <table className="table table-condensed">
                 <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Accounts</th>
-                        <th>Tags</th>
-                    </tr>
+                    {state.length > 0 ?
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Accounts</th>
+                            <th>Tags</th>
+                        </tr>
+                        :
+                        <></>
+                    }
                 </thead>
                 <tbody>
-                    {state.map((output, id) => (
-                    <tr key={id}>
-                        <td><Link to={`/presets/${output.id}`}>{output.name}</Link></td>
-                        <td>{output.desc}</td>
-                        <td>
-                            {output.presetSubs.map((presetSub) => (
-                                <button className="btn btn-xs" style={{marginLeft: 5}} role="button">{presetSub.accountName}&nbsp;{presetSub.fraction}</button>
-                            ))}
-                        </td>
-                        <td>
-                            {output.tags.map((tag, id) => (
-                                <button key={id} style={{marginLeft: 5}} className="btn btn-xs" role="button">{tag}</button>
-                            ))}
-                        </td>
-                    </tr>
-        ))}
+                    {state.length > 0 ?
+                        state.map((output, id) => (
+                            <tr key={id}>
+
+                                <td><Link to={`/presets/${output.id}`}>{output.name}</Link></td>
+
+                                <td>{output.desc}</td>
+                                <td>
+                                    {output.presetSubs.map((presetSub) => (
+                                        <button className="btn btn-xs" style={{marginLeft: 5}}
+                                                role="button">{presetSub.accountName}&nbsp;{presetSub.fraction}</button>
+                                    ))}
+                                </td>
+                                <td>
+                                    {output.tags.map((tag, id) => (
+                                        <button key={id} style={{marginLeft: 5}} className="btn btn-xs" role="button">{tag}</button>
+                                    ))}
+                                </td>
+
+                            </tr>
+                        ))
+                        :
+                        <tr><td>No presets yet</td></tr>
+                    }
                 </tbody>
             </table>
         </div>

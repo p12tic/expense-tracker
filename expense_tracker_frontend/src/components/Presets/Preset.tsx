@@ -31,12 +31,20 @@ interface PresetTransactionTag {
     tag: string;
     tagName: string;
 }
-
+const defaultPreset: Preset = {
+    id: 0,
+    name: "",
+    desc: "",
+    transactionDesc: "",
+    user: "",
+    presetSubs: [],
+    presetTransTags: []
+};
 export const Preset = observer(function Preset() {
 
     const Auth = useToken();
     axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
-    const [state, setState] = useState<Preset>();
+    const [state, setState] = useState<Preset>(defaultPreset);
     const {id} = useParams();
     const navigate = useNavigate();
     if(Auth.getToken() === '') {
@@ -84,24 +92,38 @@ export const Preset = observer(function Preset() {
             <h3>Transaction template</h3>
             <table className="table table-condensed">
                 <thead>
-                    <tr>
-                        <th>Affected account</th>
-                        <th>Fraction</th>
-                    </tr>
+                    {state?.presetSubs.length > 0 ?
+                        <tr>
+                            <th>Affected account</th>
+                            <th>Fraction</th>
+                        </tr>
+                        :
+                        <></>
+                    }
                 </thead>
                 <tbody>
-                    {state?.presetSubs.map((presetSub, id) => (
-                        <tr key={id}>
-                            <td><Link to={`/accounts/${presetSub.account}`}>{presetSub.accountName}</Link></td>
-                            <td>{presetSub.fraction.toFixed(3)}</td>
-                        </tr>
-                    ))}
+                    {state?.presetSubs.length > 0 ?
+                        state?.presetSubs.map((presetSub, id) => (
+                            <tr key={id}>
+                                <td><Link to={`/accounts/${presetSub.account}`}>{presetSub.accountName}</Link></td>
+                                <td>{presetSub.fraction.toFixed(3)}</td>
+                            </tr>
+                        ))
+                        :
+                        <tr><td>No accounts defined</td></tr>
+                    }
                 </tbody>
             </table>
             <h4>Tags</h4>
-            {state?.presetTransTags.map((presetTransTag) => (
-                <button className="btn btn-xs" style={{marginRight: 5}} role="button">{presetTransTag.tagName}</button>
-            ))}
+            {state?.presetTransTags.length > 0 ?
+                state?.presetTransTags.map((presetTransTag) => (
+                    <button className="btn btn-xs" style={{marginRight: 5}} role="button">{presetTransTag.tagName}</button>
+                ))
+                :
+                <div className="alert alert-info" role="alert">
+                    No tags have been defined for this preset
+                </div>
+            }
         </div>
     )
 })

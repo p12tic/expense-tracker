@@ -22,11 +22,11 @@ export const TagCreate = observer(function TagCreate() {
         'action': 'create'
     };
 
-    const submitHandler = (e) => {
+    const submitHandler = async (e) => {
         e.preventDefault();
         bodyParameters.Name = name;
         bodyParameters.Description = desc;
-        axios.post("http://localhost:8000/api/tags", bodyParameters).catch(err => console.error(err));
+        await axios.post("http://localhost:8000/api/tags", bodyParameters).catch(err => console.error(err));
         navigate('/tags');
     }
     return <div className='container'>

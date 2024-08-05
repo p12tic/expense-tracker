@@ -37,18 +37,28 @@ export const Tags = observer(function Tags() {
             </h1>
             <table className="table table-condensed">
                 <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Description</th>
-                    </tr>
+                    {state.length > 0 ?
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                        </tr>
+                        :
+                        <></>
+                    }
                 </thead>
                 <tbody>
-                    {state.map((output, id) => (
-                        <tr key={id}>
-                            <td><Link to={`/tags/${output.id}`}>{output.name}</Link></td>
-                            <td>{output.desc}</td>
+                    {state.length > 0 ?
+                        state.map((output, id) => (
+                            <tr key={id}>
+                                <td><Link to={`/tags/${output.id}`}>{output.name}</Link></td>
+                                <td>{output.desc}</td>
+                            </tr>
+                        ))
+                        :
+                        <tr>
+                            <td>No tags yet</td>
                         </tr>
-                    ))}
+                    }
                 </tbody>
             </table>
         </div>

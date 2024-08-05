@@ -48,13 +48,22 @@ interface PresetTransactionTag {
     preset: number;
     tag: number;
 }
-
+const defaultPreset: Preset = {
+    id: 0,
+    name: "",
+    desc: "",
+    transactionDesc: "",
+    user: "",
+    amount: "0",
+    accounts: [],
+    tags: []
+};
 export const TransactionEdit = observer(function TransactionCreate() {
     const Auth = useToken();
     const navigate = useNavigate();
     axios.defaults.headers.common = { Authorization: `Token ${Auth.getToken()}` };
     const [presets, setPresets] = useState<Preset[]>([]);
-    const [presetInUse, setPresetInUse] = useState<Preset>();
+    const [presetInUse, setPresetInUse] = useState<Preset>(defaultPreset);
     const [desc, setDesc] = useState("");
     const [date, setDate] = useState<Date>(new Date(Date.now()));
     const {id} = useParams()
@@ -370,6 +379,7 @@ const handlePresetAmountChange = (e) => {
             <Navbar />
             <form action="" method="post" onSubmit={handleSubmit}>
                 <h1>Update transaction</h1>
+                {presets.length > 0 ?
                 <div id="tmp-presets" className="panel panel-default">
                     <div className="panel-body">
                         <a className="btn btn-default" data-toggle="collapse" data-target="#view-presets"><b>Import
@@ -427,6 +437,11 @@ const handlePresetAmountChange = (e) => {
                         </div>
                     </div>
                 </div>
+                :
+                <div className="alert alert-info" role="alert">
+                    No presets have been created
+                </div>
+                }
                 <div className="form-horizontal">
                     <div className="form-group">
                         <label className="col-xs-4 col-sm-2 control-label" htmlFor="id_description">Description</label>
@@ -448,15 +463,27 @@ const handlePresetAmountChange = (e) => {
                 </div>
                 <div className="form-horizontal">
                     <h4>Accounts</h4>
-                    <div id="tmp-accounts">
-                        {renderAccounts}
-                    </div>
+                    {presetInUse.accounts.length > 0 ?
+                        <div id="tmp-accounts">
+                            {renderAccounts}
+                        </div>
+                        :
+                        <div className="alert alert-info" role="alert">
+                            No accounts have been created
+                        </div>
+                    }
                 </div>
                 <div className="form-horizontal">
                     <h4>Tags</h4>
-                    <div id="tmp-tags">
-                        {renderTags}
-                    </div>
+                    {presetInUse.tags.length > 0 ?
+                        <div id="tmp-tags">
+                            {renderTags}
+                        </div>
+                        :
+                        <div className="alert alert-info" role="alert">
+                            No tags have been created
+                        </div>
+                    }
 
                 </div>
                 <SubmitButton text="Save" />
