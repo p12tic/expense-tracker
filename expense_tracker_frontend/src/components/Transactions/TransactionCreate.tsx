@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {SubmitButton} from "../SubmitButton.tsx";
+import {formatDateTimeForInput} from "../Tools.tsx"
 
 
 interface Preset {
@@ -434,7 +435,7 @@ const handlePresetAmountChange = (e) => {
                         <label className="col-xs-4 col-sm-2 control-label" htmlFor="id_Date">Date and time</label>
                         <div className="col-xs-8 col-sm-10">
                             <input type="datetime-local" className={"form-control"} name="date"
-                                   value={date.toISOString().slice(0, 16)}
+                                   value={formatDateTimeForInput(date)}
                                    key="id_date" required={true}
                                    onChange={(e) => setDate(new Date(e.target.value))}/>
                         </div>

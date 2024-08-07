@@ -32,3 +32,16 @@ export function centsToString(value) {
     }
     // don't use floating-point numbers here due to potential rounding
 }
+
+export function formatDateTimeForInput(date) {
+    const pad = (num) => (num < 10 ? '0' : '') + num;
+
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+    const seconds = pad(date.getSeconds());
+
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+}
