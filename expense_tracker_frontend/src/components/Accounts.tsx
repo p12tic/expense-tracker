@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Link} from "react-router-dom";
 
 interface Account {
@@ -11,13 +11,12 @@ interface Account {
 export function Accounts() {
     const [state, setState] = useState<Account[]>([]);
 
-
-    let data;
-
-    axios.get("http://localhost:8000/api/accounts").then(res => {
-        data = res.data;
-        setState(data);
-    }).catch(() => {});
+    useEffect(() => {
+        axios.get("http://localhost:8000/api/accounts").then(res => {
+            const data: Account[] = res.data;
+            setState(data);
+        }).catch(err => {console.error(err)});
+    }, []);
     return (
         <>
             <div>
