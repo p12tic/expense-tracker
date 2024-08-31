@@ -20,7 +20,7 @@ class AccountView(generics.ListCreateAPIView):
         account.save()
         return Response(status=status.HTTP_201_CREATED)
 
-class TagView(generics.ListAPIView):
+class TagView(generics.ListCreateAPIView):
     queryset = models.Tag.objects.all()
     serializer_class = serializers.TagSerializer
 
@@ -31,6 +31,12 @@ class TagView(generics.ListAPIView):
         if id is not None:
             queryset = queryset.filter(id=id)
         return queryset
+
+    def post(self, request, *args, **kwargs):
+        self.request.data['user'] = self.request.user.id
+        tag = models.Tag.objects.create(name=self.request.data['Name'], desc=self.request.data['Description'], user=self.request.user)
+        tag.save()
+        return Response(status=status.HTTP_201_CREATED)
 
 class TransactionView(generics.ListAPIView):
     queryset = models.Transaction.objects.all()
