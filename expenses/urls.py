@@ -58,4 +58,8 @@ urlpatterns = [
     path('api/tags', api_views.TagView.as_view()),
     path('api/transactions', api_views.TransactionView.as_view()),
     path('api/presets', api_views.PresetView.as_view()),
+    path('api/transaction_tags', api_views.TransactionTagsView.as_view()),
+    path('api/subtransactions', api_views.SubtransactionView.as_view()),
+    path('api/account_sync_event', api_views.AccountSyncEventView.as_view()),
+    path('api/account_balance_cache', api_views.AccountBalanceCacheView.as_view()),
 ]
