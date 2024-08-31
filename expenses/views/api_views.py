@@ -14,3 +14,10 @@ class TagView(generics.ListAPIView):
     def get_queryset(self):
         queryset = super().get_queryset()
         return queryset
+
+class TransactionView(generics.ListAPIView):
+    queryset = models.Transaction.objects.all()
+    serializer_class = serializers.TransactionSerializer
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset

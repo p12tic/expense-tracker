@@ -56,4 +56,5 @@ urlpatterns = [
     #api views
     path('api/accounts', api_views.AccountView.as_view()),
     path('api/tags', api_views.TagView.as_view()),
+    path('api/transactions', api_views.TransactionView.as_view()),
 ]
