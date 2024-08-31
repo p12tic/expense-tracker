@@ -3,7 +3,7 @@ import React, {useEffect, useState} from "react";
 import axios from "axios";
 import {Link} from "react-router-dom";
 import {TableButton} from "./TableButton.tsx";
-import {formatDate} from "./Tools.tsx";
+import {formatDate, centsToString} from "./Tools.tsx";
 import {AuthData} from "./AuthData.tsx";
 import {observer} from "mobx-react-lite";
 import {useToken} from "./AuthContext.tsx";
@@ -128,7 +128,7 @@ export const TransactionsList = observer(function TransactionsList(transactionsP
                             <td>
                                 {output.subtransaction ?
                                     output.subtransaction.map((sub:Subtransaction, id) => (
-                                    <button className="btn btn-xs" style={{marginLeft: 5}} role="button" key={id}>{sub.accountElement.name}&nbsp;{sub.amount/100}</button>
+                                    <button className="btn btn-xs" style={{marginLeft: 5}} role="button" key={id}>{sub.accountElement.name}&nbsp;{centsToString(sub.amount)}</button>
                                     )):
                                     <></>
                                 }
