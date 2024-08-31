@@ -5,6 +5,7 @@ import './components/common.css';
 import {TransactionsList} from "./components/Transactions.tsx";
 import {PresetsList} from "./components/Presets.tsx";
 import {Login} from "./components/Login.tsx";
+import {UserEdit} from "./components/UserEdit.tsx";
 
 
 
@@ -22,6 +23,7 @@ function App() {
                 <Route path="transactions" element={<TransactionsList />}></Route>
                 <Route path="presets" element={<PresetsList />}></Route>
                 <Route path="login" element={<Login />}></Route>
+                <Route path="user/edit" element={<UserEdit />}></Route>
             </Routes>
         </BrowserRouter>
     )
