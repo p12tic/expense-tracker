@@ -3,6 +3,8 @@ import React, {useEffect, useState} from "react";
 import axios from "axios";
 import {Link} from "react-router-dom";
 import {TableButton} from "./TableButton.tsx";
+import {useToken} from "./AuthContext.tsx";
+import {observer} from "mobx-react-lite";
 
 interface Presets {
     id: number;
@@ -26,7 +28,9 @@ interface PresetTransactionTag {
     tag: string;
 }
 
-export function PresetsList(presetsProps) {
+export const PresetsList = observer(function PresetsList(presetsProps) {
+    const Auth = useToken();
+    axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
     const [state, setState] = useState<Presets[]>([]);
 
     useEffect(() => {
@@ -101,4 +105,4 @@ export function PresetsList(presetsProps) {
             </table>
         </div>
     )
-}
+})

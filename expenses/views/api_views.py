@@ -1,11 +1,17 @@
+from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
+from rest_framework.response import Response
+
 from .. import models, serializers
-from rest_framework import generics
+from rest_framework import generics, authentication, status
+
 
 class AccountView(generics.ListAPIView):
     queryset = models.Account.objects.all()
     serializer_class = serializers.AccountSerializer
     def get_queryset(self):
         queryset = super().get_queryset()
+        queryset = queryset.filter(user=self.request.user)
         return queryset
 
 class TagView(generics.ListAPIView):
@@ -14,6 +20,7 @@ class TagView(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        queryset = queryset.filter(user=self.request.user)
         id = self.request.query_params.get('id')
         if id is not None:
             queryset = queryset.filter(id=id)
@@ -22,8 +29,10 @@ class TagView(generics.ListAPIView):
 class TransactionView(generics.ListAPIView):
     queryset = models.Transaction.objects.all()
     serializer_class = serializers.TransactionSerializer
+    authentication_classes = (authentication.TokenAuthentication, authentication.SessionAuthentication)
     def get_queryset(self):
         queryset = super().get_queryset()
+        queryset = queryset.filter(user=self.request.user)
         queryset = queryset.order_by('-date_time')
         return queryset
 
@@ -32,6 +41,7 @@ class PresetView(generics.ListAPIView):
     serializer_class = serializers.PresetSerializer
     def get_queryset(self):
         queryset = super().get_queryset()
+        queryset = queryset.filter(user=self.request.user)
         id = self.request.query_params.get("id")
         if id is not None:
             queryset = queryset.filter(id=id)
@@ -103,4 +113,10 @@ class PresetTransactionTagView(generics.ListAPIView):
         preset = self.request.query_params.get('preset')
         if preset is not None:
             queryset = queryset.filter(preset=preset)
+        return queryset
+
+class TokenView(generics.ListAPIView):
+    serializer_class = serializers.TokenSerializer
+    def get_queryset(self):
+        queryset = User.objects.all().filter(username=self.request.user)
         return queryset

@@ -1,9 +1,11 @@
 import axios from "axios";
 import React, {useEffect, useState} from "react";
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import {Navbar} from "./Navbar.tsx";
 import './common.css';
 import {TableButton} from "./TableButton.tsx";
+import {useToken} from "./AuthContext.tsx";
+import {observer} from "mobx-react-lite";
 import {formatDate} from "./Tools.tsx";
 
 interface Account {
@@ -21,7 +23,13 @@ interface Subtransaction {
     transaction: string;
     account: string;
 }
-export function Accounts() {
+export const Accounts = observer(function Accounts() {
+    const Auth = useToken();
+    const navigate = useNavigate();
+    if(Auth.getToken() === '') {
+        navigate('/accounts');
+    }
+    axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
     const [state, setState] = useState<Account[]>([]);
 
     useEffect(() => {
@@ -90,4 +98,4 @@ export function Accounts() {
             </table>
         </div>
     );
-}
+})

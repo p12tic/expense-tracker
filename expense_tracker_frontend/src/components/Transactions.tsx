@@ -5,6 +5,8 @@ import {Link} from "react-router-dom";
 import {TableButton} from "./TableButton.tsx";
 import {formatDate} from "./Tools.tsx";
 import {AuthData} from "./AuthData.tsx";
+import {observer} from "mobx-react-lite";
+import {useToken} from "./AuthContext.tsx";
 
 interface Transaction {
     id: number;
@@ -48,7 +50,9 @@ interface Account {
     user: string;
 }
 
-export function TransactionsList(transactionsProps) {
+export const TransactionsList = observer(function TransactionsList(transactionsProps) {
+    const Auth = useToken();
+    axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
     const [state, setState] = useState<Transaction[]>([]);
     axios.defaults.headers.common = {Authorization: `Bearer ${transactionsProps.token.getToken().token}`};
     useEffect(() => {
@@ -143,4 +147,4 @@ export function TransactionsList(transactionsProps) {
             </table>
         </div>
     )
-}
+})

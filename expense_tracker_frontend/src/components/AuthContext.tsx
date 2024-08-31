@@ -7,9 +7,9 @@ const AuthContext = React.createContext<AuthData>(authData);
 
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  return <AuthContext.Provider value={AuthData}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={authData}>{children}</AuthContext.Provider>;
 }
 
-export function useStore() {
+export function useToken() {
   return React.useContext(AuthContext);
 }

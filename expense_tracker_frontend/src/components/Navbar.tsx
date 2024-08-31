@@ -1,11 +1,20 @@
-import React from "react";
+import React, {useState} from "react";
 import './common.css';
 import '../../../expenses/static/libs/bootstrap-3.3.5/css/bootstrap.min.css';
 import '../../../expenses/static/libs/bootstrap-datepicker/bootstrap-datetimepicker.min.css';
 import '../../../expenses/static/libs/bootstrap-touchspin/jquery.bootstrap-touchspin.min.css';
 import '../../../expenses/static/expenses/common.css';
+import {observer} from "mobx-react-lite";
+import {useToken} from "./AuthContext.tsx";
+import axios from "axios";
 
-export function Navbar() {
+export const Navbar = observer(function Navbar() {
+    const Auth = useToken();
+    const [username, setUsername] = useState('');
+    axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
+    axios.get("http://localhost:8000/api/token").then(res => {
+        setUsername(res.data[0].username);
+    });
     return (
         <>
             <nav className="navbar navbar-default">
@@ -23,7 +32,11 @@ export function Navbar() {
                     <div id="navbar" className="navbar-collapse collapse">
                         <ul className="nav navbar-nav">
                             <li className="navbar-right">
-                                <a href="/user/login">Not authenticated</a>
+                                {Auth.getToken() === '' ?
+                                    <a href="/user/login">Not authenticated</a>
+                                    :
+                                    <a href="/user/edit">Logged in as {username}</a>
+                                }
                             </li>
                             <li className="active"><a href="/transactions">Transactions</a></li>
                             <li><a href="/accounts">Accounts</a></li>
@@ -43,4 +56,4 @@ export function Navbar() {
             </nav>
         </>
     )
-}
+})

@@ -3,6 +3,8 @@ import axios from "axios";
 import {Link} from "react-router-dom";
 import {Navbar} from "./Navbar.tsx";
 import {TableButton} from "./TableButton.tsx";
+import {useToken} from "./AuthContext.tsx";
+import {observer} from "mobx-react-lite";
 
 interface Tag {
     id: number;
@@ -10,7 +12,9 @@ interface Tag {
     desc: string;
     user: string;
 }
-export function Tags() {
+export const Tags = observer(function Tags() {
+    const Auth = useToken();
+    axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
     const [state, setState] = useState<Tag[]>([]);
     useEffect(() => {
         axios.get("http://localhost:8000/api/tags").then(res => {
@@ -45,4 +49,4 @@ export function Tags() {
         </div>
     )
 }
-
+)

@@ -66,4 +66,5 @@ urlpatterns = [
     path('api/preset_subtransactions', api_views.PresetSubtransactionView.as_view()),
     path('api/preset_transaction_tags', api_views.PresetTransactionTagView.as_view()),
     path('api/api-token-auth/', views.obtain_auth_token),
+    path('api/token', api_views.TokenView.as_view()),
 ]
