@@ -43,11 +43,13 @@ export const Accounts = observer(function Accounts() {
                 const cache = await Promise.all(data.map(async (account) => {
                     const balanceRes = await axios.get(`http://localhost:8000/api/account_balance_cache?account=${account.id}`);
                     let sum: number;
-                    if (balanceRes.data) {
+                    if (balanceRes.data.length > 0) {
                         account.lastCacheBalance = balanceRes.data[balanceRes.data.length - 1].balance;
                         account.lastCacheDate = new Date(balanceRes.data[balanceRes.data.length - 1].date);
                         sum = account.lastCacheBalance;
                     } else {
+                        account.lastCacheBalance = 0;
+                        account.lastCacheDate = new Date(99999999);
                         sum = 0;
                     }
                     const subRes = await axios.get(`http://localhost:8000/api/subtransactions?account=${account.id}&date_gte=${formatDate(account.lastCacheDate)}`);

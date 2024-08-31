@@ -93,6 +93,8 @@ class AccountBalanceCacheView(generics.ListAPIView):
     serializer_class = serializers.AccountBalanceCacheSerializer
     def get_queryset(self):
         queryset = super().get_queryset()
+        account = self.request.query_params.get('account')
+        queryset = queryset.filter(account=account)
         return queryset
 
 class PresetSubtransactionView(generics.ListAPIView):
