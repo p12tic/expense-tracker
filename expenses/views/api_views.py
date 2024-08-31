@@ -21,3 +21,10 @@ class TransactionView(generics.ListAPIView):
     def get_queryset(self):
         queryset = super().get_queryset()
         return queryset
+
+class PresetView(generics.ListAPIView):
+    queryset = models.Preset.objects.all()
+    serializer_class = serializers.PresetSerializer
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset

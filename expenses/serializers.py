@@ -15,3 +15,8 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Transaction
         fields = '__all__'
+
+class PresetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Preset
+        fields = '__all__'
