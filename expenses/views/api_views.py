@@ -6,13 +6,19 @@ from .. import models, serializers
 from rest_framework import generics, authentication, status
 
 
-class AccountView(generics.ListAPIView):
+class AccountView(generics.ListCreateAPIView):
     queryset = models.Account.objects.all()
     serializer_class = serializers.AccountSerializer
     def get_queryset(self):
         queryset = super().get_queryset()
         queryset = queryset.filter(user=self.request.user)
         return queryset
+
+    def post(self, request, *args, **kwargs):
+        self.request.data['user'] = self.request.user.id
+        account = models.Account.objects.create(name=self.request.data['Name'], desc=self.request.data['Description'], user=self.request.user)
+        account.save()
+        return Response(status=status.HTTP_201_CREATED)
 
 class TagView(generics.ListAPIView):
     queryset = models.Tag.objects.all()

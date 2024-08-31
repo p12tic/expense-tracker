@@ -6,6 +6,7 @@ import {TransactionsList} from "./components/Transactions.tsx";
 import {PresetsList} from "./components/Presets.tsx";
 import {Login} from "./components/Login.tsx";
 import {UserEdit} from "./components/UserEdit.tsx";
+import {AccountCreate} from "./components/AccountCreate.tsx";
 
 
 
@@ -24,6 +25,7 @@ function App() {
                 <Route path="presets" element={<PresetsList />}></Route>
                 <Route path="login" element={<Login />}></Route>
                 <Route path="user/edit" element={<UserEdit />}></Route>
+                <Route path="accounts/add" element={<AccountCreate />}></Route>
             </Routes>
         </BrowserRouter>
     )
