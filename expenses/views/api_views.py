@@ -39,13 +39,15 @@ class TagView(generics.ListCreateAPIView):
         return Response(status=status.HTTP_201_CREATED)
 
 class TransactionView(generics.ListAPIView):
-    queryset = models.Transaction.objects.all()
+    queryset = models.Transaction.objects.all().order_by('-date_time')
     serializer_class = serializers.TransactionSerializer
     authentication_classes = (authentication.TokenAuthentication, authentication.SessionAuthentication)
     def get_queryset(self):
         queryset = super().get_queryset()
         queryset = queryset.filter(user=self.request.user)
-        queryset = queryset.order_by('-date_time')
+        id = self.request.query_params.get("id")
+        if id is not None:
+            queryset = queryset.filter(id=id)
         return queryset
 
 class PresetView(generics.ListAPIView):
@@ -57,6 +59,9 @@ class PresetView(generics.ListAPIView):
         id = self.request.query_params.get("id")
         if id is not None:
             queryset = queryset.filter(id=id)
+        tag = self.request.query_params.get('tag')
+        if tag is not None:
+            queryset = queryset.filter(tag=tag)
         return queryset
 
 class TransactionTagsView(generics.ListAPIView):
@@ -68,6 +73,9 @@ class TransactionTagsView(generics.ListAPIView):
         transaction = self.request.query_params.get('transaction')
         if transaction is not None:
             queryset = queryset.filter(transaction=transaction)
+        tag = self.request.query_params.get('tag')
+        if tag is not None:
+            queryset = queryset.filter(tag=tag)
         return queryset
 
 class SubtransactionView(generics.ListAPIView):

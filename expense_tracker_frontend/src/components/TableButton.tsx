@@ -7,9 +7,10 @@ import {Link} from 'react-router-dom';
 interface TableButtonProps {
     dest: string;
     name: string;
+    class?:string;
 }
 export const TableButton = function TableButton (tableButtonProps: TableButtonProps) {
-    return <div className='btn-group'>
-        <Link to={tableButtonProps.dest} className="btn btn-primary text-right">{tableButtonProps.name}</Link>
+    return <div className='btn-group' style={{marginLeft:10}}>
+        <Link to={tableButtonProps.dest} className={`btn btn-primary text-right ${tableButtonProps.class ? tableButtonProps.class : ``}`}>{tableButtonProps.name}</Link>
     </div>
 }

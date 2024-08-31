@@ -8,6 +8,7 @@ import {Login} from "./components/Login.tsx";
 import {UserEdit} from "./components/UserEdit.tsx";
 import {TagCreate} from "./components/TagCreate.tsx";
 import {AccountCreate} from "./components/AccountCreate.tsx";
+import {Tag} from "./components/Tag.tsx";
 
 
 
@@ -27,6 +28,7 @@ function App() {
                 <Route path="login" element={<Login />}></Route>
                 <Route path="user/edit" element={<UserEdit />}></Route>
                 <Route path="tags/add" element={<TagCreate />}></Route>
+                <Route path="tags/:id" element={<Tag />}></Route>
                 <Route path="accounts/add" element={<AccountCreate />}></Route>
             </Routes>
         </BrowserRouter>
