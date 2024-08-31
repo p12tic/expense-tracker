@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, {useEffect, useState} from "react";
 import {Link} from "react-router-dom";
+import {Navbar} from "./Navbar.tsx";
 import './common.css';
 
 interface Account {
@@ -21,6 +22,7 @@ export function Accounts() {
     return (
         <>
             <div style={{width:'inherit'}}>
+                <Navbar />
                 <table cellSpacing={200}>
                     <tbody>
                         <tr>
