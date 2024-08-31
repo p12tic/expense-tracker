@@ -1,5 +1,6 @@
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import {Accounts} from "./components/Accounts.tsx";
+import './components/common.css';
 
 function App() {
 

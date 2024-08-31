@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, {useEffect, useState} from "react";
 import {Link} from "react-router-dom";
+import './common.css';
 
 interface Account {
     id: number;
@@ -19,7 +20,7 @@ export function Accounts() {
     }, []);
     return (
         <>
-            <div>
+            <div style={{width:'inherit'}}>
                 <table cellSpacing={200}>
                     <tbody>
                         <tr>
