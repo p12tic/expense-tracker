@@ -33,10 +33,15 @@ class TagView(generics.ListCreateAPIView):
         return queryset
 
     def post(self, request, *args, **kwargs):
-        self.request.data['user'] = self.request.user.id
-        tag = models.Tag.objects.create(name=self.request.data['Name'], desc=self.request.data['Description'], user=self.request.user)
-        tag.save()
-        return Response(status=status.HTTP_201_CREATED)
+        if self.request.data['action'] == "create":
+            self.request.data['user'] = self.request.user.id
+            tag = models.Tag.objects.create(name=self.request.data['Name'], desc=self.request.data['Description'], user=self.request.user)
+            tag.save()
+            return Response(status=status.HTTP_201_CREATED)
+        elif self.request.data['action']=="delete":
+            tag = models.Tag.objects.get(id=self.request.data['id'])
+            tag.delete()
+            return Response(status=status.HTTP_200_OK)
 
 class TransactionView(generics.ListAPIView):
     queryset = models.Transaction.objects.all().order_by('-date_time')

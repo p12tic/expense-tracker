@@ -15,7 +15,8 @@ export const TagCreate = observer(function TagCreate() {
     const [desc, setDesc] = useState('');
     let bodyParameters = {
         'Name': ``,
-        'Description': ``
+        'Description': ``,
+        'action': 'create'
     };
 
     const submitHandler = (e) => {
