@@ -1,12 +1,12 @@
 import { observer } from "mobx-react-lite";
-import {StaticField} from "./StaticField.tsx";
-import { useToken } from "./AuthContext.tsx";
+import {StaticField} from "../StaticField.tsx";
+import { useToken } from "../Auth/AuthContext.tsx";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import {Navbar} from "./Navbar.tsx";
-import {TableButton} from "./TableButton.tsx";
-import {centsToString, formatDate} from "./Tools.tsx";
+import {Navbar} from "../Navbar.tsx";
+import {TableButton} from "../TableButton.tsx";
+import {centsToString, formatDate} from "../Tools.tsx";
 
 
 interface TagElement {

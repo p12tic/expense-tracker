@@ -1,13 +1,12 @@
-import {NavbarEmpty} from "./NavbarEmpty.tsx";
-import {observer} from "mobx-react-lite";
-import {useState} from "react";
-import {useToken} from "./AuthContext.tsx";
+import {useToken} from "../Auth/AuthContext.tsx";
 import axios from "axios";
-import {Navbar} from "./Navbar.tsx";
+import {useState} from "react";
+import {Navbar} from "../Navbar.tsx";
+import {observer} from "mobx-react-lite";
 import {useNavigate} from "react-router-dom";
 
 
-export const TagCreate = observer(function TagCreate() {
+export const AccountCreate = observer(function AccountCreate() {
     const Auth = useToken();
     const navigate = useNavigate();
     axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
@@ -15,21 +14,20 @@ export const TagCreate = observer(function TagCreate() {
     const [desc, setDesc] = useState('');
     let bodyParameters = {
         'Name': ``,
-        'Description': ``,
-        'action': 'create'
+        'Description': ``
     };
 
     const submitHandler = (e) => {
         e.preventDefault();
         bodyParameters.Name = name;
         bodyParameters.Description = desc;
-        axios.post("http://localhost:8000/api/tags", bodyParameters).catch(err => console.error(err));
-        navigate('/tags');
+        axios.post("http://localhost:8000/api/accounts", bodyParameters).catch(err => console.error(err));
+        navigate('/accounts');
     }
     return <div className='container'>
         <Navbar />
-        <h1>Create new tag</h1>
-        <form method="post" id="tag-create-form" onSubmit={submitHandler}>
+        <h1>Create new account</h1>
+        <form method="post" id="account-create-form" onSubmit={submitHandler}>
             <div className="form-horizontal">
                 <div className="form-group">
                     <label className="col-xs-4 col-sm-2 control-label"

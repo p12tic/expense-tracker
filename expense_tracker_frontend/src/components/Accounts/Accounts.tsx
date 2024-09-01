@@ -1,12 +1,12 @@
 import axios from "axios";
 import React, {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
-import {Navbar} from "./Navbar.tsx";
-import './common.css';
-import {TableButton} from "./TableButton.tsx";
-import {useToken} from "./AuthContext.tsx";
+import {Navbar} from "../Navbar.tsx";
+import '../common.css';
+import {TableButton} from "../TableButton.tsx";
+import {useToken} from "../Auth/AuthContext.tsx";
 import {observer} from "mobx-react-lite";
-import {formatDate} from "./Tools.tsx";
+import {formatDate} from "../Tools.tsx";
 
 interface Account {
     id: number;

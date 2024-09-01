@@ -1,6 +1,6 @@
 import {observer} from "mobx-react-lite";
 import {useToken} from "./AuthContext.tsx";
-import {Navbar} from "./Navbar.tsx";
+import {Navbar} from "../Navbar.tsx";
 import axios from "axios";
 
 

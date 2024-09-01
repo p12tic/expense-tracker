@@ -1,15 +1,15 @@
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
-import {Accounts} from "./components/Accounts.tsx";
-import {Tags} from "./components/Tags.tsx";
+import {Accounts} from "./components/Accounts/Accounts.tsx";
+import {Tags} from "./components/Tags/Tags.tsx";
 import './components/common.css';
-import {TransactionsList} from "./components/Transactions.tsx";
-import {PresetsList} from "./components/Presets.tsx";
-import {Login} from "./components/Login.tsx";
-import {UserEdit} from "./components/UserEdit.tsx";
-import {TagCreate} from "./components/TagCreate.tsx";
-import {AccountCreate} from "./components/AccountCreate.tsx";
-import {Tag} from "./components/Tag.tsx";
-import {TagDelete} from "./components/TagDelete.tsx";
+import {TransactionsList} from "./components/Transactions/Transactions.tsx";
+import {PresetsList} from "./components/Presets/Presets.tsx";
+import {Login} from "./components/Auth/Login.tsx";
+import {UserEdit} from "./components/Auth/UserEdit.tsx";
+import {TagCreate} from "./components/Tags/TagCreate.tsx";
+import {AccountCreate} from "./components/Accounts/AccountCreate.tsx";
+import {Tag} from "./components/Tags/Tag.tsx";
+import {TagDelete} from "./components/Tags/TagDelete.tsx";
 
 
 
