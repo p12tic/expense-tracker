@@ -28,22 +28,27 @@ function App() {
     return (
         <BrowserRouter>
             <Routes>
+                {/*Account routes*/}
                 <Route path="accounts" element={<Accounts />}></Route>
-                <Route path="tags" element={<Tags />}></Route>
-                <Route path="transactions" element={<TransactionsList />}></Route>
-                <Route path="presets" element={<PresetsList />}></Route>
-                <Route path="presets/add" element={<PresetCreate />}></Route>
-                <Route path="presets/:id" element={<Preset />}></Route>
-                <Route path="login" element={<Login />}></Route>
-                <Route path="user/edit" element={<UserEdit />}></Route>
-                <Route path="tags/add" element={<TagCreate />}></Route>
-                <Route path="tags/:id" element={<Tag />}></Route>
-                <Route path="tags/:id/delete" element={<TagDelete />}></Route>
-                <Route path="tags/:id/edit" element={<TagEdit />}></Route>
                 <Route path="accounts/add" element={<AccountCreate />}></Route>
                 <Route path="accounts/:id" element={<Account />}></Route>
                 <Route path="accounts/:id/delete" element={<AccountDelete />}></Route>
                 <Route path="accounts/:id/edit" element={<AccountEdit />}></Route>
+                {/*Tag routes*/}
+                <Route path="tags" element={<Tags />}></Route>
+                <Route path="tags/add" element={<TagCreate />}></Route>
+                <Route path="tags/:id" element={<Tag />}></Route>
+                <Route path="tags/:id/delete" element={<TagDelete />}></Route>
+                <Route path="tags/:id/edit" element={<TagEdit />}></Route>
+                {/*Transaction routes*/}
+                <Route path="transactions" element={<TransactionsList />}></Route>
+                {/*Preset routes*/}
+                <Route path="presets" element={<PresetsList />}></Route>
+                <Route path="presets/add" element={<PresetCreate />}></Route>
+                <Route path="presets/:id" element={<Preset />}></Route>
+                {/*Auth/User routes*/}
+                <Route path="login" element={<Login />}></Route>
+                <Route path="user/edit" element={<UserEdit />}></Route>
             </Routes>
         </BrowserRouter>
     )
