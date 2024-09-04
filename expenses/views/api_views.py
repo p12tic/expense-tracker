@@ -30,6 +30,14 @@ class AccountView(generics.ListCreateAPIView):
                 account.delete()
                 return Response(status=status.HTTP_200_OK)
             return Response(status=status.HTTP_401_UNAUTHORIZED)
+        elif self.request.data['action'] == "edit":
+            tag = models.Account.objects.get(id=self.request.data['id'])
+            if tag.user == self.request.user:
+                tag.name = self.request.data['Name'];
+                tag.desc = self.request.data['Description']
+                tag.save()
+                return Response(status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 class TagView(generics.ListCreateAPIView):
     queryset = models.Tag.objects.all()
