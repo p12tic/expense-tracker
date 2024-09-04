@@ -18,10 +18,18 @@ class AccountView(generics.ListCreateAPIView):
         return queryset
 
     def post(self, request, *args, **kwargs):
-        self.request.data['user'] = self.request.user.id
-        account = models.Account.objects.create(name=self.request.data['Name'], desc=self.request.data['Description'], user=self.request.user)
-        account.save()
-        return Response(status=status.HTTP_201_CREATED)
+
+        if self.request.data['action'] == "create":
+            account = models.Account.objects.create(name=self.request.data['Name'],
+                                                    desc=self.request.data['Description'], user=self.request.user)
+            account.save()
+            return Response(status=status.HTTP_201_CREATED)
+        elif self.request.data['action'] == "delete":
+            account = models.Account.objects.get(id=self.request.data['id'])
+            if account.user == self.request.user:
+                account.delete()
+                return Response(status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 class TagView(generics.ListCreateAPIView):
     queryset = models.Tag.objects.all()

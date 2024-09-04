@@ -14,7 +14,8 @@ export const AccountCreate = observer(function AccountCreate() {
     const [desc, setDesc] = useState('');
     let bodyParameters = {
         'Name': ``,
-        'Description': ``
+        'Description': ``,
+        'action': `create`
     };
 
     const submitHandler = (e) => {
