@@ -118,6 +118,10 @@ class PresetView(generics.ListCreateAPIView):
                                                                             fraction=acc['fraction'])
                     preset_sub.save()
             return Response(status=status.HTTP_201_CREATED)
+        elif self.request.data['action'] == "delete":
+            preset = models.Preset.objects.get(id=self.request.data['id'])
+            preset.delete()
+            return Response(status=status.HTTP_200_OK)
 
 
 class TransactionTagsView(generics.ListAPIView):
