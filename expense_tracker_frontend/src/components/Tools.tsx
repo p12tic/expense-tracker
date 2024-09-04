@@ -23,9 +23,9 @@ export function centsToString(value) {
         const cents = Value % 100;
         Value = Math.floor(Value / 100);
         if (negative)
-            return `-${Value}.${cents.toFixed(0).padStart(2,'0')}`;
+            return `-${Value.toFixed(0)}.${cents.toFixed(0).padStart(2,'0')}`;
         else
-            return `${Value}.${cents.toFixed(0).padStart(2,'0')}`;
+            return `${Value.toFixed(0)}.${cents.toFixed(0).padStart(2,'0')}`;
     }
     catch{
         return '';
