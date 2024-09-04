@@ -46,6 +46,7 @@ class TagView(generics.ListCreateAPIView):
     def get_queryset(self):
         queryset = super().get_queryset()
         queryset = queryset.filter(user=self.request.user)
+        queryset = queryset.order_by('name')
         id = self.request.query_params.get('id')
         if id is not None:
             queryset = queryset.filter(id=id)
@@ -74,7 +75,7 @@ class TagView(generics.ListCreateAPIView):
                 return Response(status=status.HTTP_200_OK)
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-class TransactionView(generics.ListAPIView):
+class TransactionView(generics.ListCreateAPIView):
     queryset = models.Transaction.objects.all().order_by('-date_time')
     serializer_class = serializers.TransactionSerializer
     authentication_classes = (authentication.TokenAuthentication, authentication.SessionAuthentication)
@@ -86,12 +87,30 @@ class TransactionView(generics.ListAPIView):
             queryset = queryset.filter(id=id)
         return queryset
 
+    def post(self, request, *args, **kwargs):
+        if self.request.data['action'] == "create":
+            transaction = models.Transaction.objects.create(desc=self.request.data['desc'],
+                                                            date_time=self.request.data['date'], user=self.request.user)
+            transaction.save()
+            for acc in self.request.data['preset']['accounts']:
+                if acc['isUsed']:
+                    accountElement = models.Account.objects.get(id=acc['id'])
+                    subtransaction = models.Subtransaction.objects.create(transaction=transaction, account=accountElement, amount=(acc['amount']*100))
+                    subtransaction.save()
+            for tag in self.request.data['preset']['tags']:
+                if tag['isChecked']:
+                    tagElement = models.Tag.objects.get(id=tag['id'])
+                    transactionTag = models.TransactionTag.objects.create(transaction=transaction, tag=tagElement)
+                    transactionTag.save()
+            return Response(status=status.HTTP_201_CREATED)
+
 class PresetView(generics.ListCreateAPIView):
     queryset = models.Preset.objects.all()
     serializer_class = serializers.PresetSerializer
     def get_queryset(self):
         queryset = super().get_queryset()
         queryset = queryset.filter(user=self.request.user)
+        queryset = queryset.order_by('name')
         id = self.request.query_params.get("id")
         if id is not None:
             queryset = queryset.filter(id=id)
@@ -131,7 +150,7 @@ class PresetView(generics.ListCreateAPIView):
             for tag in self.request.data['tags']:
                 tag_obj = models.Tag.objects.get(id=tag['id'])
                 if tag['isChecked']:
-                    if models.PresetTransactionTag.objects.filter(tag=tag_obj, preset=preset).count()==0:
+                    if models.PresetTransactionTag.objects.filter(tag=tag_obj, preset=preset).count() == 0:
                         PreTransTag = models.PresetTransactionTag.objects.create(tag=tag_obj, preset=preset)
                         PreTransTag.save()
                 else:
@@ -141,8 +160,9 @@ class PresetView(generics.ListCreateAPIView):
             for acc in self.request.data['accounts']:
                 acc_obj = models.Account.objects.get(id=acc['id'])
                 if acc['isUsed']:
-                    if models.PresetSubtransaction.objects.filter(account=acc_obj, preset=preset).count()==0:
-                        preSub = models.PresetSubtransaction.objects.create(account=acc_obj, preset=preset, fraction=acc['fraction'])
+                    if models.PresetSubtransaction.objects.filter(account=acc_obj, preset=preset).count() == 0:
+                        preSub = models.PresetSubtransaction.objects.create(account=acc_obj, preset=preset,
+                                                                            fraction=acc['fraction'])
                         preSub.save()
                     else:
                         preSub = models.PresetSubtransaction.objects.get(account=acc_obj, preset=preset)
@@ -153,8 +173,6 @@ class PresetView(generics.ListCreateAPIView):
                         preSub = models.PresetSubtransaction.objects.get(account=acc_obj, preset=preset)
                         preSub.delete()
             return Response(status=status.HTTP_200_OK)
-
-
 
 
 class TransactionTagsView(generics.ListAPIView):
