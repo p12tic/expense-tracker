@@ -12,6 +12,9 @@ class AccountView(generics.ListCreateAPIView):
     def get_queryset(self):
         queryset = super().get_queryset()
         queryset = queryset.filter(user=self.request.user)
+        id = self.request.query_params.get('id')
+        if id is not None:
+            queryset = queryset.filter(id=id)
         return queryset
 
     def post(self, request, *args, **kwargs):
@@ -101,6 +104,7 @@ class SubtransactionView(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        queryset = queryset.order_by('-transaction__date_time', '-id')
         transaction = self.request.query_params.get('transaction')
         if transaction is not None:
             queryset = queryset.filter(transaction=transaction)
@@ -131,7 +135,14 @@ class AccountBalanceCacheView(generics.ListAPIView):
     def get_queryset(self):
         queryset = super().get_queryset()
         account = self.request.query_params.get('account')
-        queryset = queryset.filter(account=account)
+        if account is not None:
+            queryset = queryset.filter(account=account)
+        date_lte = self.request.query_params.get('date_lte')
+        if date_lte is not None:
+            queryset = queryset.filter(date__lte=date_lte)
+        date_gte = self.request.query_params.get('date_gte')
+        if date_gte is not None:
+            queryset = queryset.filter(date__gte=date_gte)
         return queryset
 
 class PresetSubtransactionView(generics.ListAPIView):

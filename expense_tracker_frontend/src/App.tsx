@@ -11,6 +11,7 @@ import {AccountCreate} from "./components/Accounts/AccountCreate.tsx";
 import {Tag} from "./components/Tags/Tag.tsx";
 import {TagDelete} from "./components/Tags/TagDelete.tsx";
 import {TagEdit} from "./components/Tags/TagEdit.tsx";
+import {Account} from "./components/Accounts/Account.tsx";
 
 
 
@@ -34,6 +35,7 @@ function App() {
                 <Route path="tags/:id/delete" element={<TagDelete />}></Route>
                 <Route path="tags/:id/edit" element={<TagEdit />}></Route>
                 <Route path="accounts/add" element={<AccountCreate />}></Route>
+                <Route path="accounts/:id" element={<Account />}></Route>
             </Routes>
         </BrowserRouter>
     )
