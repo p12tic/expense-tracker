@@ -35,13 +35,25 @@ class TagView(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         if self.request.data['action'] == "create":
             self.request.data['user'] = self.request.user.id
-            tag = models.Tag.objects.create(name=self.request.data['Name'], desc=self.request.data['Description'], user=self.request.user)
+            tag = models.Tag.objects.create(name=self.request.data['Name'], desc=self.request.data['Description'],
+                                            user=self.request.user)
             tag.save()
             return Response(status=status.HTTP_201_CREATED)
-        elif self.request.data['action']=="delete":
+        elif self.request.data['action'] == "delete":
+
             tag = models.Tag.objects.get(id=self.request.data['id'])
-            tag.delete()
-            return Response(status=status.HTTP_200_OK)
+            if tag.user == self.request.user:
+                tag.delete()
+                return Response(status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        elif self.request.data['action'] == "edit":
+            tag = models.Tag.objects.get(id=self.request.data['id'])
+            if tag.user == self.request.user:
+                tag.name = self.request.data['Name'];
+                tag.desc = self.request.data['Description']
+                tag.save()
+                return Response(status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 class TransactionView(generics.ListAPIView):
     queryset = models.Transaction.objects.all().order_by('-date_time')
