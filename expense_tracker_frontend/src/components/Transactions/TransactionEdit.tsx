@@ -268,7 +268,7 @@ const handleAccountAmountChange = (e, accMulti: AccountElement) => {
     setPresetInUse(prevPresetInUse => {
         if (!prevPresetInUse) return prevPresetInUse;
         const updatedAccounts = prevPresetInUse.accounts.map(acc =>
-            acc.id === accMulti.id ? { ...acc, amount: newAmount } : acc
+            acc.id === accMulti.id ? { ...acc, amountView:(newAmount).toString(), amount: parseFloat(newAmount) } : acc
         );
         return { ...prevPresetInUse, accounts: updatedAccounts };
     });
@@ -278,7 +278,7 @@ const handlePresetAmountChange = (e) => {
     setPresetInUse(prevPresetInUse => {
         if (!prevPresetInUse) return prevPresetInUse;
         const updatedAccounts = prevPresetInUse.accounts.map(acc =>
-            acc.fraction ? { ...acc, amount: (parseFloat(newAmount)*acc.fraction) } : acc
+            acc.fraction ? { ...acc, amountView: ((newAmount)*acc.fraction).toFixed(2), amount: (parseFloat(newAmount)*acc.fraction) } : acc
         );
         return { ...prevPresetInUse, accounts: updatedAccounts, amount: newAmount };
     });
@@ -334,7 +334,7 @@ const handlePresetAmountChange = (e) => {
                             </span>
                             <span className="input-group-addon bootstrap-touchspin-prefix" style={{ display: "none" }}></span>
                             <input type="number" name="accounts-0-amount"
-                                value={acc.amountView || ""}
+                                value={acc.amountView}
                                 step="0.1"
                                 className="form-control tmp-account-amount"
                                 placeholder="Amount"
