@@ -253,13 +253,13 @@ const handleAccountAmountChange = (e, accMulti: AccountElement) => {
     });
 };
 const handlePresetAmountChange = (e) => {
-    const newAmount = parseFloat(e.target.value).toFixed(2);
+    const newAmount = parseFloat(e.target.value);
     setPresetInUse(prevPresetInUse => {
         if (!prevPresetInUse) return prevPresetInUse;
         const updatedAccounts = prevPresetInUse.accounts.map(acc =>
-            acc.fraction ? { ...acc, amount: (parseFloat(newAmount)*acc.fraction) } : acc
+            acc.fraction ? { ...acc, amount: (newAmount*acc.fraction) } : acc
         );
-        return { ...prevPresetInUse, accounts: updatedAccounts, amount: newAmount };
+        return { ...prevPresetInUse, accounts: updatedAccounts, amount: newAmount.toString() };
     });
 };
 
@@ -396,7 +396,7 @@ const handlePresetAmountChange = (e) => {
                                             <span className="input-group-addon bootstrap-touchspin-prefix"
                                                   style={{display: "none"}}></span>
                                             <input className="form-control tmp-preset-amount" placeholder="Amount"
-                                                   step="0.01" type="number" value={presetInUse.amount}
+                                                   step="0.01" type="number" value={presetInUse.amount?presetInUse.amount:"0"}
                                                    onChange={(e) => handlePresetAmountChange(e)}/>
                                             <span className="input-group-addon bootstrap-touchspin-postfix"
                                                   style={{display: "none"}}></span>
@@ -463,9 +463,7 @@ const handlePresetAmountChange = (e) => {
                             No tags have been created
                         </div>
                     }
-                    <div id="tmp-tags">
-                        {renderTags}
-                    </div>
+
 
                 </div>
                 <SubmitButton text="Save" />
