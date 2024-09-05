@@ -53,7 +53,7 @@ export const TagEdit = observer(function TagEdit() {
                     <label className="col-xs-4 col-sm-2 control-label"
                            htmlFor="id_name">Name</label>
                     <div className="col-xs-8 col-sm-10">
-                        <input value={name} type="text" className={"form-control"} name="name" key="id_name"
+                        <input value={name} type="text" className={"form-control"} name="name" key="id_name" required={true}
                                onChange={(e) => setName(e.target.value)}/>
                     </div>
                 </div>

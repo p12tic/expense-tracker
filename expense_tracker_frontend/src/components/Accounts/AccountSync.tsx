@@ -97,7 +97,7 @@ export const AccountSync = observer(function AccountSync() {
                         <label className="col-xs-4 col-sm-2 control-label" htmlFor="id_balance">Balance</label>
                         <div className="col-xs-8 col-sm-10">
                             <input type="text" className={"form-control"} name="balance" key="id_balance"
-                                   value={(balance)}
+                                   value={(balance)} required={true}
                                    onChange={(e) => setBalance(parseFloat(e.target.value))}/>
                         </div>
                     </div>
@@ -106,7 +106,7 @@ export const AccountSync = observer(function AccountSync() {
                         <div className="col-xs-8 col-sm-10">
                             <input type="datetime-local" className={"form-control"} name="date"
                                    value={date.toISOString().slice(0, 16)}
-                                   key="id_date"
+                                   key="id_date" required={true}
                                    onChange={(e) => setDate(new Date(e.target.value))}/>
                         </div>
                     </div>

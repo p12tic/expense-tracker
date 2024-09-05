@@ -237,6 +237,7 @@ export const PresetEdit = observer(function PresetEdit() {
                                htmlFor="id_name">Name</label>
                         <div className="col-xs-8 col-sm-10">
                             <input type="text" className={"form-control"} name="name" key="id_name" value={name}
+                                   required={true}
                                    onChange={(e) => setName(e.target.value)}/>
                         </div>
                     </div>
