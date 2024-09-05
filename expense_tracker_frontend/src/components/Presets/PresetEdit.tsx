@@ -152,7 +152,8 @@ export const PresetEdit = observer(function PresetEdit() {
     }, []);
     const renderTags = useMemo(() => {
         return tags.map((tag, id) => (
-            <div key={id} className={tag.isChecked ? "tmp-tag-button btn btn-info" : "tmp-tag-button btn btn-default"} role="button" onClick={() => handleTagClick(tag)}>
+            <div key={id} className={tag.isChecked ? "tmp-tag-button btn btn-info" : "tmp-tag-button btn btn-default"}
+                 role="button" onClick={() => handleTagClick(tag)}>
                 <label htmlFor={`tag-${tag.id}`}>{tag.name}</label>
             </div>
         ));

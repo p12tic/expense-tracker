@@ -22,7 +22,7 @@ export const Login = function Login() {
     }
     const submitHandler = (e) => {
         e.preventDefault();
-        bodyParameters.username = username;
+        bodyParameters.username=username;
         bodyParameters.password = password;
         axios.post("http://localhost:8000/api/api-token-auth/",
             bodyParameters
@@ -39,14 +39,16 @@ export const Login = function Login() {
                     <label className="col-xs-4 col-sm-2 control-label"
                            htmlFor="id_username">Username</label>
                     <div className="col-xs-8 col-sm-10">
-                        <input type="text" className={"form-control"} name="username" key="id_username" onChange={(e) => setUsername(e.target.value)}/>
+                        <input type="text" className={"form-control"} name="username" key="id_username" required={true}
+                               onChange={(e) => setUsername(e.target.value)}/>
                     </div>
                 </div>
                 <div className="form-group">
                     <label className="col-xs-4 col-sm-2 control-label"
                            htmlFor="id_password">Password</label>
                     <div className="col-xs-8 col-sm-10">
-                        <input type="password" className={"form-control"} name="password" key="id_password" onChange={(e) => setPassword(e.target.value)}/>
+                        <input type="password" className={"form-control"} name="password" key="id_password"
+                               required={true} onChange={(e) => setPassword(e.target.value)}/>
                     </div>
                 </div>
                 <div className="form-horizontal">

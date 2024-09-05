@@ -4,7 +4,6 @@ import axios from "axios";
 import {Link, useNavigate} from "react-router-dom";
 import {TableButton} from "../TableButton.tsx";
 import {formatDate, centsToString} from "../Tools.tsx";
-import {AuthData} from "../Auth/AuthData.tsx";
 import {observer} from "mobx-react-lite";
 import {useToken} from "../Auth/AuthContext.tsx";
 
@@ -50,7 +49,7 @@ interface Account {
     user: string;
 }
 
-export const TransactionsList = observer(function TransactionsList(transactionsProps) {
+export const TransactionsList = observer(function TransactionsList() {
     const Auth = useToken();
     axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
     const [state, setState] = useState<Transaction[]>([]);

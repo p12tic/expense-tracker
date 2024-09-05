@@ -1,9 +1,9 @@
-import { observer } from "mobx-react-lite";
+import {observer} from "mobx-react-lite";
 import {StaticField} from "../StaticField.tsx";
-import { useToken } from "../Auth/AuthContext.tsx";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import {useToken} from "../Auth/AuthContext.tsx";
+import {Link, useNavigate, useParams} from "react-router-dom";
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import {Navbar} from "../Navbar.tsx";
 import {TableButton} from "../TableButton.tsx";
 import {centsToString, formatDate} from "../Tools.tsx";
@@ -66,13 +66,11 @@ export const Tag = observer(function Tag() {
                 transData.dateTime = new Date(transData.date_time);
                 const subsRes = await axios.get(`http://localhost:8000/api/subtransactions?transaction=${transData.id}`);
                 const subsData: Subtransaction[] = subsRes.data;
-                const subsAccountRes = await Promise.all(subsData.map(async (sub) => {
+                transData.subs = await Promise.all(subsData.map(async (sub) => {
                     const accountsRes = await axios.get(`http://localhost:8000/api/accounts?id=${sub.account}`);
-                    const accountData:Account = accountsRes.data[0];
-                    sub.accountElement = accountData;
+                    sub.accountElement = accountsRes.data[0];
                     return sub;
                 }));
-                transData.subs = subsAccountRes;
                 transTag.transactionElement = transData;
                 return transTag;
             }));
@@ -105,7 +103,7 @@ export const Tag = observer(function Tag() {
                                 <th>Description</th>
                                 <th>Date/Time</th>
                                 <th>Actions</th>
-                
+
                             </tr>
                             :
                             <></>}

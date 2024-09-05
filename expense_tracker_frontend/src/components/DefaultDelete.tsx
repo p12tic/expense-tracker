@@ -1,4 +1,3 @@
-import {observer} from "mobx-react-lite";
 import {SubmitButton} from "./SubmitButton.tsx";
 import {useNavigate} from "react-router-dom";
 import axios from "axios";

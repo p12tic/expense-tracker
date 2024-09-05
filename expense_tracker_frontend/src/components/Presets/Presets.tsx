@@ -28,7 +28,7 @@ interface PresetTransactionTag {
     tag: string;
 }
 
-export const PresetsList = observer(function PresetsList(presetsProps) {
+export const PresetsList = observer(function PresetsList() {
     const Auth = useToken();
     axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
     const [state, setState] = useState<Presets[]>([]);
@@ -46,20 +46,18 @@ export const PresetsList = observer(function PresetsList(presetsProps) {
                 await Promise.all(data.map(async (preset) => {
                     const transTagsRes = await axios.get(`http://localhost:8000/api/preset_transaction_tags?preset=${preset.id}`);
                     const transTags = transTagsRes.data;
-                    const tagNames: string[] = await Promise.all(transTags.map(async (transTag:PresetTransactionTag) => {
+                    preset.tags = await Promise.all(transTags.map(async (transTag: PresetTransactionTag) => {
                         const tagsRes = await axios.get(`http://localhost:8000/api/tags?id=${transTag.tag}`);
-                        const tagName = tagsRes.data[0].name;
-                        return tagName;
+                        return tagsRes.data[0].name;
                     }));
-                    preset.tags = tagNames;
                     const presetSubsRes = await axios.get(`http://localhost:8000/api/preset_subtransactions?preset=${preset.id}`);
                     const presetSubs: PresetSub[] = presetSubsRes.data;
-                    const Subs: PresetSub[] = await Promise.all(presetSubs.map(async (preSub) => {
+                    preset.presetSubs = await Promise.all(presetSubs.map(async (preSub) => {
                         const accSubRes = await axios.get(`http://localhost:8000/api/accounts?id=${preSub.account}`);
                         preSub.accountName = accSubRes.data[0].name;
                         return preSub;
                     }));
-                    preset.presetSubs = Subs;
+
                 }));
                 setState(data);
             }

@@ -38,17 +38,24 @@ interface Account {
     name: string;
     desc: string;
 }
+
 export const Transaction = observer(function Transaction() {
     const Auth = useToken();
     axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
-    const [state, setState] = useState<TransactionElement>({desc:"", user:0, dateTime:new Date(), tags:[], subs:[]});
+    const [state, setState] = useState<TransactionElement>({
+        desc: "",
+        user: 0,
+        dateTime: new Date(),
+        tags: [],
+        subs: []
+    });
     const {id} = useParams();
     const navigate = useNavigate();
     if(Auth.getToken() === '') {
         navigate('/login');
     }
     useEffect(() => {
-        const FetchTransaction = async() => {
+        const FetchTransaction = async () => {
             await axios.get(`http://localhost:8000/api/transactions?id=${id}`).then(async (res) => {
                 let transaction: TransactionElement = res.data[0];
                 transaction.dateTime = res.data[0]['date_time'];
@@ -64,7 +71,7 @@ export const Transaction = observer(function Transaction() {
                 await axios.get(`http://localhost:8000/api/subtransactions?transaction=${id}`).then(async (subsRes) => {
                     Subs = await Promise.all(subsRes.data.map(async (sub: Subtransaction) => {
                         const accRes = await axios.get(`http://localhost:8000/api/accounts?id=${sub.account}`);
-                        const acc:Account = accRes.data[0];
+                        const acc: Account = accRes.data[0];
                         sub.accountName = acc.name;
                         return sub;
                     }));

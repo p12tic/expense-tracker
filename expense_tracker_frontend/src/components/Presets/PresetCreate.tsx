@@ -90,7 +90,8 @@ export const PresetCreate = observer(function PresetCreate() {
 
     const renderTags = useMemo(() => {
         return tags.map((tag, id) => (
-            <div key={id} className={tag.isChecked ? "tmp-tag-button btn btn-info" : "tmp-tag-button btn btn-default"} role="button" onClick={() => handleTagClick(tag)}>
+            <div key={id} className={tag.isChecked ? "tmp-tag-button btn btn-info" : "tmp-tag-button btn btn-default"}
+                 role="button" onClick={() => handleTagClick(tag)}>
                 <label htmlFor={`tag-${tag.id}`}>{tag.name}</label>
             </div>
         ));
@@ -119,7 +120,9 @@ export const PresetCreate = observer(function PresetCreate() {
                     <div className="col-xs-4 col-sm-2 form-control-static tmp-account-name">{acc.name}</div>
                     {acc.isUsed ?
                         <>
-                            <label className="col-xs-12 col-sm-1 control-label tmp-account-amount-label">Multiplier</label>
+                            <label className="col-xs-12 col-sm-1 control-label tmp-account-amount-label">
+                                Multiplier
+                            </label>
                             <div className="col-xs-12 col-sm-4 tmp-account-amount-box">
                                 <div className="input-group bootstrap-touchspin">
                                     <span className="input-group-btn">

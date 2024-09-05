@@ -7,15 +7,6 @@ import {useToken} from "../Auth/AuthContext.tsx";
 import {useNavigate, useParams} from "react-router-dom";
 import {centsToString, formatDate} from "../Tools.tsx";
 
-interface Account {
-    id: number;
-    name: string;
-    desc: string;
-    user: string;
-    lastCacheBalance: number;
-    lastCacheDate: Date;
-    balance: number;
-}
 interface Subtransaction {
     id: number;
     amount: number;
@@ -38,8 +29,7 @@ export const AccountSync = observer(function AccountSync() {
         const fetchAccounts = async () => {
             try {
                 const data = await axios.get(`http://localhost:8000/api/accounts?id=${id}`).then(res => {
-                    const data = res.data[0];
-                    return data;
+                    return res.data[0];
                 })
                 const balanceRes =
                     await axios.get(`http://localhost:8000/api/account_balance_cache?account=${id}&date_lte=${formatDate(new Date(Date.now()))}`);
@@ -53,7 +43,10 @@ export const AccountSync = observer(function AccountSync() {
                     data.lastCacheDate = new Date(Date.now());
                     sum = 0;
                 }
-                const subRes = await axios.get(`http://localhost:8000/api/subtransactions?account=${data.id}&date_gte=${formatDate(data.lastCacheDate)}&date_lte=${formatDate(new Date(Date.now()))}`);
+                const subRes =
+                    await axios.get(`http://localhost:8000/api/subtransactions?account=${data.id}
+                                        &date_gte=${formatDate(data.lastCacheDate)}
+                                        &date_lte=${formatDate(new Date(Date.now()))}`);
                 const subs: Subtransaction[] = subRes.data;
                 await Promise.all(subs.map(async (sub) => {
                     sum = sum + sub.amount;
@@ -66,7 +59,7 @@ export const AccountSync = observer(function AccountSync() {
                 console.error(err);
             }
         }
-        fetchAccounts()
+        fetchAccounts();
     }, []);
     const handleSubmit = async (e) => {
         e.preventDefault();

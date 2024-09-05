@@ -38,29 +38,35 @@ interface SyncEvent {
     subtransaction: string;
 }
 export const Account = observer(function Account() {
-const Auth = useToken();
+    const Auth = useToken();
     axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
-    const [state, setState] = useState<AccountElement>({id:0, name:"", desc:"", user:0, subtransactions:[], balances:[]});
+    const [state, setState] = useState<AccountElement>({
+        id: 0,
+        name: "",
+        desc: "",
+        user: 0,
+        subtransactions: [],
+        balances: []
+    });
     const {id} = useParams();
     const navigate = useNavigate();
-    if(Auth.getToken() === '') {
+    if (Auth.getToken() === '') {
         navigate('/login');
     }
     useEffect(() => {
-        const fetchTag = async() => {
+        const fetchTag = async () => {
 
             const accountRes = await axios.get(`http://localhost:8000/api/accounts?id=${id}`);
             const account: AccountElement = accountRes.data[0];
             const accountSubRes = await axios.get(`http://localhost:8000/api/subtransactions?account=${id}`);
             const accountSubs: Subtransaction[] = accountSubRes.data;
-            const accountSubsWithTransRes = await Promise.all(accountSubs.map(async (sub) => {
+            account.subtransactions = await Promise.all(accountSubs.map(async (sub) => {
                 const transactionRes = await axios.get(`http://localhost:8000/api/transactions?id=${sub.transaction}`);
                 const transaction: Transaction = transactionRes.data[0];
                 transaction.dateTime = transaction.date_time;
                 if(!transaction.desc) {
                     const syncRes = await axios.get(`http://localhost:8000/api/account_sync_event?subtransaction=${sub.id}`);
-                    const sync = syncRes.data[0];
-                    transaction.syncEvent = sync;
+                    transaction.syncEvent = syncRes.data[0];
                 }
                 sub.transactionElement = transaction;
                 const cacheRes = await axios.get(`http://localhost:8000/api/account_balance_cache?subtransaction=${sub.id}&date_lte=1970-01-01`);
@@ -81,7 +87,6 @@ const Auth = useToken();
                 sub.transactionElement = transaction;
                 return sub;
             }));
-            account.subtransactions = accountSubsWithTransRes;
             account.balances = getSubtransactionBalances(account.subtransactions);
             account.subtransactions.reverse();
             setState(account);
