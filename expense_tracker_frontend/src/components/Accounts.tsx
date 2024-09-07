@@ -3,6 +3,7 @@ import React, {useEffect, useState} from "react";
 import {Link} from "react-router-dom";
 import {Navbar} from "./Navbar.tsx";
 import './common.css';
+import {TableButton} from "./TableButton.tsx";
 
 interface Account {
     id: number;
@@ -20,28 +21,34 @@ export function Accounts() {
         }).catch(err => {console.error(err)});
     }, []);
     return (
-        <>
-            <div style={{width:'inherit'}}>
-                <Navbar />
-                <table cellSpacing={200}>
-                    <tbody>
-                        <tr>
-                            <th>Name</th>
-                            <th>Description</th>
-                            <th>Balance</th>
-                            <th></th>
+        <div className='container' style={{minWidth: 'auto', justifySelf: 'center'}}>
+            <Navbar />
+            <h1>Accounts
+                <div className='pull-right'>
+                    <TableButton dest={`/accounts/add`} name={'New'} />
+                </div>
+            </h1>
+            <table className="table table-condensed">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Balance</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {state.map((output, id) => (
+                        <tr key={id}>
+                            <td><Link to={`/accounts/${output.id}`}>{output.name}</Link></td>
+                            <td>{output.desc}</td>
+                            <td>{output.user}</td>
+                            <td><Link to={`/accounts/${output.id}/sync`} role="button"
+                                      className="btn btn-xs btn-default pull-right">Sync</Link></td>
                         </tr>
-                        {state.map((output, id) => (
-                            <tr key={id}>
-                                <td><Link to={`/accounts/${output.id}`}>{output.name}</Link></td>
-                                <td>{output.desc}</td>
-                                <td>{output.user}</td>
-                                <td><Link to={`/accounts/${output.id}/sync`} role="button" className="btn btn-xs btn-default pull-right">Sync</Link></td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        </>
+                    ))}
+                </tbody>
+            </table>
+        </div>
     )
 }
