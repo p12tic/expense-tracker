@@ -1,10 +1,11 @@
 '''expense_tracker URL Configuration
 '''
 
-from django.conf.urls import url, include
+from django.conf import settings
+from django.urls import re_path, include
 
 urlpatterns = [
-    url(r'', include('expenses.urls')),
+    re_path(r'', include('expenses.urls')),
 ]
 
 if settings.DEBUG:

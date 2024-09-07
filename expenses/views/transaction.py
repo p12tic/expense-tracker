@@ -4,10 +4,10 @@ from django.views.generic.list import ListView
 from django.views.generic.edit import FormView, UpdateView, DeleteView
 from django import forms
 from django.http import HttpResponseRedirect
-from expenses.views.auth import AppLoginRequiredMixin, VerifyOwnerMixin
-from expenses.views.formsets import *
-from expenses.models import *
-from expenses.db_utils import *
+from .auth import AppLoginRequiredMixin, VerifyOwnerMixin
+from .formsets import *
+from ..models import *
+from ..db_utils import *
 from datetime import datetime
 import json
 

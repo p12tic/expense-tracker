@@ -1,10 +1,9 @@
-
 from django.core.exceptions import PermissionDenied
 from django.views.generic.list import ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
-from expenses.views.auth import AppLoginRequiredMixin, VerifyOwnerMixin
-from expenses.models import *
-from expenses.db_utils import *
+from .auth import AppLoginRequiredMixin, VerifyOwnerMixin
+from ..models import *
+from ..db_utils import *
 
 class TagListView(AppLoginRequiredMixin, ListView):
     model = Tag

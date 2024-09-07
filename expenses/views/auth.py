@@ -2,20 +2,21 @@ from django.contrib import auth
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render
+from django.contrib.auth.views import LoginView
 
 def logged_in(request):
-    return render_to_response('logged_in.html')
+    return render(request, 'logged_in.html')
 
 def login(request):
-    return auth.views.login(request, template_name='expenses/login.html')
+    return LoginView.as_view(template_name='expenses/login.html')(request)
 
 def logout(request):
     auth.logout(request)
     return HttpResponseRedirect('/')
 
 def user_edit(request):
-    return render_to_response('expenses/user_edit.html')
+    return render(request, 'expenses/user_edit.html')
 
 class AppLoginRequiredMixin(LoginRequiredMixin):
     login_url = '/user/login'

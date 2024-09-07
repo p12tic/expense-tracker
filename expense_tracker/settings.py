@@ -42,6 +42,10 @@ INSTALLED_APPS = [
     'capture_tag',
 ]
 
+INTERNAL_IPS = [
+    '127.0.0.1',
+]
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -126,3 +130,4 @@ STATIC_ROOT = '/app/www/static'
 
 LOGIN_URL = '/user/login'
 LOGIN_REDIRECT_URL = '/'
+DEFAULT_AUTO_FIELD='django.db.models.AutoField'
