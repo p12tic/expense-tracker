@@ -207,7 +207,7 @@ class AccountBalanceCache(models.Model):
             related_name='balance_caches')
 
     balance = models.IntegerField()
-    date = models.DateField()
+    date = models.DateTimeField()
 
 class AccountSyncEvent(models.Model):
     ''' Identifies a account-sync event, where the user synchronizes the data in
