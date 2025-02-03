@@ -5,11 +5,11 @@ import {useNavigate, useParams} from "react-router-dom";
 import {useToken} from "../Auth/AuthContext";
 
 export const PresetDelete = observer(function PresetDelete() {
-    const Auth = useToken();
+    const auth = useToken();
     const navigate = useNavigate();
     const {id} = useParams();
     const backLink: string = `/presets/${id}`;
-    if(Auth.getToken() === '') {
+    if (auth.getToken() === '') {
         navigate('/login');
     }
 

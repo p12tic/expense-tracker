@@ -45,26 +45,26 @@ interface Account {
 }
 export const Tag = observer(function Tag() {
 
-    const Auth = useToken();
+    const auth = useToken();
     const [state, setState] = useState<TagElement>({id:0, name:"", desc:"", user:0,
         transTag:[]});
     const {id} = useParams();
     const navigate = useNavigate();
-    if(Auth.getToken() === '') {
+    if (auth.getToken() === '') {
         navigate('/login');
     }
     useEffect(() => {
 
         const fetchTag = async() => {
-            const tagRes = await AuthAxios.get(`http://localhost:8000/api/tags?id=${id}`, Auth.getToken());
+            const tagRes = await AuthAxios.get(`http://localhost:8000/api/tags?id=${id}`, auth.getToken());
             const tag: TagElement = tagRes.data[0];
-            const transTagRes = await AuthAxios.get(`http://localhost:8000/api/transaction_tags?tag=${id}`, Auth.getToken());
+            const transTagRes = await AuthAxios.get(`http://localhost:8000/api/transaction_tags?tag=${id}`, auth.getToken());
             const transTagData: TransTag[] = transTagRes.data;
             const transTagsWithTrans = await Promise.all(transTagData.map(async (transTag:TransTag) => {
-                const transRes = await AuthAxios.get(`http://localhost:8000/api/transactions?id=${transTag.transaction}`, Auth.getToken());
+                const transRes = await AuthAxios.get(`http://localhost:8000/api/transactions?id=${transTag.transaction}`, auth.getToken());
                 const transData: Transaction = transRes.data[0];
                 transData.dateTime = new Date(transData.date_time);
-                const subsRes = await AuthAxios.get(`http://localhost:8000/api/subtransactions?transaction=${transData.id}`, Auth.getToken());
+                const subsRes = await AuthAxios.get(`http://localhost:8000/api/subtransactions?transaction=${transData.id}`, auth.getToken());
                 const subsData: Subtransaction[] = subsRes.data;
                 transData.subs = await Promise.all(subsData.map(async (sub) => {
                     const accountsRes = await axios.get(`http://localhost:8000/api/accounts?id=${sub.account}`);

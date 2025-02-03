@@ -8,9 +8,9 @@ import {useToken} from "../Auth/AuthContext";
 export const TransactionDelete = observer(function TransactionDelete() {
     const {id} = useParams();
     const backLink: string = `/transactions/${id}`;
-    const Auth = useToken();
+    const auth = useToken();
     const navigate = useNavigate();
-    if(Auth.getToken() === '') {
+    if (auth.getToken() === '') {
         navigate('/login');
     }
     return (

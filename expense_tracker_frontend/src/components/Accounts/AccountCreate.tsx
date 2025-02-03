@@ -7,11 +7,11 @@ import {AuthAxios} from "../../utils/Network";
 
 
 export const AccountCreate = observer(function AccountCreate() {
-    const Auth = useToken();
+    const auth = useToken();
     const navigate = useNavigate();
     const [name, setName] = useState('');
     const [desc, setDesc] = useState('');
-    if(Auth.getToken() === '') {
+    if (auth.getToken() === '') {
         navigate('/login');
     }
     let bodyParameters = {
@@ -24,7 +24,7 @@ export const AccountCreate = observer(function AccountCreate() {
         e.preventDefault();
         bodyParameters.Name = name;
         bodyParameters.Description = desc;
-        await AuthAxios.post("http://localhost:8000/api/accounts", Auth.getToken(), bodyParameters).catch(err => console.error(err));
+        await AuthAxios.post("http://localhost:8000/api/accounts", auth.getToken(), bodyParameters).catch(err => console.error(err));
         navigate('/accounts');
     }
     return <div className='container'>

@@ -5,7 +5,7 @@ import {AuthAxios} from "../utils/Network";
 
 
 export function DefaultDelete(defaultDeleteProps) {
-    const Auth = useToken();
+    const auth = useToken();
     const navigate = useNavigate();
     const submitHandle = async (e) => {
         e.preventDefault();
@@ -14,7 +14,7 @@ export function DefaultDelete(defaultDeleteProps) {
             'action': `delete`
         };
         await AuthAxios.post(`http://localhost:8000${defaultDeleteProps.deleteRequestUrl}`,
-            Auth.getToken(), bodyParameters);
+            auth.getToken(), bodyParameters);
         navigate(`${defaultDeleteProps.returnPoint}`);
     };
     return (

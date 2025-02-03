@@ -9,9 +9,9 @@ import {useToken} from "../Auth/AuthContext";
 export const TagDelete = observer(function TagDelete() {
     const {id} = useParams();
     const backLink: string = `/tags/${id}`;
-    const Auth = useToken();
+    const auth = useToken();
     const navigate = useNavigate();
-    if(Auth.getToken() === '') {
+    if (auth.getToken() === '') {
         navigate('/login');
     }
     return (

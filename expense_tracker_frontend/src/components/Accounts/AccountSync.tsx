@@ -17,21 +17,21 @@ export const AccountSync = observer(function AccountSync() {
     const [lastBalance, setLastBalance] = useState(0);
     const [balance, setBalance] = useState(0);
     const [date, setDate] = useState<Date>(new Date(Date.now()));
-    const Auth = useToken();
+    const auth = useToken();
     const navigate = useNavigate();
     const {id} = useParams();
-    if(Auth.getToken() === '') {
+    if (auth.getToken() === '') {
         navigate('/login');
     }
     useEffect(() => {
 
         const fetchAccounts = async () => {
             try {
-                const data = await AuthAxios.get(`http://localhost:8000/api/accounts?id=${id}`, Auth.getToken()).then(res => {
+                const data = await AuthAxios.get(`http://localhost:8000/api/accounts?id=${id}`, auth.getToken()).then(res => {
                     return res.data[0];
                 })
                 const balanceRes =
-                    await AuthAxios.get(`http://localhost:8000/api/account_balance_cache?account=${id}&date_lte=${formatDate(new Date(Date.now()))}`, Auth.getToken());
+                    await AuthAxios.get(`http://localhost:8000/api/account_balance_cache?account=${id}&date_lte=${formatDate(new Date(Date.now()))}`, auth.getToken());
                 let sum: number;
                 if (balanceRes.data.length > 0) {
                     data.lastCacheBalance = balanceRes.data[balanceRes.data.length - 1].balance;
@@ -45,7 +45,7 @@ export const AccountSync = observer(function AccountSync() {
                 const subRes =
                     await AuthAxios.get(`http://localhost:8000/api/subtransactions?account=${data.id}
                                         &date_gte=${formatDate(data.lastCacheDate)}
-                                        &date_lte=${formatDate(new Date(Date.now()))}`, Auth.getToken());
+                                        &date_lte=${formatDate(new Date(Date.now()))}`, auth.getToken());
                 const subs: Subtransaction[] = subRes.data;
                 await Promise.all(subs.map(async (sub) => {
                     sum = sum + sub.amount;
@@ -70,7 +70,7 @@ export const AccountSync = observer(function AccountSync() {
             date: date,
             dateYear: formatDateYear(date)
         };
-        await AuthAxios.post("http://localhost:8000/api/account_sync_event", Auth.getToken(), bodyParams);
+        await AuthAxios.post("http://localhost:8000/api/account_sync_event", auth.getToken(), bodyParams);
         navigate("/accounts");
     };
     const formatDateYear = (date: Date): string => {

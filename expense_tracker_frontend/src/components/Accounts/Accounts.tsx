@@ -24,9 +24,9 @@ interface Subtransaction {
     account: string;
 }
 export const Accounts = observer(function Accounts() {
-    const Auth = useToken();
+    const auth = useToken();
     const navigate = useNavigate();
-    if(Auth.getToken() === '') {
+    if (auth.getToken() === '') {
         navigate('/login');
     }
     const [state, setState] = useState<Account[]>([]);
@@ -35,13 +35,13 @@ export const Accounts = observer(function Accounts() {
 
         const fetchAccounts = async() => {
             try {
-                const data = await AuthAxios.get("http://localhost:8000/api/accounts", Auth.getToken()).then(res => {
+                const data = await AuthAxios.get("http://localhost:8000/api/accounts", auth.getToken()).then(res => {
                     const data: Account[] = res.data;
                     return data;
                 });
                 const cache = await Promise.all(data.map(async (account) => {
                     const balanceRes =
-                        await AuthAxios.get(`http://localhost:8000/api/account_balance_cache?account=${account.id}`, Auth.getToken());
+                        await AuthAxios.get(`http://localhost:8000/api/account_balance_cache?account=${account.id}`, auth.getToken());
                     let sum: number;
                     if (balanceRes.data.length > 0) {
                         account.lastCacheBalance = balanceRes.data[balanceRes.data.length - 1].balance;
@@ -54,7 +54,7 @@ export const Accounts = observer(function Accounts() {
                     }
                     const subRes =
                         await AuthAxios.get(`http://localhost:8000/api/subtransactions?account=${account.id}
-                                            &date_gte=${formatDate(account.lastCacheDate)}`, Auth.getToken());
+                                            &date_gte=${formatDate(account.lastCacheDate)}`, auth.getToken());
                     const subs: Subtransaction[] = subRes.data;
                     await Promise.all(subs.map(async (sub) => {
                         sum = sum + sub.amount;

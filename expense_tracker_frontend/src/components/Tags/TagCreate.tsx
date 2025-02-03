@@ -8,11 +8,11 @@ import {AuthAxios} from "../../utils/Network";
 
 
 export const TagCreate = observer(function TagCreate() {
-    const Auth = useToken();
+    const auth = useToken();
     const navigate = useNavigate();
     const [name, setName] = useState('');
     const [desc, setDesc] = useState('');
-    if(Auth.getToken() === '') {
+    if (auth.getToken() === '') {
         navigate('/login');
     }
     let bodyParameters = {
@@ -25,7 +25,7 @@ export const TagCreate = observer(function TagCreate() {
         e.preventDefault();
         bodyParameters.Name = name;
         bodyParameters.Description = desc;
-        await AuthAxios.post("http://localhost:8000/api/tags", Auth.getToken(), bodyParameters).catch(err => console.error(err));
+        await AuthAxios.post("http://localhost:8000/api/tags", auth.getToken(), bodyParameters).catch(err => console.error(err));
         navigate('/tags');
     }
     return <div className='container'>

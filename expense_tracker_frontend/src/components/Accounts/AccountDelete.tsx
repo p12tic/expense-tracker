@@ -6,11 +6,11 @@ import {useToken} from "../Auth/AuthContext";
 
 
 export const AccountDelete = observer(function AccountDelete() {
-    const Auth = useToken();
+    const auth = useToken();
     const navigate = useNavigate();
     const {id} = useParams();
     const backLink: string = `/accounts/${id}`;
-    if(Auth.getToken() === '') {
+    if (auth.getToken() === '') {
         navigate('/login');
     }
 

@@ -9,9 +9,9 @@ import {useToken} from "./Auth/AuthContext";
 import {AuthAxios} from "../utils/Network";
 
 export const Navbar = observer(function Navbar() {
-    const Auth = useToken();
+    const auth = useToken();
     const [username, setUsername] = useState('');
-    AuthAxios.get("http://localhost:8000/api/token", Auth.getToken()).then(res => {
+    AuthAxios.get("http://localhost:8000/api/token", auth.getToken()).then(res => {
         setUsername(res.data[0].username);
     });
     return (
@@ -31,7 +31,7 @@ export const Navbar = observer(function Navbar() {
                     <div id="navbar" className="navbar-collapse collapse">
                         <ul className="nav navbar-nav">
                             <li className="navbar-right">
-                                {Auth.getToken() === '' ?
+                                {auth.getToken() === '' ?
                                     <a href="/user/login">Not authenticated</a>
                                     :
                                     <a href="/user/edit">Logged in as {username}</a>

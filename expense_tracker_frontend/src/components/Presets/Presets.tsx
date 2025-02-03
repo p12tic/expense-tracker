@@ -29,30 +29,30 @@ interface PresetTransactionTag {
 }
 
 export const PresetsList = observer(function PresetsList() {
-    const Auth = useToken();
+    const auth = useToken();
     const [state, setState] = useState<Presets[]>([]);
     const navigate = useNavigate();
-    if(Auth.getToken() === '') {
+    if (auth.getToken() === '') {
         navigate('/login');
     }
     useEffect(() => {
         const fetchPresets = async() => {
             try {
-                const data = await AuthAxios.get("http://localhost:8000/api/presets", Auth.getToken()).then(res => {
+                const data = await AuthAxios.get("http://localhost:8000/api/presets", auth.getToken()).then(res => {
                 const data: Presets[] = res.data;
                 return data;
             });
                 await Promise.all(data.map(async (preset) => {
-                    const transTagsRes = await AuthAxios.get(`http://localhost:8000/api/preset_transaction_tags?preset=${preset.id}`, Auth.getToken());
+                    const transTagsRes = await AuthAxios.get(`http://localhost:8000/api/preset_transaction_tags?preset=${preset.id}`, auth.getToken());
                     const transTags = transTagsRes.data;
                     preset.tags = await Promise.all(transTags.map(async (transTag: PresetTransactionTag) => {
-                        const tagsRes = await AuthAxios.get(`http://localhost:8000/api/tags?id=${transTag.tag}`, Auth.getToken());
+                        const tagsRes = await AuthAxios.get(`http://localhost:8000/api/tags?id=${transTag.tag}`, auth.getToken());
                         return tagsRes.data[0].name;
                     }));
-                    const presetSubsRes = await AuthAxios.get(`http://localhost:8000/api/preset_subtransactions?preset=${preset.id}`, Auth.getToken());
+                    const presetSubsRes = await AuthAxios.get(`http://localhost:8000/api/preset_subtransactions?preset=${preset.id}`, auth.getToken());
                     const presetSubs: PresetSub[] = presetSubsRes.data;
                     preset.presetSubs = await Promise.all(presetSubs.map(async (preSub) => {
-                        const accSubRes = await AuthAxios.get(`http://localhost:8000/api/accounts?id=${preSub.account}`, Auth.getToken());
+                        const accSubRes = await AuthAxios.get(`http://localhost:8000/api/accounts?id=${preSub.account}`, auth.getToken());
                         preSub.accountName = accSubRes.data[0].name;
                         return preSub;
                     }));

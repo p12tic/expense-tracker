@@ -6,7 +6,7 @@ import {observer} from "mobx-react-lite";
 import {useToken} from "./AuthContext";
 
 export const Login = function Login() {
-    const Auth = useToken();
+    const auth = useToken();
 
     let bodyParameters ={
         username: "",
@@ -15,7 +15,7 @@ export const Login = function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
-    if(Auth.getToken() !== '') {
+    if (auth.getToken() !== '') {
         navigate('/transactions');
     }
     const submitHandler = (e) => {
@@ -25,7 +25,7 @@ export const Login = function Login() {
         axios.post("http://localhost:8000/api/api-token-auth/",
             bodyParameters
             ).then((response) => {
-                Auth.setToken(response.data.token);
+                auth.setToken(response.data.token);
                 navigate("/transactions");
             }).catch((err) => {console.error(err)})
     }

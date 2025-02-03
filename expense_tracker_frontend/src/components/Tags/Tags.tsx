@@ -13,15 +13,15 @@ interface Tag {
     user: string;
 }
 export const Tags = observer(function Tags() {
-    const Auth = useToken();
+    const auth = useToken();
     const [state, setState] = useState<Tag[]>([]);
     const navigate = useNavigate();
-    if(Auth.getToken() === '') {
+    if (auth.getToken() === '') {
         navigate('/login');
     }
 
     useEffect(() => {
-        AuthAxios.get("http://localhost:8000/api/tags", Auth.getToken()).then(res => {
+        AuthAxios.get("http://localhost:8000/api/tags", auth.getToken()).then(res => {
             const data: Tag[] = res.data;
             setState(data);
         }).catch(err => {console.error(err)});

@@ -42,29 +42,29 @@ const defaultPreset: Preset = {
 };
 export const Preset = observer(function Preset() {
 
-    const Auth = useToken();
+    const auth = useToken();
     const [state, setState] = useState<Preset>(defaultPreset);
     const {id} = useParams();
     const navigate = useNavigate();
-    if(Auth.getToken() === '') {
+    if (auth.getToken() === '') {
         navigate('/login');
     }
     useEffect(() => {
         const fetchPreset = async () => {
-            const presetRes = await AuthAxios.get(`http://localhost:8000/api/presets?id=${id}`, Auth.getToken());
+            const presetRes = await AuthAxios.get(`http://localhost:8000/api/presets?id=${id}`, auth.getToken());
             const preset: Preset = presetRes.data[0];
-            const presetSubsRes = await AuthAxios.get(`http://localhost:8000/api/preset_subtransactions?preset=${id}`, Auth.getToken());
+            const presetSubsRes = await AuthAxios.get(`http://localhost:8000/api/preset_subtransactions?preset=${id}`, auth.getToken());
             const presetSubs: PresetSub[] = presetSubsRes.data;
             await Promise.all(presetSubs.map(async (presetSub) => {
-                await AuthAxios.get(`http://localhost:8000/api/accounts?id=${presetSub.account}`, Auth.getToken()).then((res) => {
+                await AuthAxios.get(`http://localhost:8000/api/accounts?id=${presetSub.account}`, auth.getToken()).then((res) => {
                     const acc = res.data[0];
                     presetSub.accountName = acc.name;
                 });
             }));
-            const presetTransTagsRes = await AuthAxios.get(`http://localhost:8000/api/preset_transaction_tags?preset=${id}`, Auth.getToken());
+            const presetTransTagsRes = await AuthAxios.get(`http://localhost:8000/api/preset_transaction_tags?preset=${id}`, auth.getToken());
             const presetTransTags: PresetTransactionTag[] = presetTransTagsRes.data;
             await Promise.all(presetTransTags.map(async (presetTransactionTag) => {
-                await AuthAxios.get(`http://localhost:8000/api/tags?id=${presetTransactionTag.tag}`, Auth.getToken()).then((res) => {
+                await AuthAxios.get(`http://localhost:8000/api/tags?id=${presetTransactionTag.tag}`, auth.getToken()).then((res) => {
                     const tag = res.data[0];
                     presetTransactionTag.tagName = tag.name;
                 });

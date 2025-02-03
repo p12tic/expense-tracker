@@ -13,16 +13,16 @@ interface Tag {
 }
 
 export const TagEdit = observer(function TagEdit() {
-    const Auth = useToken();
+    const auth = useToken();
     const navigate = useNavigate();
     const {id} = useParams();
-    if(Auth.getToken() === '') {
+    if (auth.getToken() === '') {
         navigate('/login');
     }
     const [name, setName] = useState('');
     const [desc, setDesc] = useState('');
     useEffect(() => {
-        AuthAxios.get(`http://localhost:8000/api/tags?id=${id}`, Auth.getToken()).then(res => {
+        AuthAxios.get(`http://localhost:8000/api/tags?id=${id}`, auth.getToken()).then(res => {
         const data: Tag = res.data[0];
         setName(data.name);
         setDesc(data.desc);
@@ -40,7 +40,7 @@ export const TagEdit = observer(function TagEdit() {
         e.preventDefault();
         bodyParameters.Name = name;
         bodyParameters.Description = desc;
-        AuthAxios.post("http://localhost:8000/api/tags", Auth.getToken(), bodyParameters).catch(err => console.error(err));
+        AuthAxios.post("http://localhost:8000/api/tags", auth.getToken(), bodyParameters).catch(err => console.error(err));
         navigate(`/tags/${id}`);
     };
     return <div className='container'>

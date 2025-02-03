@@ -24,7 +24,7 @@ interface TagElement {
     isChecked: boolean;
 }
 export const PresetCreate = observer(function PresetCreate() {
-    const Auth = useToken();
+    const auth = useToken();
     const navigate = useNavigate();
     const [tags, setTags] = useState<TagElement[]>([]);
     const [accounts, setAccounts] = useState<AccountElement[]>([]);
@@ -33,7 +33,7 @@ export const PresetCreate = observer(function PresetCreate() {
     const [transactionDesc, setTransactionDesc] = useState('');
     const intervalRef = useRef<number | null>(null);
     const timeoutRef = useRef<number | null>(null);
-    if(Auth.getToken() === '') {
+    if (auth.getToken() === '') {
         navigate('/login');
     }
     const handleTagClick = useCallback((clickedTag: TagElement) => {
@@ -178,12 +178,12 @@ export const PresetCreate = observer(function PresetCreate() {
             'tags': tags,
             'accounts': accounts
         };
-        await AuthAxios.post("http://localhost:8000/api/presets", Auth.getToken(), bodyParams);
+        await AuthAxios.post("http://localhost:8000/api/presets", auth.getToken(), bodyParams);
         navigate("/presets");
     };
     useEffect(() => {
         const FetchTags = async () => {
-            const TagsRes = await AuthAxios.get("http://localhost:8000/api/tags", Auth.getToken());
+            const TagsRes = await AuthAxios.get("http://localhost:8000/api/tags", auth.getToken());
             const Tags: TagElement[] = TagsRes.data;
             Tags.map((tag) => {
                 tag.isChecked = false;
@@ -191,7 +191,7 @@ export const PresetCreate = observer(function PresetCreate() {
             setTags(Tags);
         };
         const FetchAccounts = async () => {
-            const AccountsRes = await AuthAxios.get("http://localhost:8000/api/accounts", Auth.getToken());
+            const AccountsRes = await AuthAxios.get("http://localhost:8000/api/accounts", auth.getToken());
             const Accounts: AccountElement[] = AccountsRes.data;
             Accounts.map((acc) => {
                 acc.isUsed = false;
