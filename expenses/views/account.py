@@ -1,9 +1,9 @@
 from django.views.generic.list import ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
-from expenses.views.auth import AppLoginRequiredMixin, VerifyOwnerMixin
+from ..views.auth import AppLoginRequiredMixin, VerifyOwnerMixin
 from django.core.exceptions import PermissionDenied
-from expenses.models import *
-from expenses.db_utils import *
+from ..models import *
+from ..db_utils import *
 
 class AccountListView(AppLoginRequiredMixin, ListView):
     model = Account

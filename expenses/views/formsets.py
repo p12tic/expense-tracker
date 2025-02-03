@@ -1,6 +1,5 @@
-
 from django import forms
-from expenses.models import *
+from ..models import *
 
 # accounts formset
 

@@ -20,7 +20,7 @@ class Transaction(models.Model):
 
 class Account(models.Model):
     ''' Account identifies the current amount of assets (positive) or
-        liabilities (negative) of a certain user. An user may have multiple
+        liabilities (negative) of a certain user. A user may have multiple
         accounts related to different actors.
     '''
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
@@ -33,7 +33,7 @@ class Account(models.Model):
             blank=True)
 
 class Subtransaction(models.Model):
-    ''' Subtransaction is a change in a account due to a single transaction
+    ''' Subtransaction is a change in an account due to a single transaction
     '''
     transaction = models.ForeignKey(Transaction,
             on_delete=models.CASCADE,
@@ -198,7 +198,7 @@ class PresetSubtransaction(models.Model):
 # Account sync
 
 class AccountBalanceCache(models.Model):
-    ''' Caches the amount of funds in a account at the beginning of specific
+    ''' Caches the amount of funds in an account at the beginning of specific
         day. The time point of the cached balance is after all transactions of
         the previous day and before all transactions of the current day.
     '''
@@ -207,11 +207,11 @@ class AccountBalanceCache(models.Model):
             related_name='balance_caches')
 
     balance = models.IntegerField()
-    date = models.DateField()
+    date = models.DateTimeField()
 
 class AccountSyncEvent(models.Model):
-    ''' Identifies a account-sync event, where the user synchronizes the data in
-        the database with actual balance of funds. A account sync event creates
+    ''' Identifies an account-sync event, where the user synchronizes the data in
+        the database with actual balance of funds. An account sync event creates
         a subtransaction to adjust the balance in the account to match the
         actual amount of funds present.
 

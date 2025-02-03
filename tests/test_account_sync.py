@@ -305,7 +305,6 @@ class TestAccountSync(TestCase):
 
         event = sync_create(self.account, datetime(2000, 1, 2, 11, 0, 1), 70)
         sync_update_date_or_amount(event, datetime(2000, 1, 2, 11, 0, 1), 60)
-
         balance_on_date_time = [
             ( 0, datetime(2000, 1, 1)),
             ( 0, datetime(2000, 1, 2, 10, 0, 0)),
@@ -326,7 +325,6 @@ class TestAccountSync(TestCase):
         self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
         self.create_transaction(datetime(2000, 1, 2, 12, 0, 1), 50)
         self.create_transaction(datetime(2000, 1, 2, 14, 0, 1), 20)
-
         event = sync_create(self.account, datetime(2000, 1, 2, 11, 0, 1), 70)
         sync_update_date_or_amount(event, datetime(2000, 1, 2, 13, 0, 1), 70)
 

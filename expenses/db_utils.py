@@ -1,5 +1,5 @@
 import datetime
-from expenses.models import *
+from . models import *
 
 # NOTE: the subtransaction filtering MUST be done using half-open intervals to
 # ensure that when several transactions are made on the same date/time the
@@ -336,7 +336,6 @@ def sync_update_date_or_amount(event, date_time, balance):
 
     if date_time != tr.date_time and has_sync_event_on_time(account, date_time):
         raise Exception('Trying to create sync event on top of existing event')
-
     transaction_update_date_or_amount(tr, date_time, {})
     balance_curr = get_account_balance(account, date_time)
     balance_diff = balance - balance_curr
@@ -344,5 +343,6 @@ def sync_update_date_or_amount(event, date_time, balance):
                                       { account.id : balance_diff })
 
     sub = Subtransaction.objects.filter(transaction=tr)[0]
-    event.sub = sub
+    event.subtransaction = sub
+
     event.save()

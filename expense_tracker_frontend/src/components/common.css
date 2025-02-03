@@ -1,0 +1,37 @@
+.form-horizontal .control-label {
+    margin-bottom: 0;
+    padding-top: 7px;
+}
+
+.form-control-readonly[readonly]:not([disabled]) {
+    background-color: white !important;
+}
+
+.btn > label {
+    cursor: pointer;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance:textfield;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.tmp-static-field-label {
+    padding-top: 7px;
+    font-weight: bold;
+}
+
+.tmp-static-field-content {
+    padding: 6px 12px;
+}
+
+.dropdown-menu.pull-left {
+    right: 0;
+    left: auto;
+}
