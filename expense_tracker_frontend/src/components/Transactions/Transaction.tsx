@@ -4,9 +4,9 @@ import {TableButton} from "../TableButton";
 import {StaticField} from "../StaticField";
 import React, {useEffect, useState} from "react";
 import {useToken} from "../Auth/AuthContext";
-import axios from "axios";
 import {Link, useNavigate, useParams} from "react-router-dom";
 import {centsToString, formatDate} from "../Tools";
+import {AuthAxios} from "../../utils/Network";
 
 interface TransactionElement {
     desc: string;
@@ -41,7 +41,6 @@ interface Account {
 
 export const Transaction = observer(function Transaction() {
     const Auth = useToken();
-    axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
     const [state, setState] = useState<TransactionElement>({
         desc: "",
         user: 0,
@@ -56,21 +55,21 @@ export const Transaction = observer(function Transaction() {
     }
     useEffect(() => {
         const FetchTransaction = async () => {
-            await axios.get(`http://localhost:8000/api/transactions?id=${id}`).then(async (res) => {
+            await AuthAxios.get(`http://localhost:8000/api/transactions?id=${id}`, Auth.getToken()).then(async (res) => {
                 let transaction: TransactionElement = res.data[0];
                 transaction.dateTime = res.data[0]['date_time'];
                 let Tags: Tag[] = [];
                 let Subs: Subtransaction[] = [];
-                await axios.get(`http://localhost:8000/api/transaction_tags?transaction=${id}`).then(async (transactionTags) => {
+                await AuthAxios.get(`http://localhost:8000/api/transaction_tags?transaction=${id}`, Auth.getToken()).then(async (transactionTags) => {
                     Tags = await Promise.all(transactionTags.data.map(async (transTag: TransactionTag) => {
-                        const tagRes = await axios.get(`http://localhost:8000/api/tags?id=${transTag.tag}`);
+                        const tagRes = await AuthAxios.get(`http://localhost:8000/api/tags?id=${transTag.tag}`, Auth.getToken());
                         const tag: Tag = tagRes.data[0];
                         return tag;
                     }));
                 });
-                await axios.get(`http://localhost:8000/api/subtransactions?transaction=${id}`).then(async (subsRes) => {
+                await AuthAxios.get(`http://localhost:8000/api/subtransactions?transaction=${id}`, Auth.getToken()).then(async (subsRes) => {
                     Subs = await Promise.all(subsRes.data.map(async (sub: Subtransaction) => {
-                        const accRes = await axios.get(`http://localhost:8000/api/accounts?id=${sub.account}`);
+                        const accRes = await AuthAxios.get(`http://localhost:8000/api/accounts?id=${sub.account}`, Auth.getToken());
                         const acc: Account = accRes.data[0];
                         sub.accountName = acc.name;
                         return sub;

@@ -6,13 +6,12 @@ import '../../../expenses/static/libs/bootstrap-touchspin/jquery.bootstrap-touch
 import '../../../expenses/static/expenses/common.css';
 import {observer} from "mobx-react-lite";
 import {useToken} from "./Auth/AuthContext";
-import axios from "axios";
+import {AuthAxios} from "../utils/Network";
 
 export const Navbar = observer(function Navbar() {
     const Auth = useToken();
     const [username, setUsername] = useState('');
-    axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
-    axios.get("http://localhost:8000/api/token").then(res => {
+    AuthAxios.get("http://localhost:8000/api/token", Auth.getToken()).then(res => {
         setUsername(res.data[0].username);
     });
     return (

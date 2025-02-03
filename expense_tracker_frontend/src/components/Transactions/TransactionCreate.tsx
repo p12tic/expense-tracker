@@ -2,10 +2,10 @@ import { observer } from "mobx-react-lite";
 import {Navbar} from "../Navbar";
 import { useToken } from "../Auth/AuthContext";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {SubmitButton} from "../SubmitButton";
 import {formatDateTimeForInput} from "../Tools"
+import {AuthAxios} from "../../utils/Network";
 
 
 interface Preset {
@@ -60,7 +60,6 @@ const defaultPreset: Preset = {
 export const TransactionCreate = observer(function TransactionCreate() {
     const Auth = useToken();
     const navigate = useNavigate();
-    axios.defaults.headers.common = { Authorization: `Token ${Auth.getToken()}` };
     const [presets, setPresets] = useState<Preset[]>([]);
     const [presetInUse, setPresetInUse] = useState<Preset>(defaultPreset);
     const [desc, setDesc] = useState("");
@@ -75,14 +74,14 @@ export const TransactionCreate = observer(function TransactionCreate() {
 
     useEffect(() => {
         const FetchAccounts = async () => {
-            await axios.get("http://localhost:8000/api/accounts").then(async (res) => {
+            await AuthAxios.get("http://localhost:8000/api/accounts", Auth.getToken()).then(async (res) => {
                 const AccountsData: AccountElement[] = await Promise.all(res.data.map(async (acc: AccountElement) => {
                     acc.amount = 0;
                     acc.isUsed = false;
                     acc.fraction = 0;
                     return acc;
                 }));
-                const Tags: TagElement[] = await axios.get("http://localhost:8000/api/tags").then(async (tagsRes) => {
+                const Tags: TagElement[] = await AuthAxios.get("http://localhost:8000/api/tags", Auth.getToken()).then(async (tagsRes) => {
                     const TagsData: TagElement[] = await Promise.all(tagsRes.data.map(async (tag: TagElement) => {
                         tag.isChecked = false;
                         return tag;
@@ -103,12 +102,12 @@ export const TransactionCreate = observer(function TransactionCreate() {
             });
         };
         const FetchPresets = async () => {
-            await axios.get("http://localhost:8000/api/presets").then(async (presetsRes) => {
+            await AuthAxios.get("http://localhost:8000/api/presets", Auth.getToken()).then(async (presetsRes) => {
                 const PresetsData: Preset[] = await Promise.all(presetsRes.data.map(async (preset: Preset) => {
                     let AccountsData: AccountElement[] = [];
                     preset.transactionDesc = preset.transaction_desc;
-                    await axios.get(`http://localhost:8000/api/preset_subtransactions?preset=${preset.id}`).then(async (presetSubsRes) => {
-                        await axios.get("http://localhost:8000/api/accounts").then(async (res) => {
+                    await AuthAxios.get(`http://localhost:8000/api/preset_subtransactions?preset=${preset.id}`, Auth.getToken()).then(async (presetSubsRes) => {
+                        await AuthAxios.get("http://localhost:8000/api/accounts", Auth.getToken()).then(async (res) => {
                             AccountsData = await Promise.all(res.data.map(async (acc: AccountElement) => {
                                 await Promise.all(presetSubsRes.data.map(async (presetSub: PresetSub) => {
                                     acc.amount=0;
@@ -122,8 +121,8 @@ export const TransactionCreate = observer(function TransactionCreate() {
                         });
                     });
                     let TagsData: TagElement[] = [];
-                    await axios.get(`http://localhost:8000/api/preset_transaction_tags?preset=${preset.id}`).then(async (presetTransactionTags) => {
-                        await axios.get("http://localhost:8000/api/tags").then(async (tags) => {
+                    await AuthAxios.get(`http://localhost:8000/api/preset_transaction_tags?preset=${preset.id}`, Auth.getToken()).then(async (presetTransactionTags) => {
+                        await AuthAxios.get("http://localhost:8000/api/tags", Auth.getToken()).then(async (tags) => {
                             TagsData = await Promise.all((tags.data.map(async (tag: TagElement) => {
                                 await Promise.all(presetTransactionTags.data.map(async (presetTransactionTag:PresetTransactionTag) => {
                                     tag.isChecked = tag.id === presetTransactionTag.tag;
@@ -158,7 +157,7 @@ export const TransactionCreate = observer(function TransactionCreate() {
             date: date,
             preset: presetInUse
         };
-        await axios.post("http://localhost:8000/api/transactions", bodyParams);
+        await AuthAxios.post("http://localhost:8000/api/transactions", Auth.getToken(), bodyParams);
         navigate("/transactions");
     };
     const handleAccountAmountMouseDown = (clickedAccUse: AccountElement, step: number) => {

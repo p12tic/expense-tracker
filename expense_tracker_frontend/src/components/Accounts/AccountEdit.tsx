@@ -1,9 +1,9 @@
 import {observer} from "mobx-react-lite";
 import {useEffect, useState} from "react";
 import {useToken} from "../Auth/AuthContext";
-import axios from "axios";
 import {Navbar} from "../Navbar";
 import {useNavigate, useParams} from "react-router-dom";
+import {AuthAxios} from "../../utils/Network";
 
 interface Account {
     id: number;
@@ -16,14 +16,13 @@ export const AccountEdit = observer(function AccountEdit() {
     const Auth = useToken();
     const navigate = useNavigate();
     const {id} = useParams();
-    axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
     if(Auth.getToken() === '') {
         navigate('/login');
     }
     const [name, setName] = useState('');
     const [desc, setDesc] = useState('');
     useEffect(() => {
-        axios.get(`http://localhost:8000/api/accounts?id=${id}`).then(res => {
+        AuthAxios.get(`http://localhost:8000/api/accounts?id=${id}`, Auth.getToken()).then(res => {
         const data:Account = res.data[0];
         setName(data.name);
         setDesc(data.desc);
@@ -39,7 +38,7 @@ export const AccountEdit = observer(function AccountEdit() {
         e.preventDefault();
         bodyParameters.Name = name;
         bodyParameters.Description = desc;
-        axios.post("http://localhost:8000/api/accounts", bodyParameters).catch(err => console.error(err));
+        AuthAxios.post("http://localhost:8000/api/accounts", Auth.getToken(), bodyParameters).catch(err => console.error(err));
         navigate(`/accounts/${id}`);
     }
     return <div className='container'>

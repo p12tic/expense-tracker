@@ -8,8 +8,6 @@ import {useToken} from "./AuthContext";
 export const Login = function Login() {
     const Auth = useToken();
 
-    axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
-
     let bodyParameters ={
         username: "",
         password: ""

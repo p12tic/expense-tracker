@@ -1,7 +1,6 @@
 import {observer} from "mobx-react-lite";
 import {useToken} from "./AuthContext";
 import {Navbar} from "../Navbar";
-import axios from "axios";
 
 
 export const UserEdit = observer(function UserEdit() {

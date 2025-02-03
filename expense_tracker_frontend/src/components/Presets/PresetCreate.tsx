@@ -3,8 +3,8 @@ import {SubmitButton} from "../SubmitButton";
 import {Navbar} from "../Navbar";
 import {useToken} from "../Auth/AuthContext";
 import {useNavigate} from "react-router-dom";
-import axios from "axios";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {AuthAxios} from "../../utils/Network";
 
 
 
@@ -26,7 +26,6 @@ interface TagElement {
 export const PresetCreate = observer(function PresetCreate() {
     const Auth = useToken();
     const navigate = useNavigate();
-    axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
     const [tags, setTags] = useState<TagElement[]>([]);
     const [accounts, setAccounts] = useState<AccountElement[]>([]);
     const [name, setName] = useState('');
@@ -179,12 +178,12 @@ export const PresetCreate = observer(function PresetCreate() {
             'tags': tags,
             'accounts': accounts
         };
-        await axios.post("http://localhost:8000/api/presets", bodyParams);
+        await AuthAxios.post("http://localhost:8000/api/presets", Auth.getToken(), bodyParams);
         navigate("/presets");
     };
     useEffect(() => {
         const FetchTags = async () => {
-            const TagsRes = await axios.get("http://localhost:8000/api/tags");
+            const TagsRes = await AuthAxios.get("http://localhost:8000/api/tags", Auth.getToken());
             const Tags: TagElement[] = TagsRes.data;
             Tags.map((tag) => {
                 tag.isChecked = false;
@@ -192,7 +191,7 @@ export const PresetCreate = observer(function PresetCreate() {
             setTags(Tags);
         };
         const FetchAccounts = async () => {
-            const AccountsRes = await axios.get("http://localhost:8000/api/accounts");
+            const AccountsRes = await AuthAxios.get("http://localhost:8000/api/accounts", Auth.getToken());
             const Accounts: AccountElement[] = AccountsRes.data;
             Accounts.map((acc) => {
                 acc.isUsed = false;
