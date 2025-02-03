@@ -1,11 +1,11 @@
-import {Navbar} from "../Navbar.tsx";
+import {Navbar} from "../Navbar";
 import {observer} from "mobx-react-lite";
 import {useEffect, useState} from "react";
-import {SubmitButton} from "../SubmitButton.tsx";
+import {SubmitButton} from "../SubmitButton";
 import axios from "axios";
-import {useToken} from "../Auth/AuthContext.tsx";
+import {useToken} from "../Auth/AuthContext";
 import {useNavigate, useParams} from "react-router-dom";
-import {centsToString, formatDate} from "../Tools.tsx";
+import {centsToString, formatDate} from "../Tools";
 
 interface Subtransaction {
     id: number;

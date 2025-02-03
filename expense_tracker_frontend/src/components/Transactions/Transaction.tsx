@@ -1,12 +1,12 @@
 import {observer} from "mobx-react-lite";
-import {Navbar} from "../Navbar.tsx";
-import {TableButton} from "../TableButton.tsx";
-import {StaticField} from "../StaticField.tsx";
+import {Navbar} from "../Navbar";
+import {TableButton} from "../TableButton";
+import {StaticField} from "../StaticField";
 import React, {useEffect, useState} from "react";
-import {useToken} from "../Auth/AuthContext.tsx";
+import {useToken} from "../Auth/AuthContext";
 import axios from "axios";
 import {Link, useNavigate, useParams} from "react-router-dom";
-import {centsToString, formatDate} from "../Tools.tsx";
+import {centsToString, formatDate} from "../Tools";
 
 interface TransactionElement {
     desc: string;

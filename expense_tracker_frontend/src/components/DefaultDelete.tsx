@@ -1,4 +1,4 @@
-import {SubmitButton} from "./SubmitButton.tsx";
+import {SubmitButton} from "./SubmitButton";
 import {useNavigate} from "react-router-dom";
 import axios from "axios";
 

@@ -1,7 +1,7 @@
 import {observer} from "mobx-react-lite";
-import {SubmitButton} from "../SubmitButton.tsx";
-import {Navbar} from "../Navbar.tsx";
-import {useToken} from "../Auth/AuthContext.tsx";
+import {SubmitButton} from "../SubmitButton";
+import {Navbar} from "../Navbar";
+import {useToken} from "../Auth/AuthContext";
 import {useNavigate} from "react-router-dom";
 import axios from "axios";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";

@@ -1,9 +1,9 @@
-import {Navbar} from "../Navbar.tsx";
+import {Navbar} from "../Navbar";
 import React, {useEffect, useState} from "react";
 import axios from "axios";
 import {Link, useNavigate} from "react-router-dom";
-import {TableButton} from "../TableButton.tsx";
-import {useToken} from "../Auth/AuthContext.tsx";
+import {TableButton} from "../TableButton";
+import {useToken} from "../Auth/AuthContext";
 import {observer} from "mobx-react-lite";
 
 interface Presets {

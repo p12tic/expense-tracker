@@ -1,10 +1,10 @@
 import {observer} from "mobx-react-lite";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import axios from "axios";
-import {useToken} from "../Auth/AuthContext.tsx";
+import {useToken} from "../Auth/AuthContext";
 import {useNavigate, useParams} from "react-router-dom";
-import {Navbar} from "../Navbar.tsx";
-import {SubmitButton} from "../SubmitButton.tsx";
+import {Navbar} from "../Navbar";
+import {SubmitButton} from "../SubmitButton";
 
 
 interface Preset {

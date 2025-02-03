@@ -1,9 +1,9 @@
-import {NavbarEmpty} from "../NavbarEmpty.tsx";
+import {NavbarEmpty} from "../NavbarEmpty";
 import {observer} from "mobx-react-lite";
 import {useState} from "react";
-import {useToken} from "../Auth/AuthContext.tsx";
+import {useToken} from "../Auth/AuthContext";
 import axios from "axios";
-import {Navbar} from "../Navbar.tsx";
+import {Navbar} from "../Navbar";
 import {useNavigate} from "react-router-dom";
 
 

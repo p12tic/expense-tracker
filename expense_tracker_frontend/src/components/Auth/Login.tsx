@@ -1,9 +1,9 @@
 import axios from "axios";
 import {useState} from "react";
 import {useNavigate} from "react-router-dom";
-import {NavbarEmpty} from "../NavbarEmpty.tsx";
+import {NavbarEmpty} from "../NavbarEmpty";
 import {observer} from "mobx-react-lite";
-import {useToken} from "./AuthContext.tsx";
+import {useToken} from "./AuthContext";
 
 export const Login = function Login() {
     const Auth = useToken();

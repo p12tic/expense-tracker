@@ -1,13 +1,13 @@
 import {observer} from "mobx-react-lite";
-import {useToken} from "../Auth/AuthContext.tsx";
+import {useToken} from "../Auth/AuthContext";
 import axios from "axios";
 import React, {useEffect, useState} from "react";
 import {Link, useNavigate, useParams} from "react-router-dom";
-import {Navbar} from "../Navbar.tsx";
-import {TableButton} from "../TableButton.tsx";
-import {StaticField} from "../StaticField.tsx";
-import {getSubtransactionBalances} from "../getSubtransactionBalances.tsx";
-import {centsToString, formatDate} from "../Tools.tsx";
+import {Navbar} from "../Navbar";
+import {TableButton} from "../TableButton";
+import {StaticField} from "../StaticField";
+import {getSubtransactionBalances} from "../getSubtransactionBalances";
+import {centsToString, formatDate} from "../Tools";
 
 interface AccountElement {
     id: number;

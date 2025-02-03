@@ -5,7 +5,7 @@ import '../../../expenses/static/libs/bootstrap-datepicker/bootstrap-datetimepic
 import '../../../expenses/static/libs/bootstrap-touchspin/jquery.bootstrap-touchspin.min.css';
 import '../../../expenses/static/expenses/common.css';
 import {observer} from "mobx-react-lite";
-import {useToken} from "./Auth/AuthContext.tsx";
+import {useToken} from "./Auth/AuthContext";
 import axios from "axios";
 
 export const Navbar = observer(function Navbar() {

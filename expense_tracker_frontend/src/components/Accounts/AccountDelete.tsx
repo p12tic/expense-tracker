@@ -1,8 +1,8 @@
 import {observer} from "mobx-react-lite";
-import {DefaultDelete} from "../DefaultDelete.tsx";
-import {Navbar} from "../Navbar.tsx";
+import {DefaultDelete} from "../DefaultDelete";
+import {Navbar} from "../Navbar";
 import {useNavigate, useParams} from "react-router-dom";
-import {useToken} from "../Auth/AuthContext.tsx";
+import {useToken} from "../Auth/AuthContext";
 import axios from "axios";
 
 

@@ -1,7 +1,7 @@
-import {useToken} from "../Auth/AuthContext.tsx";
+import {useToken} from "../Auth/AuthContext";
 import axios from "axios";
 import {useState} from "react";
-import {Navbar} from "../Navbar.tsx";
+import {Navbar} from "../Navbar";
 import {observer} from "mobx-react-lite";
 import {useNavigate} from "react-router-dom";
 

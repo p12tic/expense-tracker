@@ -1,9 +1,9 @@
 import {observer} from "mobx-react-lite";
-import {TableButton} from "../TableButton.tsx";
+import {TableButton} from "../TableButton";
 import React, {useEffect, useState} from "react";
-import {StaticField} from "../StaticField.tsx";
-import {Navbar} from "../Navbar.tsx";
-import {useToken} from "../Auth/AuthContext.tsx";
+import {StaticField} from "../StaticField";
+import {Navbar} from "../Navbar";
+import {useToken} from "../Auth/AuthContext";
 import axios from "axios";
 import {Link, useNavigate, useParams} from "react-router-dom";
 

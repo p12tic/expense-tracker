@@ -1,5 +1,5 @@
 import React from 'react';
-import {authData, AuthData} from "./AuthData.tsx";
+import {authData, AuthData} from "./AuthData";
 
 
 
