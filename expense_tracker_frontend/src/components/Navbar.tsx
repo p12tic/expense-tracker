@@ -11,7 +11,7 @@ import {AuthAxios} from "../utils/Network";
 export const Navbar = observer(function Navbar() {
     const auth = useToken();
     const [username, setUsername] = useState('');
-    AuthAxios.get("http://localhost:8000/api/token", auth.getToken()).then(res => {
+    AuthAxios.get("token", auth.getToken()).then(res => {
         setUsername(res.data[0].username);
     });
     return (

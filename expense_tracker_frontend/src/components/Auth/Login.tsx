@@ -4,6 +4,7 @@ import {useNavigate} from "react-router-dom";
 import {NavbarEmpty} from "../NavbarEmpty";
 import {observer} from "mobx-react-lite";
 import {useToken} from "./AuthContext";
+import {getApiUrlForCurrentWindow} from "../../utils/Network";
 
 export const Login = function Login() {
     const auth = useToken();
@@ -22,7 +23,8 @@ export const Login = function Login() {
         e.preventDefault();
         bodyParameters.username=username;
         bodyParameters.password = password;
-        axios.post("http://localhost:8000/api/api-token-auth/",
+
+        axios.post(`${getApiUrlForCurrentWindow()}/api-token-auth/`,
             bodyParameters
             ).then((response) => {
                 auth.setToken(response.data.token);

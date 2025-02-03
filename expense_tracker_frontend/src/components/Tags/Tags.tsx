@@ -21,7 +21,7 @@ export const Tags = observer(function Tags() {
     }
 
     useEffect(() => {
-        AuthAxios.get("http://localhost:8000/api/tags", auth.getToken()).then(res => {
+        AuthAxios.get("tags", auth.getToken()).then(res => {
             const data: Tag[] = res.data;
             setState(data);
         }).catch(err => {console.error(err)});

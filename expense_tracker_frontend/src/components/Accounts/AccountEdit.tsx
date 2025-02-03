@@ -22,7 +22,7 @@ export const AccountEdit = observer(function AccountEdit() {
     const [name, setName] = useState('');
     const [desc, setDesc] = useState('');
     useEffect(() => {
-        AuthAxios.get(`http://localhost:8000/api/accounts?id=${id}`, auth.getToken()).then(res => {
+        AuthAxios.get(`accounts?id=${id}`, auth.getToken()).then(res => {
         const data:Account = res.data[0];
         setName(data.name);
         setDesc(data.desc);
@@ -38,7 +38,7 @@ export const AccountEdit = observer(function AccountEdit() {
         e.preventDefault();
         bodyParameters.Name = name;
         bodyParameters.Description = desc;
-        AuthAxios.post("http://localhost:8000/api/accounts", auth.getToken(), bodyParameters).catch(err => console.error(err));
+        AuthAxios.post("accounts", auth.getToken(), bodyParameters).catch(err => console.error(err));
         navigate(`/accounts/${id}`);
     }
     return <div className='container'>

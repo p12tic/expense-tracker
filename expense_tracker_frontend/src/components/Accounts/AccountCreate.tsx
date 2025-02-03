@@ -24,7 +24,7 @@ export const AccountCreate = observer(function AccountCreate() {
         e.preventDefault();
         bodyParameters.Name = name;
         bodyParameters.Description = desc;
-        await AuthAxios.post("http://localhost:8000/api/accounts", auth.getToken(), bodyParameters).catch(err => console.error(err));
+        await AuthAxios.post("accounts", auth.getToken(), bodyParameters).catch(err => console.error(err));
         navigate('/accounts');
     }
     return <div className='container'>

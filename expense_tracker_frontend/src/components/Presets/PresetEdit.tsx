@@ -46,17 +46,17 @@ export const PresetEdit = observer(function PresetEdit() {
     }
     useEffect(() => {
         const FetchPreset = async () => {
-            const presetRes = await AuthAxios.get(`http://localhost:8000/api/presets?id=${id}`, auth.getToken());
+            const presetRes = await AuthAxios.get(`presets?id=${id}`, auth.getToken());
             const presetData: Preset = presetRes.data[0];
             setName(presetData.name);
             setDesc(presetData.desc);
             setTransDesc(presetData.transaction_desc);
         };
         const FetchTags = async () => {
-            const TagsRes = await AuthAxios.get("http://localhost:8000/api/tags", auth.getToken());
+            const TagsRes = await AuthAxios.get("tags", auth.getToken());
             const Tags: TagElement[] = TagsRes.data;
             await Promise.all(Tags.map(async (tag) => {
-                await AuthAxios.get(`http://localhost:8000/api/preset_transaction_tags?tag=${tag.id}&preset=${id}`, auth.getToken()).then((res) => {
+                await AuthAxios.get(`preset_transaction_tags?tag=${tag.id}&preset=${id}`, auth.getToken()).then((res) => {
                     tag.isChecked = res.data.length > 0;
                 });
             }));
@@ -64,10 +64,10 @@ export const PresetEdit = observer(function PresetEdit() {
             setTags(Tags);
         };
         const FetchAccounts = async () => {
-            const AccountsRes = await AuthAxios.get("http://localhost:8000/api/accounts", auth.getToken());
+            const AccountsRes = await AuthAxios.get("accounts", auth.getToken());
             const Accounts: AccountElement[] = AccountsRes.data;
             await Promise.all(Accounts.map(async (acc) => {
-                await AuthAxios.get(`http://localhost:8000/api/preset_subtransactions?account=${acc.id}&preset=${id}`, auth.getToken()).then((res) => {
+                await AuthAxios.get(`preset_subtransactions?account=${acc.id}&preset=${id}`, auth.getToken()).then((res) => {
                     if(res.data.length > 0) {
                         acc.isUsed = true;
                         acc.fraction = res.data[0].fraction;
@@ -101,7 +101,7 @@ export const PresetEdit = observer(function PresetEdit() {
             'tags': tags,
             'accounts': accounts
         };
-        await AuthAxios.post("http://localhost:8000/api/presets", auth.getToken(), bodyParams);
+        await AuthAxios.post("presets", auth.getToken(), bodyParams);
         navigate(`/presets/${id}`);
     }
      const handleMultiplierMouseDown = (clickedAccUse: AccountElement, step:number) => {

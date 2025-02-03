@@ -75,14 +75,14 @@ export const TransactionEdit = observer(function TransactionCreate() {
     }
     useEffect(() => {
         const FetchTransaction = async () => {
-            await AuthAxios.get(`http://localhost:8000/api/transactions?id=${id}`, auth.getToken()).then(async (transactionRes) => {
+            await AuthAxios.get(`transactions?id=${id}`, auth.getToken()).then(async (transactionRes) => {
                 const transaction = transactionRes.data[0];
                 setDate(new Date(transaction.date_time));
                 setDesc(transaction.desc);
-                const updatedAccounts = await AuthAxios.get("http://localhost:8000/api/accounts", auth.getToken()).then(async (accountsRes) => {
+                const updatedAccounts = await AuthAxios.get("accounts", auth.getToken()).then(async (accountsRes) => {
                     const accountsData: AccountElement[] = accountsRes.data;
                     return await Promise.all(accountsData.map(async (account) => {
-                        const subRes = await AuthAxios.get(`http://localhost:8000/api/subtransactions?account=${account.id}&transaction=${id}`, auth.getToken());
+                        const subRes = await AuthAxios.get(`subtransactions?account=${account.id}&transaction=${id}`, auth.getToken());
                         account.fraction = 0;
                         if (subRes.data.length > 0) {
                             account.amountView = parseFloat(centsToString(subRes.data[0].amount)).toFixed(2);
@@ -97,10 +97,10 @@ export const TransactionEdit = observer(function TransactionCreate() {
                         return account;
                     }));
                 });
-                const updatedTags = await AuthAxios.get("http://localhost:8000/api/tags", auth.getToken()).then(async (tagsRes) => {
+                const updatedTags = await AuthAxios.get("tags", auth.getToken()).then(async (tagsRes) => {
                     const tagsData: TagElement[] = tagsRes.data;
                     return await Promise.all(tagsData.map(async (tag) => {
-                        const transTagRes = await AuthAxios.get(`http://localhost:8000/api/transaction_tags?tag=${tag.id}&transaction=${id}`, auth.getToken());
+                        const transTagRes = await AuthAxios.get(`transaction_tags?tag=${tag.id}&transaction=${id}`, auth.getToken());
                         tag.isChecked = transTagRes.data.length > 0;
                         return tag;
                     }));
@@ -120,12 +120,12 @@ export const TransactionEdit = observer(function TransactionCreate() {
         };
 
         const FetchPresets = async () => {
-            await AuthAxios.get("http://localhost:8000/api/presets", auth.getToken()).then(async (presetsRes) => {
+            await AuthAxios.get("presets", auth.getToken()).then(async (presetsRes) => {
                 const PresetsData: Preset[] = await Promise.all(presetsRes.data.map(async (preset: Preset) => {
                     let AccountsData: AccountElement[] = [];
                     preset.transactionDesc = preset.transaction_desc;
-                    await AuthAxios.get(`http://localhost:8000/api/preset_subtransactions?preset=${preset.id}`, auth.getToken()).then(async (presetSubtransactionsRes) => {
-                        await AuthAxios.get("http://localhost:8000/api/accounts", auth.getToken()).then(async (res) => {
+                    await AuthAxios.get(`preset_subtransactions?preset=${preset.id}`, auth.getToken()).then(async (presetSubtransactionsRes) => {
+                        await AuthAxios.get("accounts", auth.getToken()).then(async (res) => {
                             AccountsData = await Promise.all(res.data.map(async (acc: AccountElement) => {
                                 await Promise.all(presetSubtransactionsRes.data.map(async (preSub: PresetSub) => {
                                     acc.amountView = "0";
@@ -140,8 +140,8 @@ export const TransactionEdit = observer(function TransactionCreate() {
                         });
                     });
                     let TagsData: TagElement[] = [];
-                    await AuthAxios.get(`http://localhost:8000/api/preset_transaction_tags?preset=${preset.id}`, auth.getToken()).then(async (presetTransactionTags) => {
-                        await AuthAxios.get("http://localhost:8000/api/tags", auth.getToken()).then(async (tags) => {
+                    await AuthAxios.get(`preset_transaction_tags?preset=${preset.id}`, auth.getToken()).then(async (presetTransactionTags) => {
+                        await AuthAxios.get("tags", auth.getToken()).then(async (tags) => {
                             TagsData = await Promise.all((tags.data.map(async (tag: TagElement) => {
                                 await Promise.all(presetTransactionTags.data.map(async (preTransTag: PresetTransactionTag) => {
                                     tag.isChecked = tag.id === preTransTag.tag;
@@ -177,7 +177,7 @@ export const TransactionEdit = observer(function TransactionCreate() {
             date: date,
             preset: presetInUse
         };
-        await AuthAxios.post("http://localhost:8000/api/transactions", auth.getToken(), bodyParams);
+        await AuthAxios.post("transactions", auth.getToken(), bodyParams);
         navigate("/transactions");
     };
     const handleAccountAmountMouseDown = (clickedAccUse: AccountElement, step: number) => {

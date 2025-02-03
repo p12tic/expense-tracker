@@ -17,7 +17,7 @@ export const AccountDelete = observer(function AccountDelete() {
     return (
         <div className="container">
             <Navbar />
-            <DefaultDelete backLink={backLink} id={id} returnPoint={`/accounts`} deleteRequestUrl={"/api/accounts"} />
+            <DefaultDelete backLink={backLink} id={id} returnPoint={`/accounts`} deleteRequestUrl={"accounts"} />
         </div>
     )
 })

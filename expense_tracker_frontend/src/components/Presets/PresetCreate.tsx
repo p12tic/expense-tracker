@@ -178,12 +178,12 @@ export const PresetCreate = observer(function PresetCreate() {
             'tags': tags,
             'accounts': accounts
         };
-        await AuthAxios.post("http://localhost:8000/api/presets", auth.getToken(), bodyParams);
+        await AuthAxios.post("presets", auth.getToken(), bodyParams);
         navigate("/presets");
     };
     useEffect(() => {
         const FetchTags = async () => {
-            const TagsRes = await AuthAxios.get("http://localhost:8000/api/tags", auth.getToken());
+            const TagsRes = await AuthAxios.get("tags", auth.getToken());
             const Tags: TagElement[] = TagsRes.data;
             Tags.map((tag) => {
                 tag.isChecked = false;
@@ -191,7 +191,7 @@ export const PresetCreate = observer(function PresetCreate() {
             setTags(Tags);
         };
         const FetchAccounts = async () => {
-            const AccountsRes = await AuthAxios.get("http://localhost:8000/api/accounts", auth.getToken());
+            const AccountsRes = await AuthAxios.get("accounts", auth.getToken());
             const Accounts: AccountElement[] = AccountsRes.data;
             Accounts.map((acc) => {
                 acc.isUsed = false;

@@ -55,25 +55,21 @@ export const Account = observer(function Account() {
     useEffect(() => {
         const fetchTag = async () => {
 
-            const accountRes = await AuthAxios.get(
-                `http://localhost:8000/api/accounts?id=${id}`, auth.getToken());
+            const accountRes = await AuthAxios.get(`accounts?id=${id}`, auth.getToken());
             const account: AccountElement = accountRes.data[0];
-            const accountSubRes = await AuthAxios.get(
-                `http://localhost:8000/api/subtransactions?account=${id}`, auth.getToken());
+            const accountSubRes = await AuthAxios.get(`subtransactions?account=${id}`, auth.getToken());
             const accountSubs: Subtransaction[] = accountSubRes.data;
             account.subtransactions = await Promise.all(accountSubs.map(async (sub) => {
-                const transactionRes = await AuthAxios.get(
-                    `http://localhost:8000/api/transactions?id=${sub.transaction}`, auth.getToken());
+                const transactionRes = await AuthAxios.get(`transactions?id=${sub.transaction}`, auth.getToken());
                 const transaction: Transaction = transactionRes.data[0];
                 transaction.dateTime = transaction.date_time;
                 if(!transaction.desc) {
-                    const syncRes = await AuthAxios.get(
-                        `http://localhost:8000/api/account_sync_event?subtransaction=${sub.id}`, auth.getToken());
+                    const syncRes = await AuthAxios.get(`account_sync_event?subtransaction=${sub.id}`, auth.getToken());
                     transaction.syncEvent = syncRes.data[0];
                 }
                 sub.transactionElement = transaction;
                 const cacheRes = await AuthAxios.get(
-                    `http://localhost:8000/api/account_balance_cache?subtransaction=${sub.id}&date_lte=1970-01-01`, auth.getToken());
+                    `account_balance_cache?subtransaction=${sub.id}&date_lte=1970-01-01`, auth.getToken());
                 let cacheDate: Date;
                 let sum = 0;
                 if(cacheRes.data.length > 0) {
@@ -84,7 +80,7 @@ export const Account = observer(function Account() {
                     sum = 0;
                 }
                 const cacheSubsRes = await AuthAxios.get(
-                    `http://localhost:8000/api/subtransactions?account=${id}&date_gte=${formatDate(new Date(cacheDate))}&date_lte=${formatDate(new Date(sub.transactionElement.dateTime))}`,
+                    `subtransactions?account=${id}&date_gte=${formatDate(new Date(cacheDate))}&date_lte=${formatDate(new Date(sub.transactionElement.dateTime))}`,
                     auth.getToken());
                 const cacheSubs: Subtransaction[] = cacheSubsRes.data;
                 await Promise.all(cacheSubs.map(async (cacheSub) => {

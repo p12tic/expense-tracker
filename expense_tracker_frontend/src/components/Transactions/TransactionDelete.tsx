@@ -16,7 +16,7 @@ export const TransactionDelete = observer(function TransactionDelete() {
     return (
         <div className="container">
             <Navbar />
-            <DefaultDelete backLink={backLink} returnPoint={`/transactions`} id={id} deleteRequestUrl={`/api/transactions`} />
+            <DefaultDelete backLink={backLink} returnPoint={`/transactions`} id={id} deleteRequestUrl={`transactions`} />
         </div>
     )
 })

@@ -13,8 +13,7 @@ export function DefaultDelete(defaultDeleteProps) {
             'id': defaultDeleteProps.id,
             'action': `delete`
         };
-        await AuthAxios.post(`http://localhost:8000${defaultDeleteProps.deleteRequestUrl}`,
-            auth.getToken(), bodyParameters);
+        await AuthAxios.post(defaultDeleteProps.deleteRequestUrl, auth.getToken(), bodyParameters);
         navigate(`${defaultDeleteProps.returnPoint}`);
     };
     return (

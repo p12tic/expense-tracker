@@ -27,11 +27,11 @@ export const AccountSync = observer(function AccountSync() {
 
         const fetchAccounts = async () => {
             try {
-                const data = await AuthAxios.get(`http://localhost:8000/api/accounts?id=${id}`, auth.getToken()).then(res => {
+                const data = await AuthAxios.get(`accounts?id=${id}`, auth.getToken()).then(res => {
                     return res.data[0];
                 })
                 const balanceRes =
-                    await AuthAxios.get(`http://localhost:8000/api/account_balance_cache?account=${id}&date_lte=${formatDate(new Date(Date.now()))}`, auth.getToken());
+                    await AuthAxios.get(`account_balance_cache?account=${id}&date_lte=${formatDate(new Date(Date.now()))}`, auth.getToken());
                 let sum: number;
                 if (balanceRes.data.length > 0) {
                     data.lastCacheBalance = balanceRes.data[balanceRes.data.length - 1].balance;
@@ -43,7 +43,7 @@ export const AccountSync = observer(function AccountSync() {
                     sum = 0;
                 }
                 const subRes =
-                    await AuthAxios.get(`http://localhost:8000/api/subtransactions?account=${data.id}
+                    await AuthAxios.get(`subtransactions?account=${data.id}
                                         &date_gte=${formatDate(data.lastCacheDate)}
                                         &date_lte=${formatDate(new Date(Date.now()))}`, auth.getToken());
                 const subs: Subtransaction[] = subRes.data;
@@ -70,7 +70,7 @@ export const AccountSync = observer(function AccountSync() {
             date: date,
             dateYear: formatDateYear(date)
         };
-        await AuthAxios.post("http://localhost:8000/api/account_sync_event", auth.getToken(), bodyParams);
+        await AuthAxios.post("account_sync_event", auth.getToken(), bodyParams);
         navigate("/accounts");
     };
     const formatDateYear = (date: Date): string => {

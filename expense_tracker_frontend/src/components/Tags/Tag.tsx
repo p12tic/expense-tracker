@@ -56,18 +56,18 @@ export const Tag = observer(function Tag() {
     useEffect(() => {
 
         const fetchTag = async() => {
-            const tagRes = await AuthAxios.get(`http://localhost:8000/api/tags?id=${id}`, auth.getToken());
+            const tagRes = await AuthAxios.get(`tags?id=${id}`, auth.getToken());
             const tag: TagElement = tagRes.data[0];
-            const transTagRes = await AuthAxios.get(`http://localhost:8000/api/transaction_tags?tag=${id}`, auth.getToken());
+            const transTagRes = await AuthAxios.get(`transaction_tags?tag=${id}`, auth.getToken());
             const transTagData: TransTag[] = transTagRes.data;
             const transTagsWithTrans = await Promise.all(transTagData.map(async (transTag:TransTag) => {
-                const transRes = await AuthAxios.get(`http://localhost:8000/api/transactions?id=${transTag.transaction}`, auth.getToken());
+                const transRes = await AuthAxios.get(`transactions?id=${transTag.transaction}`, auth.getToken());
                 const transData: Transaction = transRes.data[0];
                 transData.dateTime = new Date(transData.date_time);
-                const subsRes = await AuthAxios.get(`http://localhost:8000/api/subtransactions?transaction=${transData.id}`, auth.getToken());
+                const subsRes = await AuthAxios.get(`subtransactions?transaction=${transData.id}`, auth.getToken());
                 const subsData: Subtransaction[] = subsRes.data;
                 transData.subs = await Promise.all(subsData.map(async (sub) => {
-                    const accountsRes = await axios.get(`http://localhost:8000/api/accounts?id=${sub.account}`);
+                    const accountsRes = await axios.get(`accounts?id=${sub.account}`);
                     sub.accountElement = accountsRes.data[0];
                     return sub;
                 }));
