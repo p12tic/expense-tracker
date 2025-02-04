@@ -1,19 +1,18 @@
-import {NavbarEmpty} from "../NavbarEmpty.tsx";
+import {NavbarEmpty} from "../NavbarEmpty";
 import {observer} from "mobx-react-lite";
 import {useState} from "react";
-import {useToken} from "../Auth/AuthContext.tsx";
-import axios from "axios";
-import {Navbar} from "../Navbar.tsx";
+import {useToken} from "../Auth/AuthContext";
+import {Navbar} from "../Navbar";
 import {useNavigate} from "react-router-dom";
+import {AuthAxios} from "../../utils/Network";
 
 
 export const TagCreate = observer(function TagCreate() {
-    const Auth = useToken();
+    const auth = useToken();
     const navigate = useNavigate();
-    axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
     const [name, setName] = useState('');
     const [desc, setDesc] = useState('');
-    if(Auth.getToken() === '') {
+    if (auth.getToken() === '') {
         navigate('/login');
     }
     let bodyParameters = {
@@ -26,7 +25,7 @@ export const TagCreate = observer(function TagCreate() {
         e.preventDefault();
         bodyParameters.Name = name;
         bodyParameters.Description = desc;
-        await axios.post("http://localhost:8000/api/tags", bodyParameters).catch(err => console.error(err));
+        await AuthAxios.post("tags", auth.getToken(), bodyParameters).catch(err => console.error(err));
         navigate('/tags');
     }
     return <div className='container'>

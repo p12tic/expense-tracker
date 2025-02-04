@@ -5,14 +5,13 @@ import '../../../expenses/static/libs/bootstrap-datepicker/bootstrap-datetimepic
 import '../../../expenses/static/libs/bootstrap-touchspin/jquery.bootstrap-touchspin.min.css';
 import '../../../expenses/static/expenses/common.css';
 import {observer} from "mobx-react-lite";
-import {useToken} from "./Auth/AuthContext.tsx";
-import axios from "axios";
+import {useToken} from "./Auth/AuthContext";
+import {AuthAxios} from "../utils/Network";
 
 export const Navbar = observer(function Navbar() {
-    const Auth = useToken();
+    const auth = useToken();
     const [username, setUsername] = useState('');
-    axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
-    axios.get("http://localhost:8000/api/token").then(res => {
+    AuthAxios.get("token", auth.getToken()).then(res => {
         setUsername(res.data[0].username);
     });
     return (
@@ -32,7 +31,7 @@ export const Navbar = observer(function Navbar() {
                     <div id="navbar" className="navbar-collapse collapse">
                         <ul className="nav navbar-nav">
                             <li className="navbar-right">
-                                {Auth.getToken() === '' ?
+                                {auth.getToken() === '' ?
                                     <a href="/user/login">Not authenticated</a>
                                     :
                                     <a href="/user/edit">Logged in as {username}</a>

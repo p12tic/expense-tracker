@@ -1,14 +1,13 @@
 import axios from "axios";
 import {useState} from "react";
 import {useNavigate} from "react-router-dom";
-import {NavbarEmpty} from "../NavbarEmpty.tsx";
+import {NavbarEmpty} from "../NavbarEmpty";
 import {observer} from "mobx-react-lite";
-import {useToken} from "./AuthContext.tsx";
+import {useToken} from "./AuthContext";
+import {getApiUrlForCurrentWindow} from "../../utils/Network";
 
 export const Login = function Login() {
-    const Auth = useToken();
-
-    axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
+    const auth = useToken();
 
     let bodyParameters ={
         username: "",
@@ -17,17 +16,18 @@ export const Login = function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
-    if(Auth.getToken() !== '') {
+    if (auth.getToken() !== '') {
         navigate('/transactions');
     }
     const submitHandler = (e) => {
         e.preventDefault();
         bodyParameters.username=username;
         bodyParameters.password = password;
-        axios.post("http://localhost:8000/api/api-token-auth/",
+
+        axios.post(`${getApiUrlForCurrentWindow()}/api-token-auth/`,
             bodyParameters
             ).then((response) => {
-                Auth.setToken(response.data.token);
+                auth.setToken(response.data.token);
                 navigate("/transactions");
             }).catch((err) => {console.error(err)})
     }

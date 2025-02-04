@@ -1,12 +1,12 @@
-import axios from "axios";
 import React, {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
-import {Navbar} from "../Navbar.tsx";
+import {Navbar} from "../Navbar";
 import '../common.css';
-import {TableButton} from "../TableButton.tsx";
-import {useToken} from "../Auth/AuthContext.tsx";
+import {TableButton} from "../TableButton";
+import {useToken} from "../Auth/AuthContext";
 import {observer} from "mobx-react-lite";
-import {formatDate} from "../Tools.tsx";
+import {formatDate} from "../Tools";
+import {AuthAxios} from "../../utils/Network";
 
 interface Account {
     id: number;
@@ -24,25 +24,24 @@ interface Subtransaction {
     account: string;
 }
 export const Accounts = observer(function Accounts() {
-    const Auth = useToken();
+    const auth = useToken();
     const navigate = useNavigate();
-    if(Auth.getToken() === '') {
+    if (auth.getToken() === '') {
         navigate('/login');
     }
-    axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
     const [state, setState] = useState<Account[]>([]);
 
     useEffect(() => {
 
         const fetchAccounts = async() => {
             try {
-                const data = await axios.get("http://localhost:8000/api/accounts").then(res => {
+                const data = await AuthAxios.get("accounts", auth.getToken()).then(res => {
                     const data: Account[] = res.data;
                     return data;
                 });
                 const cache = await Promise.all(data.map(async (account) => {
                     const balanceRes =
-                        await axios.get(`http://localhost:8000/api/account_balance_cache?account=${account.id}`);
+                        await AuthAxios.get(`account_balance_cache?account=${account.id}`, auth.getToken());
                     let sum: number;
                     if (balanceRes.data.length > 0) {
                         account.lastCacheBalance = balanceRes.data[balanceRes.data.length - 1].balance;
@@ -54,8 +53,8 @@ export const Accounts = observer(function Accounts() {
                         sum = 0;
                     }
                     const subRes =
-                        await axios.get(`http://localhost:8000/api/subtransactions?account=${account.id}
-                                            &date_gte=${formatDate(account.lastCacheDate)}`);
+                        await AuthAxios.get(`subtransactions?account=${account.id}
+                                            &date_gte=${formatDate(account.lastCacheDate)}`, auth.getToken());
                     const subs: Subtransaction[] = subRes.data;
                     await Promise.all(subs.map(async (sub) => {
                         sum = sum + sub.amount;

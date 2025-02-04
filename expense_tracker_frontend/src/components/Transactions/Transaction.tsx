@@ -1,12 +1,12 @@
 import {observer} from "mobx-react-lite";
-import {Navbar} from "../Navbar.tsx";
-import {TableButton} from "../TableButton.tsx";
-import {StaticField} from "../StaticField.tsx";
+import {Navbar} from "../Navbar";
+import {TableButton} from "../TableButton";
+import {StaticField} from "../StaticField";
 import React, {useEffect, useState} from "react";
-import {useToken} from "../Auth/AuthContext.tsx";
-import axios from "axios";
+import {useToken} from "../Auth/AuthContext";
 import {Link, useNavigate, useParams} from "react-router-dom";
-import {centsToString, formatDate} from "../Tools.tsx";
+import {centsToString, formatDate} from "../Tools";
+import {AuthAxios} from "../../utils/Network";
 
 interface TransactionElement {
     desc: string;
@@ -40,8 +40,7 @@ interface Account {
 }
 
 export const Transaction = observer(function Transaction() {
-    const Auth = useToken();
-    axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
+    const auth = useToken();
     const [state, setState] = useState<TransactionElement>({
         desc: "",
         user: 0,
@@ -51,26 +50,26 @@ export const Transaction = observer(function Transaction() {
     });
     const {id} = useParams();
     const navigate = useNavigate();
-    if(Auth.getToken() === '') {
+    if (auth.getToken() === '') {
         navigate('/login');
     }
     useEffect(() => {
         const FetchTransaction = async () => {
-            await axios.get(`http://localhost:8000/api/transactions?id=${id}`).then(async (res) => {
+            await AuthAxios.get(`transactions?id=${id}`, auth.getToken()).then(async (res) => {
                 let transaction: TransactionElement = res.data[0];
                 transaction.dateTime = res.data[0]['date_time'];
                 let Tags: Tag[] = [];
                 let Subs: Subtransaction[] = [];
-                await axios.get(`http://localhost:8000/api/transaction_tags?transaction=${id}`).then(async (transactionTags) => {
+                await AuthAxios.get(`transaction_tags?transaction=${id}`, auth.getToken()).then(async (transactionTags) => {
                     Tags = await Promise.all(transactionTags.data.map(async (transTag: TransactionTag) => {
-                        const tagRes = await axios.get(`http://localhost:8000/api/tags?id=${transTag.tag}`);
+                        const tagRes = await AuthAxios.get(`tags?id=${transTag.tag}`, auth.getToken());
                         const tag: Tag = tagRes.data[0];
                         return tag;
                     }));
                 });
-                await axios.get(`http://localhost:8000/api/subtransactions?transaction=${id}`).then(async (subsRes) => {
+                await AuthAxios.get(`subtransactions?transaction=${id}`, auth.getToken()).then(async (subsRes) => {
                     Subs = await Promise.all(subsRes.data.map(async (sub: Subtransaction) => {
-                        const accRes = await axios.get(`http://localhost:8000/api/accounts?id=${sub.account}`);
+                        const accRes = await AuthAxios.get(`accounts?id=${sub.account}`, auth.getToken());
                         const acc: Account = accRes.data[0];
                         sub.accountName = acc.name;
                         return sub;

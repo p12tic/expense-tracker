@@ -1,18 +1,17 @@
-import {useToken} from "../Auth/AuthContext.tsx";
-import axios from "axios";
+import {useToken} from "../Auth/AuthContext";
 import {useState} from "react";
-import {Navbar} from "../Navbar.tsx";
+import {Navbar} from "../Navbar";
 import {observer} from "mobx-react-lite";
 import {useNavigate} from "react-router-dom";
+import {AuthAxios} from "../../utils/Network";
 
 
 export const AccountCreate = observer(function AccountCreate() {
-    const Auth = useToken();
+    const auth = useToken();
     const navigate = useNavigate();
-    axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
     const [name, setName] = useState('');
     const [desc, setDesc] = useState('');
-    if(Auth.getToken() === '') {
+    if (auth.getToken() === '') {
         navigate('/login');
     }
     let bodyParameters = {
@@ -25,7 +24,7 @@ export const AccountCreate = observer(function AccountCreate() {
         e.preventDefault();
         bodyParameters.Name = name;
         bodyParameters.Description = desc;
-        await axios.post("http://localhost:8000/api/accounts", bodyParameters).catch(err => console.error(err));
+        await AuthAxios.post("accounts", auth.getToken(), bodyParameters).catch(err => console.error(err));
         navigate('/accounts');
     }
     return <div className='container'>

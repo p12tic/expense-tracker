@@ -1,9 +1,9 @@
 import {observer} from "mobx-react-lite";
 import {useEffect, useState} from "react";
-import {useToken} from "../Auth/AuthContext.tsx";
-import axios from "axios";
-import {Navbar} from "../Navbar.tsx";
+import {useToken} from "../Auth/AuthContext";
+import {Navbar} from "../Navbar";
 import {useNavigate, useParams} from "react-router-dom";
+import {AuthAxios} from "../../utils/Network";
 
 interface Tag {
     id: number;
@@ -13,17 +13,16 @@ interface Tag {
 }
 
 export const TagEdit = observer(function TagEdit() {
-    const Auth = useToken();
+    const auth = useToken();
     const navigate = useNavigate();
     const {id} = useParams();
-    axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
-    if(Auth.getToken() === '') {
+    if (auth.getToken() === '') {
         navigate('/login');
     }
     const [name, setName] = useState('');
     const [desc, setDesc] = useState('');
     useEffect(() => {
-        axios.get(`http://localhost:8000/api/tags?id=${id}`).then(res => {
+        AuthAxios.get(`tags?id=${id}`, auth.getToken()).then(res => {
         const data: Tag = res.data[0];
         setName(data.name);
         setDesc(data.desc);
@@ -41,7 +40,7 @@ export const TagEdit = observer(function TagEdit() {
         e.preventDefault();
         bodyParameters.Name = name;
         bodyParameters.Description = desc;
-        axios.post("http://localhost:8000/api/tags", bodyParameters).catch(err => console.error(err));
+        AuthAxios.post("tags", auth.getToken(), bodyParameters).catch(err => console.error(err));
         navigate(`/tags/${id}`);
     };
     return <div className='container'>

@@ -1,28 +1,28 @@
-import {BrowserRouter, Routes, Route} from 'react-router-dom';
-import {Accounts} from "./components/Accounts/Accounts.tsx";
-import {Tags} from "./components/Tags/Tags.tsx";
+import {BrowserRouter, Routes, Route, Navigate} from 'react-router-dom';
+import {Accounts} from "./components/Accounts/Accounts";
+import {Tags} from "./components/Tags/Tags";
 import './components/common.css';
-import {TransactionsList} from "./components/Transactions/Transactions.tsx";
-import {PresetsList} from "./components/Presets/Presets.tsx";
-import {Login} from "./components/Auth/Login.tsx";
-import {UserEdit} from "./components/Auth/UserEdit.tsx";
-import {TagCreate} from "./components/Tags/TagCreate.tsx";
-import {AccountCreate} from "./components/Accounts/AccountCreate.tsx";
-import {Tag} from "./components/Tags/Tag.tsx";
-import {TagDelete} from "./components/Tags/TagDelete.tsx";
-import {TagEdit} from "./components/Tags/TagEdit.tsx";
-import {Account} from "./components/Accounts/Account.tsx";
-import {AccountDelete} from "./components/Accounts/AccountDelete.tsx";
-import {AccountEdit} from "./components/Accounts/AccountEdit.tsx";
-import {PresetCreate} from "./components/Presets/PresetCreate.tsx";
-import {Preset} from "./components/Presets/Preset.tsx";
-import {PresetDelete} from "./components/Presets/PresetDelete.tsx";
-import {PresetEdit} from "./components/Presets/PresetEdit.tsx";
-import {TransactionCreate} from "./components/Transactions/TransactionCreate.tsx";
-import {Transaction} from "./components/Transactions/Transaction.tsx";
-import {TransactionDelete} from "./components/Transactions/TransactionDelete.tsx";
-import {TransactionEdit} from "./components/Transactions/TransactionEdit.tsx";
-import {AccountSync} from "./components/Accounts/AccountSync.tsx";
+import {TransactionsList} from "./components/Transactions/Transactions";
+import {PresetsList} from "./components/Presets/Presets";
+import {Login} from "./components/Auth/Login";
+import {UserEdit} from "./components/Auth/UserEdit";
+import {TagCreate} from "./components/Tags/TagCreate";
+import {AccountCreate} from "./components/Accounts/AccountCreate";
+import {Tag} from "./components/Tags/Tag";
+import {TagDelete} from "./components/Tags/TagDelete";
+import {TagEdit} from "./components/Tags/TagEdit";
+import {Account} from "./components/Accounts/Account";
+import {AccountDelete} from "./components/Accounts/AccountDelete";
+import {AccountEdit} from "./components/Accounts/AccountEdit";
+import {PresetCreate} from "./components/Presets/PresetCreate";
+import {Preset} from "./components/Presets/Preset";
+import {PresetDelete} from "./components/Presets/PresetDelete";
+import {PresetEdit} from "./components/Presets/PresetEdit";
+import {TransactionCreate} from "./components/Transactions/TransactionCreate";
+import {Transaction} from "./components/Transactions/Transaction";
+import {TransactionDelete} from "./components/Transactions/TransactionDelete";
+import {TransactionEdit} from "./components/Transactions/TransactionEdit";
+import {AccountSync} from "./components/Accounts/AccountSync";
 
 
 
@@ -63,6 +63,8 @@ function App() {
                 {/*Auth/User routes*/}
                 <Route path="login" element={<Login />}></Route>
                 <Route path="user/edit" element={<UserEdit />}></Route>
+                {/*Redirect to login on startup route*/}
+                <Route path="/" element={<Navigate to="/login" replace />}/>
             </Routes>
         </BrowserRouter>
     )

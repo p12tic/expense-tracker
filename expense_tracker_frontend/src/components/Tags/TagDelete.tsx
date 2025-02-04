@@ -1,23 +1,23 @@
 import {observer} from "mobx-react-lite";
-import {DefaultDelete} from "../DefaultDelete.tsx";
-import {Navbar} from "../Navbar.tsx";
+import {DefaultDelete} from "../DefaultDelete";
+import {Navbar} from "../Navbar";
 import {useNavigate, useParams} from "react-router-dom";
-import {useToken} from "../Auth/AuthContext.tsx";
+import {useToken} from "../Auth/AuthContext";
 
 
 
 export const TagDelete = observer(function TagDelete() {
     const {id} = useParams();
     const backLink: string = `/tags/${id}`;
-    const Auth = useToken();
+    const auth = useToken();
     const navigate = useNavigate();
-    if(Auth.getToken() === '') {
+    if (auth.getToken() === '') {
         navigate('/login');
     }
     return (
         <div className="container">
             <Navbar />
-            <DefaultDelete backLink={backLink} returnPoint={`/tags`} id={id} deleteRequestUrl={`/api/tags`} />
+            <DefaultDelete backLink={backLink} returnPoint={`/tags`} id={id} deleteRequestUrl={`tags`} />
         </div>
     )
 })

@@ -1,10 +1,10 @@
 import React, {useEffect, useState} from "react";
-import axios from "axios";
 import {Link, useNavigate} from "react-router-dom";
-import {Navbar} from "../Navbar.tsx";
-import {TableButton} from "../TableButton.tsx";
-import {useToken} from "../Auth/AuthContext.tsx";
+import {Navbar} from "../Navbar";
+import {TableButton} from "../TableButton";
+import {useToken} from "../Auth/AuthContext";
 import {observer} from "mobx-react-lite";
+import {AuthAxios} from "../../utils/Network";
 
 interface Tag {
     id: number;
@@ -13,16 +13,15 @@ interface Tag {
     user: string;
 }
 export const Tags = observer(function Tags() {
-    const Auth = useToken();
-    axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
+    const auth = useToken();
     const [state, setState] = useState<Tag[]>([]);
     const navigate = useNavigate();
-    if(Auth.getToken() === '') {
+    if (auth.getToken() === '') {
         navigate('/login');
     }
 
     useEffect(() => {
-        axios.get("http://localhost:8000/api/tags").then(res => {
+        AuthAxios.get("tags", auth.getToken()).then(res => {
             const data: Tag[] = res.data;
             setState(data);
         }).catch(err => {console.error(err)});

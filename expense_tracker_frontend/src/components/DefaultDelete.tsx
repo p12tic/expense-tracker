@@ -1,10 +1,11 @@
-import {SubmitButton} from "./SubmitButton.tsx";
+import {SubmitButton} from "./SubmitButton";
 import {useNavigate} from "react-router-dom";
-import axios from "axios";
+import {AuthAxios} from "../utils/Network";
 
 
 
 export function DefaultDelete(defaultDeleteProps) {
+    const auth = useToken();
     const navigate = useNavigate();
     const submitHandle = async (e) => {
         e.preventDefault();
@@ -12,7 +13,7 @@ export function DefaultDelete(defaultDeleteProps) {
             'id': defaultDeleteProps.id,
             'action': `delete`
         };
-        await axios.post(`http://localhost:8000${defaultDeleteProps.deleteRequestUrl}`, bodyParameters);
+        await AuthAxios.post(defaultDeleteProps.deleteRequestUrl, auth.getToken(), bodyParameters);
         navigate(`${defaultDeleteProps.returnPoint}`);
     };
     return (

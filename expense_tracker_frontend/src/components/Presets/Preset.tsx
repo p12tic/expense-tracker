@@ -1,11 +1,11 @@
 import {observer} from "mobx-react-lite";
-import {TableButton} from "../TableButton.tsx";
+import {TableButton} from "../TableButton";
 import React, {useEffect, useState} from "react";
-import {StaticField} from "../StaticField.tsx";
-import {Navbar} from "../Navbar.tsx";
-import {useToken} from "../Auth/AuthContext.tsx";
-import axios from "axios";
+import {StaticField} from "../StaticField";
+import {Navbar} from "../Navbar";
+import {useToken} from "../Auth/AuthContext";
 import {Link, useNavigate, useParams} from "react-router-dom";
+import {AuthAxios} from "../../utils/Network";
 
 interface Preset {
     id: number;
@@ -42,30 +42,29 @@ const defaultPreset: Preset = {
 };
 export const Preset = observer(function Preset() {
 
-    const Auth = useToken();
-    axios.defaults.headers.common = {'Authorization': `Token ${Auth.getToken()}`};
+    const auth = useToken();
     const [state, setState] = useState<Preset>(defaultPreset);
     const {id} = useParams();
     const navigate = useNavigate();
-    if(Auth.getToken() === '') {
+    if (auth.getToken() === '') {
         navigate('/login');
     }
     useEffect(() => {
         const fetchPreset = async () => {
-            const presetRes = await axios.get(`http://localhost:8000/api/presets?id=${id}`);
+            const presetRes = await AuthAxios.get(`presets?id=${id}`, auth.getToken());
             const preset: Preset = presetRes.data[0];
-            const presetSubsRes = await axios.get(`http://localhost:8000/api/preset_subtransactions?preset=${id}`);
+            const presetSubsRes = await AuthAxios.get(`preset_subtransactions?preset=${id}`, auth.getToken());
             const presetSubs: PresetSub[] = presetSubsRes.data;
             await Promise.all(presetSubs.map(async (presetSub) => {
-                await axios.get(`http://localhost:8000/api/accounts?id=${presetSub.account}`).then((res) => {
+                await AuthAxios.get(`accounts?id=${presetSub.account}`, auth.getToken()).then((res) => {
                     const acc = res.data[0];
                     presetSub.accountName = acc.name;
                 });
             }));
-            const presetTransTagsRes = await axios.get(`http://localhost:8000/api/preset_transaction_tags?preset=${id}`);
+            const presetTransTagsRes = await AuthAxios.get(`preset_transaction_tags?preset=${id}`, auth.getToken());
             const presetTransTags: PresetTransactionTag[] = presetTransTagsRes.data;
             await Promise.all(presetTransTags.map(async (presetTransactionTag) => {
-                await axios.get(`http://localhost:8000/api/tags?id=${presetTransactionTag.tag}`).then((res) => {
+                await AuthAxios.get(`tags?id=${presetTransactionTag.tag}`, auth.getToken()).then((res) => {
                     const tag = res.data[0];
                     presetTransactionTag.tagName = tag.name;
                 });
