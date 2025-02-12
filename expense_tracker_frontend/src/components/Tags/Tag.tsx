@@ -67,7 +67,7 @@ export const Tag = observer(function Tag() {
                 const subsRes = await AuthAxios.get(`subtransactions?transaction=${transData.id}`, auth.getToken());
                 const subsData: Subtransaction[] = subsRes.data;
                 transData.subs = await Promise.all(subsData.map(async (sub) => {
-                    const accountsRes = await axios.get(`accounts?id=${sub.account}`);
+                    const accountsRes = await AuthAxios.get(`accounts?id=${sub.account}`, auth.getToken());
                     sub.accountElement = accountsRes.data[0];
                     return sub;
                 }));
