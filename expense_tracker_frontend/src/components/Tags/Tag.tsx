@@ -4,10 +4,11 @@ import {useToken} from "../Auth/AuthContext";
 import {Link, useNavigate, useParams} from "react-router-dom";
 import axios from "axios";
 import React, {useEffect, useState} from "react";
-import {Navbar} from "../Navbar";
+import {NavbarComponent} from "../Navbar";
 import {TableButton} from "../TableButton";
 import {centsToString, formatDate} from "../Tools";
 import {AuthAxios} from "../../utils/Network";
+import {Col, Row, Container, Table, Button} from "react-bootstrap";
 
 
 interface TagElement {
@@ -84,19 +85,19 @@ export const Tag = observer(function Tag() {
 
 
     return (
-        <div className="container">
-            <Navbar />
+        <Container>
+            <NavbarComponent/>
             <>
-                <h1>
-                    Tag "{state.name}"
-                    <div className="pull-right">
-                        <TableButton dest={`/tags/${state.id}/edit`} name={"Edit"} />
-                        <TableButton dest={`/tags/${state.id}/delete`} name={"Delete"} class="btn-danger" />
-                    </div>
-                </h1>
-                <StaticField label="Description" content={state.desc} />
+                <Row>
+                    <Col><h1>Tag "{state.name}"</h1></Col>
+                    <Col md="auto" className='d-flex justify-content-end'>
+                        <TableButton dest={`/tags/${state.id}/edit`} name={"Edit"}/>
+                        <TableButton dest={`/tags/${state.id}/delete`} name={"Delete"} class="danger"/>
+                    </Col>
+                </Row>
+                <StaticField label="Description" content={state.desc}/>
                 <h3>Transactions</h3>
-                <table className="table table-condensed">
+                <Table size="sm">
                     <thead>
                         {state.transTag.length > 0 ?
                             <tr>
@@ -112,13 +113,20 @@ export const Tag = observer(function Tag() {
                         {state.transTag.length > 0 ?
                             state.transTag.map((output, id) => (
                                 <tr key={id}>
-                                    <td><Link to={`/transactions/${output.transactionElement.id}`}>{output.transactionElement.desc}</Link></td>
+                                    <td>
+                                        <Link to={`/transactions/${output.transactionElement.id}`}>
+                                            {output.transactionElement.desc}
+                                        </Link>
+                                    </td>
                                     <td>{formatDate(new Date(output.transactionElement.dateTime))}</td>
                                     <td>
                                         {output.transactionElement.subs ? (
                                             output.transactionElement.subs.map((sub, id) => (
-                                            <button className="btn btn-xs" style={{marginLeft: 5}} role="button"
-                                                    key={id}>{sub.accountElement.name}&nbsp;{centsToString(sub.amount)}</button>)))
+                                            <Button variant="secondary" className="btn-xs"
+                                                    style={{marginLeft: 5}} role="button" key={id}>
+                                                {sub.accountElement.name}&nbsp;{centsToString(sub.amount)}
+                                            </Button>))
+                                            )
                                                 :
                                             (
                                             <></>
@@ -128,10 +136,11 @@ export const Tag = observer(function Tag() {
                                 </tr>
                             ))
                                 :
-                                <tr><td>No transactions yet</td></tr>}
+                                <tr><td>No transactions yet</td></tr>
+                        }
                     </tbody>
-                </table>
+                </Table>
             </>
-        </div>
+        </Container>
     );
 });

@@ -1,4 +1,4 @@
-import {Navbar} from "../Navbar";
+import {NavbarComponent} from "../Navbar";
 import React, {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import {TableButton} from "../TableButton";
@@ -6,6 +6,7 @@ import {formatDate, centsToString} from "../Tools";
 import {observer} from "mobx-react-lite";
 import {useToken} from "../Auth/AuthContext";
 import {AuthAxios} from "../../utils/Network";
+import {Col, Row, Table, Button, Container} from "react-bootstrap";
 
 interface Transaction {
     id: number;
@@ -97,18 +98,20 @@ export const TransactionsList = observer(function TransactionsList() {
     }, []);
 
     return (
-        <div className='container' style={{minWidth: 'auto', justifySelf: 'center'}}>
-            <Navbar />
-            <h1>Transactions
-                <div className='pull-right'>
-                    <TableButton dest={`/transactions/add`} name={'New'} />
-                </div>
-            </h1>
-            <table className="table table-condensed">
+        <Container>
+            <NavbarComponent/>
+            <Row>
+                <Col><h1>Transactions</h1></Col>
+                <Col md="auto" className='d-flex justify-content-end'>
+                    <TableButton dest={`/transactions/add`} name={'New'}/>
+                </Col>
+            </Row>
+
+            <Table size="sm">
                 <thead>
-                    {state.length>0 ?
-                        <tr>
-                            <th>Description</th>
+                {state.length > 0 ?
+                    <tr>
+                    <th>Description</th>
                             <th>Date/time</th>
                             <th>Actions</th>
                             <th>Tags</th>
@@ -121,17 +124,29 @@ export const TransactionsList = observer(function TransactionsList() {
                     {state.length>0 ?
                         state.map((output, id) => (
                             <tr key={id}>
-                                {output.desc ? <td><Link to={`/transactions/${output.id}`}>{output.desc}</Link></td>
+                                {output.desc ? (
+                                        <td>
+                                            <Link to={`/transactions/${output.id}`}>{output.desc}</Link>
+                                        </td>
+                                    )
                                     :
-                                    (<td><Link to={`/sync/${output.syncEvent.id}`}>Sync event</Link>
-                                        <button className="btn btn-xs" style={{marginLeft: 5}} role="button"
-                                                key={id}>{output.syncEvent.accountElement.name}&nbsp;{output.syncEvent.balance/100}</button>
-                                    </td>)}
+                                    (
+                                        <td>
+                                            <Link to={`/sync/${output.syncEvent.id}`}>Sync event</Link>
+                                            <Button variant="secondary" className="btn-xs"
+                                                    style={{marginLeft: 5}} key={id}>
+                                                {output.syncEvent.accountElement.name}&nbsp;{output.syncEvent.balance/100}
+                                            </Button>
+                                        </td>
+                                    )}
 
                                 <td>{formatDate(new Date(output.dateTime))}</td>
                                 <td>{output.subtransaction ?
                                     output.subtransaction.map((sub: Subtransaction, id) => (
-                                    <button className="btn btn-xs" style={{marginLeft: 5}} role="button" key={id}>{sub.accountElement.name}&nbsp;{centsToString(sub.amount)}</button>
+                                    <Button variant="secondary" className="btn-xs"
+                                            style={{marginLeft: 5}} key={id}>
+                                        {sub.accountElement.name}&nbsp;{centsToString(sub.amount)}
+                                    </Button>
                                 ))
                                     :
                                     <></>
@@ -140,7 +155,10 @@ export const TransactionsList = observer(function TransactionsList() {
                                 <td>
                                     {output.transactionTag ?
                                         output.transactionTag.map((tags: TransactionTag, id) => (
-                                        <button className="btn btn-xs" role="button" style={{marginLeft: 5}} key={id}>{tags.tagElement.name}</button>
+                                        <Button variant="secondary" className="btn-xs"
+                                                style={{marginLeft: 5}} key={id}>
+                                            {tags.tagElement.name}
+                                        </Button>
                                     ))
                                         :
                                     <></>}
@@ -153,7 +171,7 @@ export const TransactionsList = observer(function TransactionsList() {
                         </tr>
                     }
                 </tbody>
-            </table>
-        </div>
+            </Table>
+        </Container>
     )
 })

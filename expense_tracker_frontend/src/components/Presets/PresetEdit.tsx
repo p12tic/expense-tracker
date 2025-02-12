@@ -2,9 +2,10 @@ import {observer} from "mobx-react-lite";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {useToken} from "../Auth/AuthContext";
 import {useNavigate, useParams} from "react-router-dom";
-import {Navbar} from "../Navbar";
+import {NavbarComponent} from "../Navbar";
 import {SubmitButton} from "../SubmitButton";
 import {AuthAxios} from "../../utils/Network";
+import {Col, Form, InputGroup, Row, Button, Alert, Container} from "react-bootstrap";
 
 
 interface Preset {
@@ -151,144 +152,140 @@ export const PresetEdit = observer(function PresetEdit() {
     }, []);
     const renderTags = useMemo(() => {
         return tags.map((tag, id) => (
-            <div key={id} className={tag.isChecked ? "tmp-tag-button btn btn-info" : "tmp-tag-button btn btn-default"}
-                 role="button" onClick={() => handleTagClick(tag)}>
-                <label htmlFor={`tag-${tag.id}`}>{tag.name}</label>
-            </div>
+            <Button variant={tag.isChecked ? "info" : "default"} key={id} className="tmp-tag-button"
+                    role="button" onClick={() => handleTagClick(tag)}>
+                <Form.Label htmlFor={`tag-${tag.id}`}>{tag.name}</Form.Label>
+            </Button>
         ));
     }, [tags, handleTagClick]);
     const renderAccounts = useMemo(() => {
         return (
             accounts.map((acc) => (
-                <div className="form-group">
-                    <div className="col-xs-4 col-sm-2 pull-right tmp-account-buttons">
-                        {!acc.isUsed ?
-                            <button className="tmp-account-enable btn btn-default" style={{width: "100%"}} role="button"
-                                    type="button"
-                                    onClick={() => handleAccUseClick(acc)}>
-                                Use
-                            </button>
+                <Form.Group key={acc.id} className="align-items-center">
+                    <Row className="mb-3">
+                        <Col xs={2} sm={1} className="align-content-center">
+                            <Form.Label className="mb-0">Name</Form.Label>
+                        </Col>
+                        <Col xs={4} sm={2} className="align-content-center">
+                            <Form.Text className="tmp-account-name">{acc.name}</Form.Text>
+                        </Col>
+                        {acc.isUsed ?
+                            <>
+                                <Col xs={12} sm={1} className="align-content-center">
+                                    <Form.Label className="tmp-account-amount-label mb-0">
+                                        Multiplier
+                                    </Form.Label>
+                                </Col>
+                                <Col xs={12} sm={4} className="tmp-account-amount-box">
+                                    <InputGroup className="bootstrap-touchspin">
+                                        <Button variant="default" className="bootstrap-touchspin-down"
+                                                type="button"
+                                                onMouseDown={() => handleMultiplierMouseDown(acc, -0.1)}
+                                                onMouseUp={() => handleMultiplierMouseUp()}
+                                                onMouseLeave={() => handleMultiplierMouseUp()}>-</Button>
+                                        <span className="input-group-addon bootstrap-touchspin-prefix"
+                                              style={{ display: "none" }}></span>
+                                        <Form.Control type="number" name="accounts-0-amount"
+                                                      value={acc.fraction ? (acc.fraction) : ""}
+                                                      step="0.1"
+                                                      className="form-control tmp-account-amount"
+                                                      placeholder="Amount"
+                                                      id="id_accounts-0-amount"
+                                                      style={{ display: "block" }}
+                                                      onChange={(e) => handleMultiplierChange(e, acc)}/>
+                                        <span className="input-group-addon bootstrap-touchspin-postfix"
+                                              style={{ display: "none" }}></span>
+                                        <Button variant="default" className="bootstrap-touchspin-up"
+                                                type="button"
+                                                onMouseDown={() => handleMultiplierMouseDown(acc, 0.1)}
+                                                onMouseUp={() => handleMultiplierMouseUp()}
+                                                onMouseLeave={() => handleMultiplierMouseUp()}>
+                                            +
+                                        </Button>
+                                    </InputGroup>
+                                </Col>
+                            </>
                             :
-                            <button className="tmp-account-disable btn btn-default" style={{width: "100%"}}
-                                    role="button"
-                                    type="button"
-                                    onClick={() => handleAccUseClick(acc)}>
-                                Don't use
-                            </button>
+                            null
                         }
-                    </div>
-                    <label className="col-xs-2 col-sm-1 control-label">Name</label>
-                    <div className="col-xs-4 col-sm-2 form-control-static tmp-account-name">{acc.name}</div>
-                    {acc.isUsed ?
-                        <>
-                            <label className="col-xs-12 col-sm-1 control-label tmp-account-amount-label">Multiplier</label>
-                            <div className="col-xs-12 col-sm-4 tmp-account-amount-box">
-                                <div className="input-group bootstrap-touchspin">
-                                    <span className="input-group-btn">
-                                        <button
-                                            className="btn btn-default bootstrap-touchspin-down"
-                                            type="button" onMouseDown={() => handleMultiplierMouseDown(acc, -0.1)}
-                                            onMouseUp={() => handleMultiplierMouseUp()}
-                                            onMouseLeave={() => handleMultiplierMouseUp()}>-</button>
-                                    </span>
-                                    <span
-                                        className="input-group-addon bootstrap-touchspin-prefix"
-                                        style={{display: "none"}}></span>
-                                    <input type="number" name="accounts-0-amount"
-                                            value={acc.fraction ? (acc.fraction) : ""}
-                                            step="0.1"
-                                            className="form-control tmp-account-amount"
-                                            placeholder="Multiplier"
-                                            onChange={(e) => handleMultiplierChange(e, acc)}
-                                            id="id_accounts-0-amount"
-                                            style={{display: "block"}}/>
-                                    <span
-                                        className="input-group-addon bootstrap-touchspin-postfix"
-                                        style={{display: "none"}}></span>
-                                    <span
-                                        className="input-group-btn">
-                                        <button
-                                            className="btn btn-default bootstrap-touchspin-up"
-                                            type="button"
-                                            onMouseDown={() => handleMultiplierMouseDown(acc, 0.1)}
-                                            onMouseUp={() => handleMultiplierMouseUp()}
-                                            onMouseLeave={() => handleMultiplierMouseUp()}
-                                            >+</button>
-                                    </span>
-                                </div>
-                            </div>
-                        </>
-                        :
-                        <></>
-                    }
-                </div>
+                        <Col xs={4} sm={2} className="ms-auto tmp-account-buttons">
+                            {!acc.isUsed ?
+                                <Button variant="default" className="tmp-account-enable" style={{ width: "100%" }}
+                                        type="button" onClick={() => handleAccUseClick(acc)}>
+                                    Use
+                                </Button>
+                                :
+                                <Button variant="default" className="tmp-account-disable" style={{ width: "100%" }}
+                                        type="button" onClick={() => handleAccUseClick(acc)}>
+                                    Don't use
+                                </Button>
+                            }
+                        </Col>
+                    </Row>
+                </Form.Group>
             ))
         )
     }, [accounts])
 
     return (
-        <div className="container">
-            <Navbar />
-            <form action="" method="post" onSubmit={handleSubmit}>
-                <h1>Update preset</h1>
-                <div className="form-horizontal">
-                    <div className="form-group">
-                        <label className="col-xs-4 col-sm-2 control-label"
-                               htmlFor="id_name">Name</label>
-                        <div className="col-xs-8 col-sm-10">
-                            <input type="text" className={"form-control"} name="name" key="id_name" value={name}
-                                   required={true}
-                                   onChange={(e) => setName(e.target.value)}/>
-                        </div>
-                    </div>
-                    <div className="form-group">
-                        <label className="col-xs-4 col-sm-2 control-label"
-                               htmlFor="id_description">Description</label>
-                        <div className="col-xs-8 col-sm-10">
-                            <input type="text" className={"form-control"} name="description" key="id_description"
-                                   value={desc}
-                                   onChange={(e) => setDesc(e.target.value)}/>
-                        </div>
-                    </div>
-                </div>
-                <div className="form-horizontal">
+        <Container>
+            <NavbarComponent/>
+            <Form onSubmit={handleSubmit}>
+                <h1>New preset</h1>
+                <Form.Group>
+                    <Row className="mb-3">
+                        <Col xs={4} sm={2} className="text-end">
+                            <Form.Label htmlFor="id_name">Name</Form.Label>
+                        </Col>
+                        <Col xs={8} sm={10}>
+                            <Form.Control type="text" name="name" key="id_name" required={true} value={name}
+                                          onChange={(e) => setName(e.target.value)}/>
+                        </Col>
+                    </Row>
+                    <Row className="mb-3">
+                        <Col xs={4} sm={2} className="text-end">
+                            <Form.Label htmlFor="id_description">Description</Form.Label>
+                        </Col>
+                        <Col xs={8} sm={10}>
+                            <Form.Control type="text" name="description" key="id_description" value={desc}
+                                          onChange={(e) => setDesc(e.target.value)}/>
+                        </Col>
+                    </Row>
+                </Form.Group>
+                <Form.Group>
                     <h3>Transaction template</h3>
-                    <div className="form-group">
-                        <label className="col-xs-4 col-sm-2 control-label"
-                               htmlFor="id_transaction_desc">Description</label>
-                        <div className="col-xs-8 col-sm-10">
-                            <input type="text" className={"form-control"} name="transaction_desc"
-                                   key="id_transaction_desc" value={transDesc}
-                                   onChange={(e) => setTransDesc(e.target.value)}/>
-                        </div>
+                    <Row className="mb-3">
+                        <Col xs={4} sm={2} className="text-end">
+                            <Form.Label htmlFor="id_transaction_desc">Description</Form.Label>
+                        </Col>
+                        <Col xs={8} sm={10}>
+                            <Form.Control type="text" name="transaction_desc" key="id_transaction_desc" value={transDesc}
+                                          onChange={(e) => setTransDesc(e.target.value)}/>
+                        </Col>
+                    </Row>
+                </Form.Group>
+                <h4>Accounts</h4>
+                {accounts.length > 0 ?
+                    <div id="tmp-accounts">
+                        {renderAccounts}
                     </div>
-                </div>
-                <div className="form-horizontal">
-                    <h4>Accounts</h4>
-                    {accounts.length > 0 ?
-                        <div id="tmp-accounts">
-                            {renderAccounts}
-                        </div>
-                        :
-                        <div className="alert alert-info" role="alert">
-                            No accounts have been created
-                        </div>
-                    }
-                </div>
-                <div className="form-horizontal">
-                    <h4>Tags</h4>
-                    {tags.length > 0 ?
-                        <div id="tmp-tags">
-                            {renderTags}
-                        </div>
-                        :
-                        <div className="alert alert-info" role="alert">
-                            No tags have been created
-                        </div>
-                    }
-                </div>
-                <SubmitButton text="save" />
-            </form>
-        </div>
+                    :
+                    <Alert variant="info" transition={false} role="alert">
+                        No accounts have been created
+                    </Alert>
+                }
+                <h4>Tags</h4>
+                {tags.length > 0 ?
+                    <div id="tmp-tags">
+                        {renderTags}
+                    </div>
+                    :
+                    <Alert variant="info" transition={false} role="alert">
+                        No tags have been created
+                    </Alert>
+                }
+                <SubmitButton text={"Save"}/>
+            </Form>
+        </Container>
     )
 })

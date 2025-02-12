@@ -1,10 +1,11 @@
-import {Navbar} from "../Navbar";
+import {NavbarComponent} from "../Navbar";
 import React, {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import {TableButton} from "../TableButton";
 import {useToken} from "../Auth/AuthContext";
 import {observer} from "mobx-react-lite";
 import {AuthAxios} from "../../utils/Network";
+import {Col, Row, Container, Table, Button} from "react-bootstrap";
 
 interface Presets {
     id: number;
@@ -68,14 +69,15 @@ export const PresetsList = observer(function PresetsList() {
     }, []);
 
     return (
-        <div className='container'>
-            <Navbar />
-            <h1>Presets
-                <div className='pull-right'>
-                    <TableButton dest={`/presets/add`} name={'New'} />
-                </div>
-            </h1>
-            <table className="table table-condensed">
+        <Container>
+            <NavbarComponent/>
+            <Row>
+                <Col><h1>Presets</h1></Col>
+                <Col md="auto" className='d-flex justify-content-end'>
+                    <TableButton dest={`/presets/add`} name={'New'}/>
+                </Col>
+            </Row>
+            <Table size="sm">
                 <thead>
                     {state.length > 0 ?
                         <tr>
@@ -98,13 +100,16 @@ export const PresetsList = observer(function PresetsList() {
                                 <td>{output.desc}</td>
                                 <td>
                                     {output.presetSubs.map((presetSub) => (
-                                        <button className="btn btn-xs" style={{marginLeft: 5}}
-                                                role="button">{presetSub.accountName}&nbsp;{presetSub.fraction}</button>
+                                        <Button variant="secondary" className="btn-xs"
+                                                style={{marginLeft: 5}} role="button">
+                                            {presetSub.accountName}&nbsp;{presetSub.fraction}
+                                        </Button>
                                     ))}
                                 </td>
                                 <td>
                                     {output.tags.map((tag, id) => (
-                                        <button key={id} style={{marginLeft: 5}} className="btn btn-xs" role="button">{tag}</button>
+                                        <Button variant="secondary" key={id} style={{marginLeft: 5}}
+                                                className="btn-xs" role="button">{tag}</Button>
                                     ))}
                                 </td>
 
@@ -114,7 +119,7 @@ export const PresetsList = observer(function PresetsList() {
                         <tr><td>No presets yet</td></tr>
                     }
                 </tbody>
-            </table>
-        </div>
+            </Table>
+        </Container>
     )
 })

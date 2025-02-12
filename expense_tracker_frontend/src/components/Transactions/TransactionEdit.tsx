@@ -1,11 +1,12 @@
 import {observer} from "mobx-react-lite";
-import {Navbar} from "../Navbar";
+import {NavbarComponent} from "../Navbar";
 import {useToken} from "../Auth/AuthContext";
 import {useNavigate, useParams} from "react-router-dom";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {SubmitButton} from "../SubmitButton";
 import {centsToString, formatDateTimeForInput} from "../Tools";
 import {AuthAxios} from "../../utils/Network";
+import {Card, Col, Form, InputGroup, Row, Button, Container, Alert, Collapse} from "react-bootstrap";
 
 
 interface Preset {
@@ -63,6 +64,7 @@ export const TransactionEdit = observer(function TransactionCreate() {
     const navigate = useNavigate();
     const [presets, setPresets] = useState<Preset[]>([]);
     const [presetInUse, setPresetInUse] = useState<Preset>(defaultPreset);
+    const [openPresets, setOpenPresets] = useState(false);
     const [desc, setDesc] = useState("");
     const [date, setDate] = useState<Date>(new Date(Date.now()));
     const {id} = useParams()
@@ -303,57 +305,68 @@ const handlePresetAmountChange = (e) => {
     }, []);
 
     const accountsList = (acc: AccountElement) => (
-        <div className="form-group" key={acc.id}>
-            <div className="col-xs-4 col-sm-2 pull-right tmp-account-buttons">
-                {!acc.isUsed ?
-                    <button className="tmp-account-enable btn btn-default" style={{ width: "100%" }} role="button"
-                        type="button" onClick={() => handleAccUseClick(acc)}>
-                        Use
-                    </button>
-                    :
-                    <button className="tmp-account-disable btn btn-default" style={{ width: "100%" }}
-                        role="button"
-                        type="button" onClick={() => handleAccUseClick(acc)}>
-                        Don't use
-                    </button>
-                }
-            </div>
-            <label className="col-xs-2 col-sm-1 control-label">Name</label>
-            <div className="col-xs-4 col-sm-2 form-control-static tmp-account-name">{acc.name}</div>
-            {acc.isUsed ?
-                <>
-                    <label className="col-xs-12 col-sm-1 control-label tmp-account-amount-label">Amount</label>
-                    <div className="col-xs-12 col-sm-4 tmp-account-amount-box">
-                        <div className="input-group bootstrap-touchspin">
-                            <span className="input-group-btn">
-                                <button className="btn btn-default bootstrap-touchspin-down" type="button"
+        <Form.Group key={acc.id} className="align-items-center">
+            <Row className="mb-3">
+                <Col xs={2} sm={1} className="align-content-center">
+                    <Form.Label className="mb-0">Name</Form.Label>
+                </Col>
+                <Col xs={4} sm={2} className="align-content-center">
+                    <Form.Text className="tmp-account-name">{acc.name}</Form.Text>
+                </Col>
+                {acc.isUsed ?
+                    <>
+                        <Col xs={12} sm={1} className="align-content-center">
+                            <Form.Label className="tmp-account-amount-label mb-0">
+                                Amount
+                            </Form.Label>
+                        </Col>
+                        <Col xs={12} sm={4} className="tmp-account-amount-box">
+                            <InputGroup className="bootstrap-touchspin">
+                                <Button variant="default" className="bootstrap-touchspin-down"
+                                        type="button"
                                         onMouseDown={() => handleAccountAmountMouseDown(acc, -1)}
-                                            onMouseUp={() => handleAccountAmountMouseUp()}
-                                            onMouseLeave={() => handleAccountAmountMouseUp()}>-</button>
-                            </span>
-                            <span className="input-group-addon bootstrap-touchspin-prefix" style={{ display: "none" }}></span>
-                            <input type="number" name="accounts-0-amount"
-                                value={acc.amountView}
-                                step="0.1"
-                                className="form-control tmp-account-amount"
-                                placeholder="Amount"
-                                id="id_accounts-0-amount"
-                                style={{ display: "block" }}
-                                onChange={(e) => handleAccountAmountChange(e, acc)}/>
-                            <span className="input-group-addon bootstrap-touchspin-postfix" style={{ display: "none" }}></span>
-                            <span className="input-group-btn">
-                                <button className="btn btn-default bootstrap-touchspin-up" type="button"
-                                onMouseDown={() => handleAccountAmountMouseDown(acc, 1)}
-                                            onMouseUp={() => handleAccountAmountMouseUp()}
-                                            onMouseLeave={() => handleAccountAmountMouseUp()}>+</button>
-                            </span>
-                        </div>
-                    </div>
-                </>
-                :
-                null
-            }
-        </div>
+                                        onMouseUp={() => handleAccountAmountMouseUp()}
+                                        onMouseLeave={() => handleAccountAmountMouseUp()}>-</Button>
+                                <span className="input-group-addon bootstrap-touchspin-prefix"
+                                      style={{ display: "none" }}></span>
+                                <Form.Control type="number" name="accounts-0-amount"
+                                              value={acc.amountView}
+                                              step="0.1"
+                                              className="form-control tmp-account-amount"
+                                              placeholder="Amount"
+                                              id="id_accounts-0-amount"
+                                              style={{ display: "block" }}
+                                              onChange={(e) => handleAccountAmountChange(e, acc)}/>
+                                <span className="input-group-addon bootstrap-touchspin-postfix"
+                                      style={{ display: "none" }}></span>
+                                <Button variant="default" className="bootstrap-touchspin-up"
+                                        type="button"
+                                        onMouseDown={() => handleAccountAmountMouseDown(acc, 1)}
+                                        onMouseUp={() => handleAccountAmountMouseUp()}
+                                        onMouseLeave={() => handleAccountAmountMouseUp()}>+</Button>
+                            </InputGroup>
+                        </Col>
+                    </>
+                    :
+                    null
+                }
+                <Col xs={4} sm={2} className="ms-auto tmp-account-buttons">
+                    {!acc.isUsed ?
+                        <Button variant="default" className="tmp-account-enable"
+                                style={{ width: "100%" }} type="button"
+                                onClick={() => handleAccUseClick(acc)}>
+                            Use
+                        </Button>
+                        :
+                        <Button variant="default" className="tmp-account-disable"
+                                style={{ width: "100%" }} type="button"
+                                onClick={() => handleAccUseClick(acc)}>
+                            Don't use
+                        </Button>
+                    }
+                </Col>
+            </Row>
+        </Form.Group>
     );
 
     const renderAccounts = useMemo(() => {
@@ -367,126 +380,145 @@ const handlePresetAmountChange = (e) => {
     }, [presetInUse]);
     const renderTags = useMemo(() => {
         return presetInUse?.tags.map((tag, id) => (
-            <div key={id} className={tag.isChecked ? "tmp-tag-button btn btn-info" : "tmp-tag-button btn btn-default"} role="button" onClick={() => handleTagClick(tag)}>
-                <label htmlFor={`tag-${tag.id}`}>{tag.name}</label>
-            </div>
+            <Button className="tmp-tag-button" key={id} variant={tag.isChecked ? "info" : "default"}
+                    onClick={() => handleTagClick(tag)}>
+                <Form.Label htmlFor={`tag-${tag.id}`}>{tag.name}</Form.Label>
+            </Button>
         ));
     }, [presetInUse?.tags, handleTagClick]);
 
     return (
-        <div className="container">
-            <Navbar />
-            <form action="" method="post" onSubmit={handleSubmit}>
+        <Container>
+            <NavbarComponent/>
+            <Form onSubmit={handleSubmit}>
                 <h1>Update transaction</h1>
                 {presets.length > 0 ?
-                <div id="tmp-presets" className="panel panel-default">
-                    <div className="panel-body">
-                        <a className="btn btn-default" data-toggle="collapse" data-target="#view-presets"><b>Import
-                            preset</b></a>
-                        <div className="collapse" id="view-presets">
-                            <div style={{margin: "1em"}}></div>
-                            <div className="form-group">
-                                <p><b>Select preset</b></p>
-                                {presets.map((preset, id) => (
-                                    presetInUse?.id === preset.id ?
-                                        <div className="tmp-preset-button btn btn-info" role="button"
-                                             style={{marginBottom: "0.2em"}} data-id={`${preset.id}`} key={id}>
-                                            {preset.name}
-                                        </div>
+                    <Card id="tmp-presets">
+                        <Card.Body>
+                            <Button variant="default" aria-controls="presets-collapse"
+                                    aria-expanded={openPresets}
+                                    onClick={() => setOpenPresets(!openPresets)}>
+                                <b>Import preset</b>
+                            </Button>
+                            <Collapse in={openPresets}>
+                                <div id="presets-collapse">
+                                    <div style={{margin: "1em"}}></div>
+                                    <Form.Group>
+                                        <Form.Label>Select preset</Form.Label>
+                                        <br></br>
+                                        {presets.map((preset, id) => (
+                                            presetInUse?.id === preset.id ?
+                                                <Button variant="info" className="tmp-preset-button"
+                                                        style={{marginBottom: "0.2em"}}
+                                                        data-id={`${preset.id}`} key={id}>
+                                                    {preset.name}
+                                                </Button>
+                                                :
+                                                <Button variant="default"
+                                                        className="tmp-preset-button"
+                                                        onClick={() => handlePresetSelect(preset)}
+                                                        style={{marginBottom: "0.2em"}}
+                                                        data-id={`${preset.id}`} key={id}>
+                                                    {preset.name}
+                                                </Button>
+                                        ))}
+                                    </Form.Group>
+                                    {presetInUse && presetInUse.id !== 0 ?
+                                        <Form.Group className="tmp-preset-amount-line">
+                                            <Row>
+                                                <Col xs={12} sm={2} className="align-content-center">
+                                                    <Form.Label className="mb-0">Amount</Form.Label>
+                                                </Col>
+                                                <Col xs={12} sm={10} className="align-content-center">
+                                                    <InputGroup className="bootstrap-touchspin">
+                                                        <Button variant="default"
+                                                                className="bootstrap-touchspin-down"
+                                                                type="button"
+                                                                onMouseDown={() => handlePresetAmountMouseDown(-1)}
+                                                                onMouseUp={() => handlePresetAmountMouseUp()}
+                                                                onMouseLeave={() => handlePresetAmountMouseUp()}>
+                                                            -
+                                                        </Button>
+                                                        <span className="input-group-addon bootstrap-touchspin-prefix"
+                                                              style={{display: "none"}}></span>
+                                                        <Form.Control className="tmp-preset-amount"
+                                                                      placeholder="Amount"
+                                                                      step="0.01" type="number"
+                                                                      value={presetInUse.amount}
+                                                                      onChange={(e) => handlePresetAmountChange(e)}/>
+                                                        <span className="input-group-addon bootstrap-touchspin-postfix"
+                                                              style={{display: "none"}}></span>
+                                                        <Button variant="default"
+                                                                className="bootstrap-touchspin-up"
+                                                                type="button"
+                                                                onMouseDown={() => handlePresetAmountMouseDown(1)}
+                                                                onMouseUp={() => handlePresetAmountMouseUp()}
+                                                                onMouseLeave={() => handlePresetAmountMouseUp()}>
+                                                            +
+                                                        </Button>
+                                                    </InputGroup>
+                                                </Col>
+                                            </Row>
+                                        </Form.Group>
                                         :
-                                        <div className="tmp-preset-button btn btn-default" role="button"
-                                             onClick={() => handlePresetSelect(preset)}
-                                             style={{marginBottom: "0.2em"}} data-id={`${preset.id}`} key={id}>
-                                            {preset.name}
-                                        </div>
-                                ))}
-                            </div>
-                            {presetInUse && presetInUse.id !== 0 ?
-                                <div className="form-group tmp-preset-amount-line" style={{display: "block"}}>
-                                    <label className="col-xs-12 col-sm-2 control-label">Amount</label>
-                                    <div className="col-xs-12 col-sm-10">
-                                        <div className="input-group bootstrap-touchspin">
-                                            <span className="input-group-btn">
-                                                <button className="btn btn-default bootstrap-touchspin-down"
-                                                        type="button"
-                                                        onMouseDown={() => handlePresetAmountMouseDown(-1)}
-                                                        onMouseUp={() => handlePresetAmountMouseUp()}
-                                                        onMouseLeave={() => handlePresetAmountMouseUp()}>-</button>
-                                            </span>
-                                            <span className="input-group-addon bootstrap-touchspin-prefix"
-                                                  style={{display: "none"}}></span>
-                                            <input className="form-control tmp-preset-amount" placeholder="Amount"
-                                                   step="0.01" type="number" value={presetInUse.amount}
-                                                   onChange={(e) => handlePresetAmountChange(e)}/>
-                                            <span className="input-group-addon bootstrap-touchspin-postfix"
-                                                  style={{display: "none"}}></span>
-                                            <span className="input-group-btn">
-                                                <button className="btn btn-default bootstrap-touchspin-up" type="button"
-                                                        onMouseDown={() => handlePresetAmountMouseDown(1)}
-                                                        onMouseUp={() => handlePresetAmountMouseUp()}
-                                                        onMouseLeave={() => handlePresetAmountMouseUp()}
-                                                >+</button>
-                                            </span>
-                                        </div>
-                                    </div>
+                                        null
+                                    }
                                 </div>
-                                :
-                                null
-                            }
-                        </div>
-                    </div>
-                </div>
-                :
-                <div className="alert alert-info" role="alert">
-                    No presets have been created
-                </div>
+                            </Collapse>
+                        </Card.Body>
+                    </Card>
+                    :
+                    <Alert variant="info" transition={false}>
+                        No presets have been created
+                    </Alert>
                 }
-                <div className="form-horizontal">
-                    <div className="form-group">
-                        <label className="col-xs-4 col-sm-2 control-label" htmlFor="id_description">Description</label>
-                        <div className="col-xs-8 col-sm-10">
-                            <input type="text" className={"form-control"} name="description" key="id_description"
-                                   value={desc} required={true}
-                                   onChange={(e) => setDesc(e.target.value)}/>
-                        </div>
+                <Form.Group>
+                    <Row className="mt-4">
+                        <Col xs={4} sm={2} className="align-content-center text-end">
+                            <Form.Label className="mb-0" htmlFor="id_description">
+                                Description
+                            </Form.Label>
+                        </Col>
+                        <Col xs={8} sm={10} className="align-content-center">
+                            <Form.Control type="text" name="description" key="id_description"
+                                          value={desc} required={true} id="id_description"
+                                          onChange={(e) => setDesc(e.target.value)}/>
+                        </Col>
+                    </Row>
+                    <Row className="mt-4">
+                        <Col xs={4} sm={2} className="align-content-center text-end">
+                            <Form.Label className="mb-0" htmlFor="id_Date">Date</Form.Label>
+                        </Col>
+                        <Col xs={8} sm={10} className="align-content-center">
+                            <Form.Control type="datetime-local" name="date"
+                                          value={formatDateTimeForInput(date)}
+                                          key="id_date" required={true} id="id_Date"
+                                          onChange={(e) => setDate(new Date(e.target.value))}/>
+                        </Col>
+                    </Row>
+                </Form.Group>
+                <h4>Accounts</h4>
+                {presetInUse.accounts.length > 0 ?
+                    <div id="tmp-accounts">
+                        {renderAccounts}
                     </div>
-                    <div className="form-group">
-                        <label className="col-xs-4 col-sm-2 control-label" htmlFor="id_Date">Date</label>
-                        <div className="col-xs-8 col-sm-10">
-                            <input type="datetime-local" className={"form-control"} name="date"
-                                   value={formatDateTimeForInput(date)}
-                                   key="id_date" required={true}
-                                   onChange={(e) => setDate(new Date(e.target.value))}/>
-                        </div>
+                    :
+                    <Alert variant="info" transition={false}>
+                        No accounts have been created
+                    </Alert>
+                }
+                <h4>Tags</h4>
+                {presetInUse.tags.length > 0 ?
+                    <div id="tmp-tags">
+                        {renderTags}
                     </div>
-                </div>
-                <div className="form-horizontal">
-                    <h4>Accounts</h4>
-                    {presetInUse.accounts.length > 0 ?
-                        <div id="tmp-accounts">
-                            {renderAccounts}
-                        </div>
-                        :
-                        <div className="alert alert-info" role="alert">
-                            No accounts have been created
-                        </div>
-                    }
-                </div>
-                <div className="form-horizontal">
-                    <h4>Tags</h4>
-                    {presetInUse.tags.length > 0 ?
-                        <div id="tmp-tags">
-                            {renderTags}
-                        </div>
-                        :
-                        <div className="alert alert-info" role="alert">
-                            No tags have been created
-                        </div>
-                    }
-
-                </div>
-                <SubmitButton text="Save" />
-            </form>
-        </div>
+                    :
+                    <Alert variant="info" transition={false}>
+                        No tags have been created
+                    </Alert>
+                }
+                <SubmitButton text="Save"/>
+            </Form>
+        </Container>
     );
 });

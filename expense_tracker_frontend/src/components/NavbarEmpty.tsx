@@ -1,12 +1,13 @@
-
+import {Container, Navbar} from "react-bootstrap";
+import React from "react";
 
 
 export function NavbarEmpty() {
-    return <nav className="navbar navbar-default">
-        <div className="container-fluid">
-            <div className="navbar-header">
-                <a className="navbar-brand" href="#">Expense tracker</a>
-            </div>
-        </div>
-    </nav>
+    return (
+        <Navbar expand="lg" className="bg-body-tertiary mb-3">
+            <Container>
+                <Navbar.Brand href="#" className="text-start">Expense tracker</Navbar.Brand>
+            </Container>
+        </Navbar>
+    )
 }

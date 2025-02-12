@@ -1,8 +1,9 @@
 import {observer} from "mobx-react-lite";
 import {DefaultDelete} from "../DefaultDelete";
-import {Navbar} from "../Navbar";
+import {NavbarComponent} from "../Navbar";
 import {useNavigate, useParams} from "react-router-dom";
 import {useToken} from "../Auth/AuthContext";
+import {Container} from "react-bootstrap";
 
 
 
@@ -15,9 +16,10 @@ export const TagDelete = observer(function TagDelete() {
         navigate('/login');
     }
     return (
-        <div className="container">
-            <Navbar />
-            <DefaultDelete backLink={backLink} returnPoint={`/tags`} id={id} deleteRequestUrl={`tags`} />
-        </div>
+        <Container>
+            <NavbarComponent/>
+            <DefaultDelete backLink={backLink} returnPoint={`/tags`} id={id}
+                           deleteRequestUrl={`tags`}/>
+        </Container>
     )
 })

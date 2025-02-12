@@ -1,10 +1,12 @@
+import {Col, Row} from "react-bootstrap";
 
 
 export function StaticField(staticFieldProps) {
-    return <div>
-        <div
-            className="col-xs-4 col-sm-2 tmp-static-field-label">{staticFieldProps.label}</div>
-        <div className="col-xs-8 col-sm-10 tmp-static-field-content">{staticFieldProps.content}</div>
-    </div>
+    return (
+        <Row>
+            <Col xs={4} sm={2} className="tmp-static-field-label">{staticFieldProps.label}</Col>
+            <Col xs={8} sm={10} className="tmp-static-field-content">{staticFieldProps.content}</Col>
+        </Row>
+    )
 
 }

@@ -2,9 +2,11 @@ import {NavbarEmpty} from "../NavbarEmpty";
 import {observer} from "mobx-react-lite";
 import {useState} from "react";
 import {useToken} from "../Auth/AuthContext";
-import {Navbar} from "../Navbar";
+import {NavbarComponent} from "../Navbar";
 import {useNavigate} from "react-router-dom";
 import {AuthAxios} from "../../utils/Network";
+import {Col, Form, Row, Container} from "react-bootstrap";
+import {SubmitButton} from "../SubmitButton";
 
 
 export const TagCreate = observer(function TagCreate() {
@@ -28,34 +30,33 @@ export const TagCreate = observer(function TagCreate() {
         await AuthAxios.post("tags", auth.getToken(), bodyParameters).catch(err => console.error(err));
         navigate('/tags');
     }
-    return <div className='container'>
-        <Navbar />
-        <h1>Create new tag</h1>
-        <form method="post" id="tag-create-form" onSubmit={submitHandler}>
-            <div className="form-horizontal">
-                <div className="form-group">
-                    <label className="col-xs-4 col-sm-2 control-label"
-                           htmlFor="id_name">Name</label>
-                    <div className="col-xs-8 col-sm-10">
-                        <input type="text" className={"form-control"} name="name" key="id_name" required={true}
-                               onChange={(e) => setName(e.target.value)}/>
-                    </div>
-                </div>
-                <div className="form-group">
-                    <label className="col-xs-4 col-sm-2 control-label"
-                           htmlFor="id_desc">Description</label>
-                    <div className="col-xs-8 col-sm-10">
-                        <input type="text" className={"form-control"} name="description" key="id_desc"
-                               onChange={(e) => setDesc(e.target.value)}/>
-                    </div>
-                </div>
-                <div className="form-horizontal">
-                    <div className="col-xs-4 col-sm-2 pull-right">
-                        <input className="btn btn-primary" type="submit" style={{width: "100%"}} role="button"
-                               value="Save"/>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
+    return (
+        <Container>
+            <NavbarComponent/>
+            <h1>Create new tag</h1>
+            <Form id="tag-create-form" onSubmit={submitHandler}>
+                <Form.Group>
+                    <Row className="mb-3">
+                        <Col xs={4} sm={2} className="text-end">
+                            <Form.Label htmlFor="id_name">Name</Form.Label>
+                        </Col>
+                        <Col xs={8} sm={10}>
+                            <Form.Control type="text" name="name" key="id_name" required={true}
+                                          onChange={(e) => setName(e.target.value)}/>
+                        </Col>
+                    </Row>
+                    <Row className="mb-3">
+                        <Col xs={4} sm={2} className="text-end">
+                            <Form.Label htmlFor="id_desc">Description</Form.Label>
+                        </Col>
+                        <Col xs={8} sm={10}>
+                            <Form.Control type="text" name="description" key="id_desc"
+                                          onChange={(e) => setDesc(e.target.value)}/>
+                        </Col>
+                    </Row>
+                    <SubmitButton text="Save"/>
+                </Form.Group>
+            </Form>
+        </Container>
+    )
 })
