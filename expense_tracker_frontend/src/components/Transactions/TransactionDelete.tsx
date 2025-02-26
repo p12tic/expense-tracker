@@ -1,8 +1,9 @@
 import {observer} from "mobx-react-lite";
 import {DefaultDelete} from "../DefaultDelete";
-import {Navbar} from "../Navbar";
+import {NavbarComponent} from "../Navbar";
 import {useNavigate, useParams} from "react-router-dom";
 import {useToken} from "../Auth/AuthContext";
+import {Container} from "react-bootstrap";
 
 
 export const TransactionDelete = observer(function TransactionDelete() {
@@ -14,9 +15,10 @@ export const TransactionDelete = observer(function TransactionDelete() {
         navigate('/login');
     }
     return (
-        <div className="container">
-            <Navbar />
-            <DefaultDelete backLink={backLink} returnPoint={`/transactions`} id={id} deleteRequestUrl={`transactions`} />
-        </div>
+        <Container>
+            <NavbarComponent/>
+            <DefaultDelete backLink={backLink} returnPoint={`/transactions`} id={id}
+                           deleteRequestUrl={`transactions`}/>
+        </Container>
     )
 })

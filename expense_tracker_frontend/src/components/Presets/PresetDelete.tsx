@@ -1,8 +1,9 @@
 import {observer} from "mobx-react-lite";
 import {DefaultDelete} from "../DefaultDelete";
-import {Navbar} from "../Navbar";
+import {NavbarComponent} from "../Navbar";
 import {useNavigate, useParams} from "react-router-dom";
 import {useToken} from "../Auth/AuthContext";
+import {Container} from "react-bootstrap";
 
 export const PresetDelete = observer(function PresetDelete() {
     const auth = useToken();
@@ -14,9 +15,10 @@ export const PresetDelete = observer(function PresetDelete() {
     }
 
     return (
-        <div className="container">
-            <Navbar />
-            <DefaultDelete backLink={backLink} id={id} returnPoint={`/presets`} deleteRequestUrl={"presets"} />
-        </div>
+        <Container>
+            <NavbarComponent/>
+            <DefaultDelete backLink={backLink} id={id} returnPoint={`/presets`}
+                           deleteRequestUrl={"presets"}/>
+        </Container>
     )
 })

@@ -1,10 +1,11 @@
 import React, {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
-import {Navbar} from "../Navbar";
+import {NavbarComponent} from "../Navbar";
 import {TableButton} from "../TableButton";
 import {useToken} from "../Auth/AuthContext";
 import {observer} from "mobx-react-lite";
 import {AuthAxios} from "../../utils/Network";
+import {Col, Row, Container, Table} from "react-bootstrap";
 
 interface Tag {
     id: number;
@@ -27,14 +28,15 @@ export const Tags = observer(function Tags() {
         }).catch(err => {console.error(err)});
     }, []);
     return(
-        <div className='container'>
-            <Navbar />
-            <h1>Tags
-                <div className='pull-right'>
+        <Container>
+            <NavbarComponent/>
+            <Row>
+                <Col><h1>Tags</h1></Col>
+                <Col md="auto" className='d-flex justify-content-end'>
                     <TableButton dest={`/tags/add`} name={'New'}/>
-                </div>
-            </h1>
-            <table className="table table-condensed">
+                </Col>
+            </Row>
+            <Table size="sm">
                 <thead>
                     {state.length > 0 ?
                         <tr>
@@ -59,8 +61,8 @@ export const Tags = observer(function Tags() {
                         </tr>
                     }
                 </tbody>
-            </table>
-        </div>
+            </Table>
+        </Container>
     )
 }
 )

@@ -1,4 +1,4 @@
-import {Navbar} from "../Navbar";
+import {NavbarComponent} from "../Navbar";
 import {observer} from "mobx-react-lite";
 import {useEffect, useState} from "react";
 import {SubmitButton} from "../SubmitButton";
@@ -6,6 +6,7 @@ import {useToken} from "../Auth/AuthContext";
 import {useNavigate, useParams} from "react-router-dom";
 import {centsToString, formatDate} from "../Tools";
 import {AuthAxios} from "../../utils/Network";
+import {Col, Form, Row, Container} from "react-bootstrap";
 
 interface Subtransaction {
     id: number;
@@ -80,31 +81,35 @@ export const AccountSync = observer(function AccountSync() {
         return `${year}-${month}-${day}`;
     };
     return (
-        <div className="container">
-            <Navbar />
-            <form action="" method="post" onSubmit={handleSubmit}>
+        <Container>
+            <NavbarComponent/>
+            <Form onSubmit={handleSubmit}>
                 <h1>Create new</h1>
-                <div className="form-horizontal">
-                    <div className="form-group">
-                        <label className="col-xs-4 col-sm-2 control-label" htmlFor="id_balance">Balance</label>
-                        <div className="col-xs-8 col-sm-10">
-                            <input type="text" className={"form-control"} name="balance" key="id_balance"
-                                   value={(balance)} required={true}
-                                   onChange={(e) => setBalance(parseFloat(e.target.value))}/>
-                        </div>
-                    </div>
-                    <div className="form-group">
-                        <label className="col-xs-4 col-sm-2 control-label" htmlFor="id_Date">Date time</label>
-                        <div className="col-xs-8 col-sm-10">
-                            <input type="datetime-local" className={"form-control"} name="date"
-                                   value={date.toISOString().slice(0, 16)}
-                                   key="id_date" required={true}
-                                   onChange={(e) => setDate(new Date(e.target.value))}/>
-                        </div>
-                    </div>
-                </div>
-                <SubmitButton text="Save" />
-            </form>
-        </div>
-)
+                <Form.Group>
+                    <Row className="mb-3">
+                        <Col xs={4} sm={2} className="text-end">
+                            <Form.Label htmlFor="id_balance">Balance</Form.Label>
+                        </Col>
+                        <Col xs={8} sm={10}>
+                            <Form.Control type="text" name="balance" key="id_balance"
+                                          value={(balance)} required={true}
+                                          onChange={(e) => setBalance(parseFloat(e.target.value))}/>
+                        </Col>
+                    </Row>
+                    <Row className="mb-3">
+                        <Col xs={4} sm={2} className="text-end">
+                            <Form.Label htmlFor="id_Date">Date time</Form.Label>
+                        </Col>
+                        <Col xs={8} sm={10}>
+                            <Form.Control type="datetime-local" name="date"
+                                          value={date.toISOString().slice(0, 16)}
+                                          key="id_date" required={true}
+                                          onChange={(e) => setDate(new Date(e.target.value))}/>
+                        </Col>
+                    </Row>
+                </Form.Group>
+                <SubmitButton text="Save"/>
+            </Form>
+        </Container>
+    )
 })

@@ -1,5 +1,5 @@
 import {observer} from "mobx-react-lite";
-import {Navbar} from "../Navbar";
+import {NavbarComponent} from "../Navbar";
 import {TableButton} from "../TableButton";
 import {StaticField} from "../StaticField";
 import React, {useEffect, useState} from "react";
@@ -7,6 +7,7 @@ import {useToken} from "../Auth/AuthContext";
 import {Link, useNavigate, useParams} from "react-router-dom";
 import {centsToString, formatDate} from "../Tools";
 import {AuthAxios} from "../../utils/Network";
+import {Col, Row, Table, Button, Alert, Container} from "react-bootstrap";
 
 interface TransactionElement {
     desc: string;
@@ -85,28 +86,30 @@ export const Transaction = observer(function Transaction() {
     }, []);
 
     return (
-        <div className="container">
-            <Navbar />
-            <h1>
-                Transaction "{state?.desc}"
-                <div className="pull-right">
-                    <TableButton dest={`/transactions/${id}/edit`} name={"Edit"} />
-                    <TableButton dest={`/transactions/${id}/delete`} name={"Delete"} class="btn-danger" />
-                </div>
-            </h1>
-            <StaticField label="Date and time" content={formatDate(state?.dateTime)} />
+        <Container>
+            <NavbarComponent/>
+            <Row>
+                <Col><h1>Transaction "{state?.desc}"</h1></Col>
+                <Col md="auto" className='d-flex justify-content-end'>
+                    <TableButton dest={`/transactions/${id}/edit`} name={"Edit"}/>
+                    <TableButton dest={`/transactions/${id}/delete`} name={"Delete"} class="danger"/>
+                </Col>
+            </Row>
+            <StaticField label="Date and time" content={formatDate(state?.dateTime)}/>
             <h3>Tags</h3>
             {state.tags.length > 0 ?
                 state.tags.map((tag) => (
-                    <button className="btn" role="button" style={{marginRight: 4}}>{tag.name}</button>
+                    <Button variant="secondary" role="button" style={{marginRight: 4}}>
+                        {tag.name}
+                    </Button>
                 ))
                 :
-                <div className="alert alert-info" role="alert">
+                <Alert key="info" variant="info" transition={false}>
                     No tags have been defined for this transaction
-                </div>
+                </Alert>
             }
             <h3>Affected accounts</h3>
-            <table className="table table-condensed">
+            <Table size="sm">
                 <thead>
                 {state.subs.length > 0 ?
                     <tr>
@@ -121,7 +124,9 @@ export const Transaction = observer(function Transaction() {
                     {state.subs.length > 0 ?
                         state.subs.map((sub: Subtransaction, id) => (
                             <tr key={id}>
-                                <td><Link to={`/accounts/${sub.account}`}>{sub.accountName}</Link></td>
+                                <td>
+                                    <Link to={`/accounts/${sub.account}`}>{sub.accountName}</Link>
+                                </td>
                                 <td>{centsToString(sub.amount)}</td>
                             </tr>
                         ))
@@ -129,7 +134,7 @@ export const Transaction = observer(function Transaction() {
                         <tr><td>This transaction does not affect any accounts</td></tr>
                     }
                 </tbody>
-            </table>
-        </div>
+            </Table>
+        </Container>
     )
 })

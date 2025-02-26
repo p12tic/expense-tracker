@@ -5,6 +5,8 @@ import {NavbarEmpty} from "../NavbarEmpty";
 import {observer} from "mobx-react-lite";
 import {useToken} from "./AuthContext";
 import {getApiUrlForCurrentWindow} from "../../utils/Network";
+import {Col, Form, Row, Container} from "react-bootstrap";
+import {SubmitButton} from "../SubmitButton";
 
 export const Login = function Login() {
     const auth = useToken();
@@ -31,33 +33,32 @@ export const Login = function Login() {
                 navigate("/transactions");
             }).catch((err) => {console.error(err)})
     }
-    return <div className='container'>
-        <NavbarEmpty />
-        <form method="post" id="login-form" onSubmit={submitHandler}>
-            <div className="form-horizontal">
-                <div className="form-group">
-                    <label className="col-xs-4 col-sm-2 control-label"
-                           htmlFor="id_username">Username</label>
-                    <div className="col-xs-8 col-sm-10">
-                        <input type="text" className={"form-control"} name="username" key="id_username" required={true}
-                               onChange={(e) => setUsername(e.target.value)}/>
-                    </div>
-                </div>
-                <div className="form-group">
-                    <label className="col-xs-4 col-sm-2 control-label"
-                           htmlFor="id_password">Password</label>
-                    <div className="col-xs-8 col-sm-10">
-                        <input type="password" className={"form-control"} name="password" key="id_password"
-                               required={true} onChange={(e) => setPassword(e.target.value)}/>
-                    </div>
-                </div>
-                <div className="form-horizontal">
-                    <div className="col-xs-4 col-sm-2 pull-right">
-                        <input className="btn btn-primary" type="submit" style={{width: "100%"}} role="button"
-                               value="Log in"/>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
+    return (
+        <Container>
+            <NavbarEmpty/>
+            <Form id="login-form" onSubmit={submitHandler}>
+                <Form.Group>
+                    <Row className="mb-3">
+                        <Col xs={4} sm={2} className="text-end">
+                            <Form.Label htmlFor="id_username">Username</Form.Label>
+                        </Col>
+                        <Col xs={8} sm={10}>
+                            <Form.Control type="text" name="username" key="id_username" required={true}
+                                          onChange={(e) => setUsername(e.target.value)}/>
+                        </Col>
+                    </Row>
+                    <Row className="mb-3">
+                        <Col xs={4} sm={2} className="text-end">
+                            <Form.Label htmlFor="id_password">Password</Form.Label>
+                        </Col>
+                        <Col xs={8} sm={10}>
+                            <Form.Control type="password" name="password" key="id_password"
+                                          required={true} onChange={(e) => setPassword(e.target.value)}/>
+                        </Col>
+                    </Row>
+                    <SubmitButton text="Log in"/>
+                </Form.Group>
+            </Form>
+        </Container>
+    )
 }

@@ -2,12 +2,13 @@ import {observer} from "mobx-react-lite";
 import {useToken} from "../Auth/AuthContext";
 import React, {useEffect, useState} from "react";
 import {Link, useNavigate, useParams} from "react-router-dom";
-import {Navbar} from "../Navbar";
+import {NavbarComponent} from "../Navbar";
 import {TableButton} from "../TableButton";
 import {StaticField} from "../StaticField";
 import {getSubtransactionBalances} from "../getSubtransactionBalances";
 import {centsToString, formatDate} from "../Tools";
 import {AuthAxios} from "../../utils/Network";
+import {Col, Dropdown, Row, Container, Table} from "react-bootstrap";
 
 interface AccountElement {
     id: number;
@@ -99,20 +100,21 @@ export const Account = observer(function Account() {
     }, []);
 
     return (
-        <div className="container">
-            <Navbar />
+        <Container>
+            <NavbarComponent/>
             <>
-                <h1>
-                    Account "{state.name}"
-                    <div className="pull-right">
-                        <TableButton dest={`/accounts/${state.id}/sync`} name={"Sync"} />
-                        <TableButton dest={`/accounts/${state.id}/edit`} name={"Edit"} />
-                        <TableButton dest={`/accounts/${state.id}/delete`} name={"Delete"} class="btn-danger" />
-                    </div>
-                </h1>
-                <StaticField label="Description" content={state.desc} />
+                <Row>
+                    <Col><h1>Account "{state.name}"</h1></Col>
+                    <Col md="auto" className='d-flex justify-content-end'>
+                        <TableButton dest={`/accounts/${state.id}/sync`} name={"Sync"}/>
+                        <TableButton dest={`/accounts/${state.id}/edit`} name={"Edit"}/>
+                        <TableButton dest={`/accounts/${state.id}/delete`} name={"Delete"}
+                                     class="danger"/>
+                    </Col>
+                </Row>
+                <StaticField label="Description" content={state.desc}/>
                 <h3>Transactions</h3>
-                <table className="table table-condensed">
+                <Table size="sm">
                     <thead>
                         {state.subtransactions.length > 0 ?
                             <tr>
@@ -141,16 +143,14 @@ export const Account = observer(function Account() {
                                     <td>{centsToString(state.balances[state.balances.length - 1 - id])}</td>
                                     <td>
                                         {sub.transactionElement.desc ?
-                                            <div className="dropdown pull-right">
-                                                <button className="btn-xs btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                                                    <span className="caret"></span>
-                                                </button>
-                                                <ul className="dropdown-menu pull-left" role="menu">
-                                                    <li role="presentation"><a role="menuitem" tabIndex={-1}
-                                                                               href={`/accounts/${state.id}/sync?after_tr=${sub.transactionElement.id}`}>Sync
-                                                        after</a></li>
-                                                </ul>
-                                            </div>
+                                            <Dropdown className="text-end">
+                                                <Dropdown.Toggle size="sm" variant="default" style={{padding:"1px 5px", fontSize:"12px"}}/>
+                                                <Dropdown.Menu>
+                                                    <Dropdown.Item href={`/accounts/${state.id}/sync?after_tr=${sub.transactionElement.id}`}>
+                                                        Sync after
+                                                    </Dropdown.Item>
+                                                </Dropdown.Menu>
+                                            </Dropdown>
                                             :
                                             <></>
                                         }
@@ -161,8 +161,8 @@ export const Account = observer(function Account() {
                             <tr><td>No transactions yet</td></tr>
                         }
                     </tbody>
-                </table>
+                </Table>
             </>
-        </div>
+        </Container>
     );
 })

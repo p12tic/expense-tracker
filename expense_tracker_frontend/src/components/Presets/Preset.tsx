@@ -2,10 +2,11 @@ import {observer} from "mobx-react-lite";
 import {TableButton} from "../TableButton";
 import React, {useEffect, useState} from "react";
 import {StaticField} from "../StaticField";
-import {Navbar} from "../Navbar";
+import {NavbarComponent} from "../Navbar";
 import {useToken} from "../Auth/AuthContext";
 import {Link, useNavigate, useParams} from "react-router-dom";
 import {AuthAxios} from "../../utils/Network";
+import {Col, Row, Container, Table, Button, Alert} from "react-bootstrap";
 
 interface Preset {
     id: number;
@@ -77,19 +78,19 @@ export const Preset = observer(function Preset() {
     }, []);
 
     return (
-        <div className="container">
-            <Navbar />
-            <h1>
-                Preset "{state?.name}"
-                <div className="pull-right">
-                    <TableButton dest={`/presets/${id}/edit`} name={"Edit"} />
-                    <TableButton dest={`/presets/${id}/delete`} name={"Delete"} class="btn-danger" />
-                </div>
-            </h1>
-            <StaticField label="Description" content={state?.desc} />
+        <Container>
+            <NavbarComponent/>
+            <Row>
+                <Col><h1>Preset "{state?.name}"</h1></Col>
+                <Col md="auto" className='d-flex justify-content-end'>
+                    <TableButton dest={`/presets/${id}/edit`} name={"Edit"}/>
+                    <TableButton dest={`/presets/${id}/delete`} name={"Delete"} class="danger"/>
+                </Col>
+            </Row>
+            <StaticField label="Description" content={state?.desc}/>
 
             <h3>Transaction template</h3>
-            <table className="table table-condensed">
+            <Table size="sm">
                 <thead>
                     {state?.presetSubs.length > 0 ?
                         <tr>
@@ -104,7 +105,11 @@ export const Preset = observer(function Preset() {
                     {state?.presetSubs.length > 0 ?
                         state?.presetSubs.map((presetSub, id) => (
                             <tr key={id}>
-                                <td><Link to={`/accounts/${presetSub.account}`}>{presetSub.accountName}</Link></td>
+                                <td>
+                                    <Link to={`/accounts/${presetSub.account}`}>
+                                        {presetSub.accountName}
+                                    </Link>
+                                </td>
                                 <td>{presetSub.fraction.toFixed(3)}</td>
                             </tr>
                         ))
@@ -112,17 +117,18 @@ export const Preset = observer(function Preset() {
                         <tr><td>No accounts defined</td></tr>
                     }
                 </tbody>
-            </table>
+            </Table>
             <h4>Tags</h4>
             {state?.presetTransTags.length > 0 ?
                 state?.presetTransTags.map((presetTransTag) => (
-                    <button className="btn btn-xs" style={{marginRight: 5}} role="button">{presetTransTag.tagName}</button>
+                    <Button variant="secondary" className="btn-xs" style={{marginRight: 5}}
+                            role="button">{presetTransTag.tagName}</Button>
                 ))
                 :
-                <div className="alert alert-info" role="alert">
+                <Alert variant="info" transition={false} role="alert">
                     No tags have been defined for this preset
-                </div>
+                </Alert>
             }
-        </div>
+        </Container>
     )
 })

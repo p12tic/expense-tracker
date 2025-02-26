@@ -1,6 +1,7 @@
 import {observer} from "mobx-react-lite";
 import {useToken} from "./AuthContext";
-import {Navbar} from "../Navbar";
+import {NavbarComponent} from "../Navbar";
+import {Container, Button} from "react-bootstrap";
 
 
 export const UserEdit = observer(function UserEdit() {
@@ -9,13 +10,12 @@ export const UserEdit = observer(function UserEdit() {
         Auth.setToken('');
     });
 
-    return(
-        <div className='container' style={{minWidth: 'auto', justifySelf: 'center'}}>
-            <Navbar />
+    return (
+        <Container>
+            <NavbarComponent/>
             <h1>User settings</h1>
-            <a onClick={logout} href="/login" className="btn btn-primary" role="button">Log
-                out</a>
+            <Button variant="primary" onClick={logout} href="/login" role="button">Log out</Button>
             <p>TODO</p>
-        </div>
+        </Container>
     )
 })

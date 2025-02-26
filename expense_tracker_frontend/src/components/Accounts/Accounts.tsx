@@ -1,12 +1,13 @@
 import React, {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
-import {Navbar} from "../Navbar";
-import '../common.css';
+import {NavbarComponent} from "../Navbar";
+import '../common.scss';
 import {TableButton} from "../TableButton";
 import {useToken} from "../Auth/AuthContext";
 import {observer} from "mobx-react-lite";
 import {formatDate} from "../Tools";
 import {AuthAxios} from "../../utils/Network";
+import {Col, Row, Container, Table, Button} from "react-bootstrap";
 
 interface Account {
     id: number;
@@ -72,14 +73,15 @@ export const Accounts = observer(function Accounts() {
         fetchAccounts();
     }, []);
     return (
-        <div className='container' style={{minWidth: 'auto', justifySelf: 'center'}}>
-            <Navbar />
-            <h1>Accounts
-                <div className='pull-right'>
+        <Container>
+            <NavbarComponent/>
+            <Row>
+                <Col><h1>Accounts</h1></Col>
+                <Col md="auto" className='d-flex justify-content-end'>
                     <TableButton dest={`/accounts/add`} name={'New'} />
-                </div>
-            </h1>
-            <table className="table table-condensed">
+                </Col>
+            </Row>
+            <Table size="sm">
                 <thead>
                     {state.length > 0 ?
                         <tr>
@@ -99,15 +101,17 @@ export const Accounts = observer(function Accounts() {
                                 <td><Link to={`/accounts/${output.id}`}>{output.name}</Link></td>
                                 <td>{output.desc}</td>
                                 <td>{output.balance/100}</td>
-                                <td><Link to={`/accounts/${output.id}/sync`} role="button"
-                                          className="btn btn-xs btn-default pull-right">Sync</Link></td>
+                                <td className="text-end">
+                                    <Button href={`/accounts/${output.id}/sync`} variant="default"
+                                            className="btn-xs pull-right" role="button">Sync</Button>
+                                </td>
                             </tr>
                         ))
                         :
                         <tr><td>No accounts yet</td></tr>
                     }
                 </tbody>
-            </table>
-        </div>
+            </Table>
+        </Container>
     );
 })

@@ -1,9 +1,12 @@
+import {Col, Row, Button} from "react-bootstrap";
 
 
 export function SubmitButton(submitButtonProps) {
-    return <div className="form-horizontal">
-        <div className="col-xs-4 col-sm-2 pull-right">
-            <input className="btn btn-primary" type="submit" style={{width:"100%"}} role="button" value={submitButtonProps.text}/>
-        </div>
-    </div>
+    return (
+        <Row>
+            <Col xs={4} sm={2} className="ms-auto">
+                <Button variant="primary" type="submit" style={{width:"100%"}}>{submitButtonProps.text}</Button>
+            </Col>
+        </Row>
+    )
 }
