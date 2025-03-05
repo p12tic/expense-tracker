@@ -1,8 +1,9 @@
 from django.contrib.auth.models import User
+from django.utils.timezone import make_aware
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
-
-from .. import models, serializers
+from datetime import timedelta, timezone, datetime
+from .. import models, serializers, db_utils
 from rest_framework import generics, authentication, status
 
 
@@ -89,8 +90,12 @@ class TransactionView(generics.ListCreateAPIView):
 
     def post(self, request, *args, **kwargs):
         if self.request.data['action'] == "create":
+            aware_dt = db_utils.get_aware_from_naive_iso(self.request.data['date'],
+                                                         self.request.data['timezoneOffset'])
             transaction = models.Transaction.objects.create(desc=self.request.data['desc'],
-                                                            date_time=self.request.data['date'], user=self.request.user)
+                                                            date_time=aware_dt,
+                                                            user=self.request.user,
+                                                            timezone_offset=self.request.data['timezoneOffset'])
             transaction.save()
             for acc in self.request.data['preset']['accounts']:
                 if acc['isUsed']:
@@ -112,7 +117,10 @@ class TransactionView(generics.ListCreateAPIView):
         if self.request.data['action'] == "edit":
             transaction = models.Transaction.objects.get(id=self.request.data['id'])
             transaction.desc = self.request.data['desc']
-            transaction.date_time = self.request.data['date']
+            aware_dt = db_utils.get_aware_from_naive_iso(self.request.data['date'],
+                                                         self.request.data['timezoneOffset'])
+            transaction.date_time = aware_dt
+            transaction.timezone_offset = self.request.data['timezoneOffset']
             transaction.save()
             for tag in self.request.data['preset']['tags']:
                 tagElement = models.Tag.objects.get(id=tag['id'])
@@ -267,15 +275,16 @@ class AccountSyncEventView(generics.ListCreateAPIView):
         return queryset
     def post(self, request, *args, **kwargs):
         account = models.Account.objects.get(id=self.request.data['id'])
-        transaction = models.Transaction.objects.create(date_time=self.request.data['date'], user=self.request.user)
+        aware_dt = db_utils.get_aware_from_naive_iso(self.request.data['date'], self.request.data['timezoneOffset'])
+        transaction = models.Transaction.objects.create(date_time=aware_dt, user=self.request.user, timezone_offset=self.request.data['timezoneOffset'])
         cache_queryset = models.AccountBalanceCache.objects.filter(date__lte=self.request.data['dateYear'], account=account)
         if cache_queryset.count() == 0:
             sum = 0
-            subs_queryset = models.Subtransaction.objects.filter(account=account, transaction__date_time__lte=self.request.data['date'])
+            subs_queryset = models.Subtransaction.objects.filter(account=account, transaction__date_time__lte=aware_dt)
 
         else:
             sum = (cache_queryset.last()).balance
-            subs_queryset = models.Subtransaction.objects.filter(account=account, transaction__date_time__gt=(cache_queryset.last()).date, transaction__date_time__lte=self.request.data['date'])
+            subs_queryset = models.Subtransaction.objects.filter(account=account, transaction__date_time__gt=(cache_queryset.last()).date, transaction__date_time__lte=aware_dt)
         for sub in subs_queryset:
             sum = sum + sub.amount
         sumDif = self.request.data['balance']-sum

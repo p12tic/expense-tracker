@@ -4,10 +4,11 @@ import { useToken } from "../Auth/AuthContext";
 import { useNavigate } from "react-router-dom";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {SubmitButton} from "../SubmitButton";
-import {formatDateTimeForInput} from "../Tools"
+import {formatDateIso8601, formatDateTimeForInput} from "../Tools"
 import {AuthAxios} from "../../utils/Network";
 import {Card, Col, Form, InputGroup, Row, Button, Container, Alert, Collapse} from "react-bootstrap";
 import dayjs, {Dayjs} from "dayjs";
+import {TimezoneSelect} from "../TimezoneSelect";
 
 
 interface Preset {
@@ -67,6 +68,7 @@ export const TransactionCreate = observer(function TransactionCreate() {
     const [openPresets, setOpenPresets] = useState(false);
     const [desc, setDesc] = useState("");
     const [date, setDate] = useState<Dayjs>(dayjs());
+    const [timezoneOffset, setTimezoneOffset] = useState<number>(-dayjs().utcOffset())
     if (auth.getToken() === '') {
         navigate('/login');
     }
@@ -157,8 +159,9 @@ export const TransactionCreate = observer(function TransactionCreate() {
         const bodyParams = {
             action: "create",
             desc: desc,
-            date: date,
-            preset: presetInUse
+            date: formatDateIso8601(date),
+            preset: presetInUse,
+            timezoneOffset: timezoneOffset
         };
         await AuthAxios.post("transactions", auth.getToken(), bodyParams);
         navigate("/transactions");
@@ -466,10 +469,16 @@ const handlePresetAmountChange = (e) => {
                             <Form.Label className="mb-0" htmlFor="id_Date">Date</Form.Label>
                         </Col>
                         <Col xs={8} sm={10} className="align-content-center">
-                            <Form.Control type="datetime-local" name="date"
-                                          value={formatDateTimeForInput(date)}
-                                          key="id_date" required={true} id="id_Date"
-                                          onChange={(e) => setDate(dayjs(e.target.value))}/>
+                            <InputGroup size="sm">
+                                <Form.Control type="datetime-local" name="date"
+                                              value={formatDateTimeForInput(date)}
+                                              key="id_date" required={true} id="id_Date"
+                                              onChange={(e) => setDate(dayjs(e.target.value))}/>
+                                <InputGroup.Text>
+                                    Using timezone:&nbsp;
+                                    <TimezoneSelect offset={timezoneOffset} onChange={setTimezoneOffset}/>
+                                </InputGroup.Text>
+                            </InputGroup>
                         </Col>
                     </Row>
                 </Form.Group>

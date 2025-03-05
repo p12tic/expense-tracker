@@ -4,10 +4,11 @@ import {useEffect, useState} from "react";
 import {SubmitButton} from "../SubmitButton";
 import {useToken} from "../Auth/AuthContext";
 import {useNavigate, useParams} from "react-router-dom";
-import {centsToString, formatDate, formatDateTimeForInput} from "../Tools";
+import {centsToString, formatDate, formatDateIso8601, formatDateTimeForInput} from "../Tools";
 import {AuthAxios} from "../../utils/Network";
-import {Col, Form, Row, Container} from "react-bootstrap";
+import {Col, Form, Row, Container, InputGroup} from "react-bootstrap";
 import dayjs, {Dayjs} from "dayjs";
+import {TimezoneSelect} from "../TimezoneSelect";
 
 interface Subtransaction {
     id: number;
@@ -19,6 +20,7 @@ export const AccountSync = observer(function AccountSync() {
     const [lastBalance, setLastBalance] = useState(0);
     const [balance, setBalance] = useState(0);
     const [date, setDate] = useState(dayjs());
+    const [timezoneOffset, setTimezoneOffset] = useState<number>(-dayjs().utcOffset())
     const auth = useToken();
     const navigate = useNavigate();
     const {id} = useParams();
@@ -69,7 +71,8 @@ export const AccountSync = observer(function AccountSync() {
             id: id,
             balance: balance*100,
             sub_balance: balance-lastBalance,
-            date: date,
+            timezoneOffset: timezoneOffset,
+            date: formatDateIso8601(date),
             dateYear: formatDateYear(date)
         };
         await AuthAxios.post("account_sync_event", auth.getToken(), bodyParams);
@@ -99,10 +102,16 @@ export const AccountSync = observer(function AccountSync() {
                             <Form.Label htmlFor="id_Date">Date time</Form.Label>
                         </Col>
                         <Col xs={8} sm={10}>
-                            <Form.Control type="datetime-local" name="date"
-                                          value={formatDateTimeForInput(date)}
-                                          key="id_date" required={true}
-                                          onChange={(e) => setDate(dayjs(e.target.value))}/>
+                            <InputGroup>
+                                <Form.Control type="datetime-local" name="date"
+                                              value={formatDateTimeForInput(date)}
+                                              key="id_date" required={true}
+                                              onChange={(e) => setDate(dayjs(e.target.value))}/>
+                                <InputGroup.Text>
+                                    Using timezone:&nbsp;
+                                    <TimezoneSelect offset={timezoneOffset} onChange={setTimezoneOffset}/>
+                                </InputGroup.Text>
+                            </InputGroup>
                         </Col>
                     </Row>
                 </Form.Group>

@@ -9,6 +9,7 @@ import {TableButton} from "../TableButton";
 import {centsToString, formatDate} from "../Tools";
 import {AuthAxios} from "../../utils/Network";
 import {Col, Row, Container, Table, Button} from "react-bootstrap";
+import {TimezoneTag} from "../TimezoneTag";
 import dayjs, {Dayjs} from "dayjs";
 
 
@@ -29,6 +30,7 @@ interface Transaction {
     id: number;
     desc: string;
     dateTime: Dayjs;
+    timezoneOffset: number;
     user: string;
     subs: Subtransaction[];
 }
@@ -66,6 +68,7 @@ export const Tag = observer(function Tag() {
                 const transRes = await AuthAxios.get(`transactions?id=${transTag.transaction}`, auth.getToken());
                 const transData: Transaction = transRes.data[0];
                 transData.dateTime = dayjs(transData.date_time);
+                transData.timezoneOffset = transData.timezone_offset;
                 const subsRes = await AuthAxios.get(`subtransactions?transaction=${transData.id}`, auth.getToken());
                 const subsData: Subtransaction[] = subsRes.data;
                 transData.subs = await Promise.all(subsData.map(async (sub) => {
@@ -119,7 +122,10 @@ export const Tag = observer(function Tag() {
                                             {output.transactionElement.desc}
                                         </Link>
                                     </td>
-                                    <td>{formatDate(dayjs(output.transactionElement.dateTime))}</td>
+                                    <td>
+                                        {formatDate(dayjs(output.transactionElement.dateTime))}
+                                        <TimezoneTag offset={output.transactionElement.timezoneOffset}/>
+                                    </td>
                                     <td>
                                         {output.transactionElement.subs ? (
                                             output.transactionElement.subs.map((sub, id) => (

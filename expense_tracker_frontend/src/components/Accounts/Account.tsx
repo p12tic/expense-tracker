@@ -9,6 +9,7 @@ import {getSubtransactionBalances} from "../getSubtransactionBalances";
 import {centsToString, formatDate} from "../Tools";
 import {AuthAxios} from "../../utils/Network";
 import {Col, Dropdown, Row, Container, Table} from "react-bootstrap";
+import {TimezoneTag} from "../TimezoneTag";
 import dayjs, {Dayjs} from "dayjs";
 
 interface AccountElement {
@@ -30,6 +31,7 @@ interface Transaction {
     id: number;
     desc: string;
     dateTime: Dayjs;
+    timezoneOffset: number;
     user: string;
     syncEvent: SyncEvent;
 }
@@ -65,6 +67,7 @@ export const Account = observer(function Account() {
                 const transactionRes = await AuthAxios.get(`transactions?id=${sub.transaction}`, auth.getToken());
                 const transaction: Transaction = transactionRes.data[0];
                 transaction.dateTime = dayjs(transaction.date_time);
+                transaction.timezoneOffset = transaction.timezone_offset;
                 if(!transaction.desc) {
                     const syncRes = await AuthAxios.get(`account_sync_event?subtransaction=${sub.id}`, auth.getToken());
                     transaction.syncEvent = syncRes.data[0];
@@ -139,7 +142,10 @@ export const Account = observer(function Account() {
                                         :
                                         <Link to={`/sync/${sub.transactionElement.syncEvent.id}`}>
                                             Sync event</Link>}</td>
-                                    <td>{formatDate(sub.transactionElement.dateTime)}</td>
+                                    <td>
+                                        {formatDate(sub.transactionElement.dateTime)}
+                                        <TimezoneTag offset={sub.transactionElement.timezoneOffset}/>
+                                    </td>
                                     <td>{centsToString(sub.amount)}</td>
                                     <td>{centsToString(state.balances[state.balances.length - 1 - id])}</td>
                                     <td>

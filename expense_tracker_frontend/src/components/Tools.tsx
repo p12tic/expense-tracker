@@ -1,4 +1,4 @@
-import {Dayjs} from "dayjs";
+import dayjs, {Dayjs} from "dayjs";
 
 export const formatDate = (date: Dayjs): string => {
     return date.format("YYYY-MM-DD HH:mm");
@@ -35,4 +35,12 @@ export function pad(num) {
 
 export function formatDateTimeForInput(date) {
     return date.format("YYYY-MM-DD HH:mm:ss");
+}
+
+export function formatTimezone(timezoneOffset) {
+    return `UTC ${timezoneOffset < 0 ? '+' : ''}${-timezoneOffset / 60}:${pad(Math.abs(timezoneOffset % 60))}`
+}
+
+export function formatDateIso8601(date) {
+    return dayjs(date).format('YYYY-MM-DDTHH:mm:ss')
 }

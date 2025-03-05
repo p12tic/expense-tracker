@@ -7,6 +7,7 @@ import {observer} from "mobx-react-lite";
 import {useToken} from "../Auth/AuthContext";
 import {AuthAxios} from "../../utils/Network";
 import {Col, Row, Table, Button, Container} from "react-bootstrap";
+import {TimezoneTag} from "../TimezoneTag";
 import dayjs, {Dayjs} from "dayjs";
 
 interface Transaction {
@@ -17,6 +18,7 @@ interface Transaction {
     transactionTag: TransactionTag[];
     subtransaction: Subtransaction[];
     syncEvent: SyncEvent;
+    timezone_offset: number;
 }
 interface TransactionTag {
     id: number;
@@ -141,7 +143,10 @@ export const TransactionsList = observer(function TransactionsList() {
                                         </td>
                                     )}
 
-                                <td>{formatDate(output.dateTime)}</td>
+                                <td>
+                                    {formatDate(output.dateTime)}
+                                    <TimezoneTag offset={output.timezone_offset}/>
+                                </td>
                                 <td>{output.subtransaction ?
                                     output.subtransaction.map((sub: Subtransaction, id) => (
                                     <Button variant="secondary" className="btn-xs"
