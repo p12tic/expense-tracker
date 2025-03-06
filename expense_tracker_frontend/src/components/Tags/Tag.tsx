@@ -9,6 +9,7 @@ import {TableButton} from "../TableButton";
 import {centsToString, formatDate} from "../Tools";
 import {AuthAxios} from "../../utils/Network";
 import {Col, Row, Container, Table, Button} from "react-bootstrap";
+import dayjs, {Dayjs} from "dayjs";
 
 
 interface TagElement {
@@ -27,7 +28,7 @@ interface TransTag {
 interface Transaction {
     id: number;
     desc: string;
-    dateTime: Date;
+    dateTime: Dayjs;
     user: string;
     subs: Subtransaction[];
 }
@@ -64,7 +65,7 @@ export const Tag = observer(function Tag() {
             const transTagsWithTrans = await Promise.all(transTagData.map(async (transTag:TransTag) => {
                 const transRes = await AuthAxios.get(`transactions?id=${transTag.transaction}`, auth.getToken());
                 const transData: Transaction = transRes.data[0];
-                transData.dateTime = new Date(transData.date_time);
+                transData.dateTime = dayjs(transData.date_time);
                 const subsRes = await AuthAxios.get(`subtransactions?transaction=${transData.id}`, auth.getToken());
                 const subsData: Subtransaction[] = subsRes.data;
                 transData.subs = await Promise.all(subsData.map(async (sub) => {
@@ -76,7 +77,7 @@ export const Tag = observer(function Tag() {
                 return transTag;
             }));
 
-            transTagsWithTrans.sort((a, b) => a.transactionElement.dateTime.getTime()-b.transactionElement.dateTime.getTime());
+            transTagsWithTrans.sort((a, b) => a.transactionElement.dateTime.valueOf()-b.transactionElement.dateTime.valueOf());
             tag.transTag = transTagsWithTrans;
             setState(tag);
         }
@@ -118,7 +119,7 @@ export const Tag = observer(function Tag() {
                                             {output.transactionElement.desc}
                                         </Link>
                                     </td>
-                                    <td>{formatDate(new Date(output.transactionElement.dateTime))}</td>
+                                    <td>{formatDate(dayjs(output.transactionElement.dateTime))}</td>
                                     <td>
                                         {output.transactionElement.subs ? (
                                             output.transactionElement.subs.map((sub, id) => (

@@ -7,6 +7,7 @@ import {SubmitButton} from "../SubmitButton";
 import {centsToString, formatDateTimeForInput} from "../Tools";
 import {AuthAxios} from "../../utils/Network";
 import {Card, Col, Form, InputGroup, Row, Button, Container, Alert, Collapse} from "react-bootstrap";
+import dayjs, {Dayjs} from "dayjs";
 
 
 interface Preset {
@@ -66,7 +67,7 @@ export const TransactionEdit = observer(function TransactionCreate() {
     const [presetInUse, setPresetInUse] = useState<Preset>(defaultPreset);
     const [openPresets, setOpenPresets] = useState(false);
     const [desc, setDesc] = useState("");
-    const [date, setDate] = useState<Date>(new Date(Date.now()));
+    const [date, setDate] = useState<Dayjs>(dayjs());
     const {id} = useParams()
     const intervalRef = useRef<number | null>(null);
     const timeoutRef = useRef<number | null>(null);
@@ -79,7 +80,7 @@ export const TransactionEdit = observer(function TransactionCreate() {
         const FetchTransaction = async () => {
             await AuthAxios.get(`transactions?id=${id}`, auth.getToken()).then(async (transactionRes) => {
                 const transaction = transactionRes.data[0];
-                setDate(new Date(transaction.date_time));
+                setDate(dayjs(transaction.date_time));
                 setDesc(transaction.desc);
                 const updatedAccounts = await AuthAxios.get("accounts", auth.getToken()).then(async (accountsRes) => {
                     const accountsData: AccountElement[] = accountsRes.data;
@@ -493,7 +494,7 @@ const handlePresetAmountChange = (e) => {
                             <Form.Control type="datetime-local" name="date"
                                           value={formatDateTimeForInput(date)}
                                           key="id_date" required={true} id="id_Date"
-                                          onChange={(e) => setDate(new Date(e.target.value))}/>
+                                          onChange={(e) => setDate(dayjs(e.target.value))}/>
                         </Col>
                     </Row>
                 </Form.Group>

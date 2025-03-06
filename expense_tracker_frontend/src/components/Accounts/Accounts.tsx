@@ -8,6 +8,7 @@ import {observer} from "mobx-react-lite";
 import {formatDate} from "../Tools";
 import {AuthAxios} from "../../utils/Network";
 import {Col, Row, Container, Table, Button} from "react-bootstrap";
+import dayjs, {Dayjs} from "dayjs";
 
 interface Account {
     id: number;
@@ -15,7 +16,7 @@ interface Account {
     desc: string;
     user: string;
     lastCacheBalance: number;
-    lastCacheDate: Date;
+    lastCacheDate: Dayjs;
     balance: number;
 }
 interface Subtransaction {
@@ -46,11 +47,11 @@ export const Accounts = observer(function Accounts() {
                     let sum: number;
                     if (balanceRes.data.length > 0) {
                         account.lastCacheBalance = balanceRes.data[balanceRes.data.length - 1].balance;
-                        account.lastCacheDate = new Date(balanceRes.data[balanceRes.data.length - 1].date);
+                        account.lastCacheDate = dayjs(balanceRes.data[balanceRes.data.length - 1].date);
                         sum = account.lastCacheBalance;
                     } else {
                         account.lastCacheBalance = 0;
-                        account.lastCacheDate = new Date(99999999);
+                        account.lastCacheDate = dayjs(99999999);
                         sum = 0;
                     }
                     const subRes =

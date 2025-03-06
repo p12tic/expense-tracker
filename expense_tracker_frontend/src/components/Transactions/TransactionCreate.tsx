@@ -7,6 +7,7 @@ import {SubmitButton} from "../SubmitButton";
 import {formatDateTimeForInput} from "../Tools"
 import {AuthAxios} from "../../utils/Network";
 import {Card, Col, Form, InputGroup, Row, Button, Container, Alert, Collapse} from "react-bootstrap";
+import dayjs, {Dayjs} from "dayjs";
 
 
 interface Preset {
@@ -65,7 +66,7 @@ export const TransactionCreate = observer(function TransactionCreate() {
     const [presetInUse, setPresetInUse] = useState<Preset>(defaultPreset);
     const [openPresets, setOpenPresets] = useState(false);
     const [desc, setDesc] = useState("");
-    const [date, setDate] = useState<Date>(new Date(Date.now()));
+    const [date, setDate] = useState<Dayjs>(dayjs());
     if (auth.getToken() === '') {
         navigate('/login');
     }
@@ -468,7 +469,7 @@ const handlePresetAmountChange = (e) => {
                             <Form.Control type="datetime-local" name="date"
                                           value={formatDateTimeForInput(date)}
                                           key="id_date" required={true} id="id_Date"
-                                          onChange={(e) => setDate(new Date(e.target.value))}/>
+                                          onChange={(e) => setDate(dayjs(e.target.value))}/>
                         </Col>
                     </Row>
                 </Form.Group>

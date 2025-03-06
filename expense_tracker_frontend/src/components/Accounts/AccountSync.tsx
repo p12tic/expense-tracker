@@ -4,9 +4,10 @@ import {useEffect, useState} from "react";
 import {SubmitButton} from "../SubmitButton";
 import {useToken} from "../Auth/AuthContext";
 import {useNavigate, useParams} from "react-router-dom";
-import {centsToString, formatDate} from "../Tools";
+import {centsToString, formatDate, formatDateTimeForInput} from "../Tools";
 import {AuthAxios} from "../../utils/Network";
 import {Col, Form, Row, Container} from "react-bootstrap";
+import dayjs, {Dayjs} from "dayjs";
 
 interface Subtransaction {
     id: number;
@@ -17,7 +18,7 @@ interface Subtransaction {
 export const AccountSync = observer(function AccountSync() {
     const [lastBalance, setLastBalance] = useState(0);
     const [balance, setBalance] = useState(0);
-    const [date, setDate] = useState<Date>(new Date(Date.now()));
+    const [date, setDate] = useState(dayjs());
     const auth = useToken();
     const navigate = useNavigate();
     const {id} = useParams();
@@ -32,21 +33,21 @@ export const AccountSync = observer(function AccountSync() {
                     return res.data[0];
                 })
                 const balanceRes =
-                    await AuthAxios.get(`account_balance_cache?account=${id}&date_lte=${formatDate(new Date(Date.now()))}`, auth.getToken());
+                    await AuthAxios.get(`account_balance_cache?account=${id}&date_lte=${formatDate(dayjs())}`, auth.getToken());
                 let sum: number;
                 if (balanceRes.data.length > 0) {
                     data.lastCacheBalance = balanceRes.data[balanceRes.data.length - 1].balance;
-                    data.lastCacheDate = new Date(balanceRes.data[balanceRes.data.length - 1].date);
+                    data.lastCacheDate = dayjs(balanceRes.data[balanceRes.data.length - 1].date);
                     sum = data.lastCacheBalance;
                 } else {
                     data.lastCacheBalance = 0;
-                    data.lastCacheDate = new Date(Date.now());
+                    data.lastCacheDate = dayjs();
                     sum = 0;
                 }
                 const subRes =
                     await AuthAxios.get(`subtransactions?account=${data.id}
                                         &date_gte=${formatDate(data.lastCacheDate)}
-                                        &date_lte=${formatDate(new Date(Date.now()))}`, auth.getToken());
+                                        &date_lte=${formatDate(dayjs())}`, auth.getToken());
                 const subs: Subtransaction[] = subRes.data;
                 await Promise.all(subs.map(async (sub) => {
                     sum = sum + sub.amount;
@@ -74,11 +75,8 @@ export const AccountSync = observer(function AccountSync() {
         await AuthAxios.post("account_sync_event", auth.getToken(), bodyParams);
         navigate("/accounts");
     };
-    const formatDateYear = (date: Date): string => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+    const formatDateYear = (date: Dayjs): string => {
+        return date.format("YYYY-MM-DD");
     };
     return (
         <Container>
@@ -102,9 +100,9 @@ export const AccountSync = observer(function AccountSync() {
                         </Col>
                         <Col xs={8} sm={10}>
                             <Form.Control type="datetime-local" name="date"
-                                          value={date.toISOString().slice(0, 16)}
+                                          value={formatDateTimeForInput(date)}
                                           key="id_date" required={true}
-                                          onChange={(e) => setDate(new Date(e.target.value))}/>
+                                          onChange={(e) => setDate(dayjs(e.target.value))}/>
                         </Col>
                     </Row>
                 </Form.Group>

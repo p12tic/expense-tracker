@@ -1,3 +1,4 @@
+import {Dayjs} from "dayjs";
 
 interface Subtransaction {
     id: number;
@@ -9,7 +10,7 @@ interface Subtransaction {
 interface Transaction {
     id: number;
     desc: string;
-    dateTime: Date;
+    dateTime: Dayjs;
     user: string;
     syncEvent: SyncEvent;
 }
