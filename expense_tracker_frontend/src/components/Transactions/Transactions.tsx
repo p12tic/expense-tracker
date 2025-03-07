@@ -7,15 +7,18 @@ import {observer} from "mobx-react-lite";
 import {useToken} from "../Auth/AuthContext";
 import {AuthAxios} from "../../utils/Network";
 import {Col, Row, Table, Button, Container} from "react-bootstrap";
+import {TimezoneTag} from "../TimezoneTag";
+import dayjs, {Dayjs} from "dayjs";
 
 interface Transaction {
     id: number;
     desc: string;
-    dateTime: Date;
+    dateTime: Dayjs;
     user: string;
     transactionTag: TransactionTag[];
     subtransaction: Subtransaction[];
     syncEvent: SyncEvent;
+    timezone_offset: number;
 }
 interface TransactionTag {
     id: number;
@@ -63,7 +66,7 @@ export const TransactionsList = observer(function TransactionsList() {
                 const res = await AuthAxios.get("transactions", auth.getToken());
                 let data: Transaction[] = res.data;
                 const transactionWithTags = await Promise.all(data.map(async (transaction) => {
-                    transaction.dateTime = transaction.date_time;
+                    transaction.dateTime = dayjs(transaction.date_time);
                     const transactionTagRes = await AuthAxios.get(`transaction_tags?transaction=${transaction.id}`, auth.getToken());
                     transaction.transactionTag = transactionTagRes.data;
                     const tagOfTransaction = await Promise.all(transaction.transactionTag.map(async (transTag) => {
@@ -140,7 +143,10 @@ export const TransactionsList = observer(function TransactionsList() {
                                         </td>
                                     )}
 
-                                <td>{formatDate(new Date(output.dateTime))}</td>
+                                <td>
+                                    {formatDate(output.dateTime)}
+                                    <TimezoneTag offset={output.timezone_offset}/>
+                                </td>
                                 <td>{output.subtransaction ?
                                     output.subtransaction.map((sub: Subtransaction, id) => (
                                     <Button variant="secondary" className="btn-xs"

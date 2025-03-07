@@ -5,14 +5,16 @@ import {StaticField} from "../StaticField";
 import React, {useEffect, useState} from "react";
 import {useToken} from "../Auth/AuthContext";
 import {Link, useNavigate, useParams} from "react-router-dom";
-import {centsToString, formatDate} from "../Tools";
+import {centsToString, formatDate, formatTimezone} from "../Tools";
 import {AuthAxios} from "../../utils/Network";
 import {Col, Row, Table, Button, Alert, Container} from "react-bootstrap";
+import dayjs, {Dayjs} from "dayjs";
 
 interface TransactionElement {
     desc: string;
     user: number;
-    dateTime: Date;
+    dateTime: Dayjs;
+    timezoneOffset: number;
     tags: Tag[];
     subs: Subtransaction[];
 }
@@ -45,7 +47,8 @@ export const Transaction = observer(function Transaction() {
     const [state, setState] = useState<TransactionElement>({
         desc: "",
         user: 0,
-        dateTime: new Date(),
+        dateTime: dayjs(),
+        timezoneOffset: -dayjs().utcOffset(),
         tags: [],
         subs: []
     });
@@ -57,8 +60,9 @@ export const Transaction = observer(function Transaction() {
     useEffect(() => {
         const FetchTransaction = async () => {
             await AuthAxios.get(`transactions?id=${id}`, auth.getToken()).then(async (res) => {
-                let transaction: TransactionElement = res.data[0];
-                transaction.dateTime = res.data[0]['date_time'];
+                const transaction: TransactionElement = res.data[0];
+                transaction.dateTime = dayjs(res.data[0]['date_time']);
+                transaction.timezoneOffset = res.data[0]['timezone_offset']
                 let Tags: Tag[] = [];
                 let Subs: Subtransaction[] = [];
                 await AuthAxios.get(`transaction_tags?transaction=${id}`, auth.getToken()).then(async (transactionTags) => {
@@ -76,7 +80,7 @@ export const Transaction = observer(function Transaction() {
                         return sub;
                     }));
                 });
-                transaction.dateTime = new Date(transaction.dateTime);
+                transaction.dateTime = dayjs(transaction.dateTime);
                 transaction.subs = Subs;
                 transaction.tags = Tags;
                 setState(transaction);
@@ -96,6 +100,12 @@ export const Transaction = observer(function Transaction() {
                 </Col>
             </Row>
             <StaticField label="Date and time" content={formatDate(state?.dateTime)}/>
+            <StaticField label="Timezone"
+                         content={
+                             <div>
+                                 {formatTimezone(state.timezoneOffset)}
+                             </div>
+                         }/>
             <h3>Tags</h3>
             {state.tags.length > 0 ?
                 state.tags.map((tag) => (

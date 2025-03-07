@@ -1,6 +1,10 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
+import math
+from datetime import timedelta, timezone, datetime
+import re
+from .db_utils import format_return_iso
 
 from . import models
 
@@ -15,9 +19,15 @@ class TagSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class TransactionSerializer(serializers.ModelSerializer):
+    date_time = serializers.SerializerMethodField()
     class Meta:
         model = models.Transaction
         fields = '__all__'
+
+    def get_date_time(self, obj):
+        dt = obj.date_time
+        tz_offset = obj.timezone_offset
+        return f'{format_return_iso(dt, tz_offset)}'
 
 class PresetSerializer(serializers.ModelSerializer):
     class Meta:

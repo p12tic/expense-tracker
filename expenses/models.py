@@ -17,6 +17,7 @@ class Transaction(models.Model):
             related_name='transactions')
 
     date_time = models.DateTimeField()
+    timezone_offset = models.IntegerField(default=-120)
 
 class Account(models.Model):
     ''' Account identifies the current amount of assets (positive) or
@@ -208,6 +209,7 @@ class AccountBalanceCache(models.Model):
 
     balance = models.IntegerField()
     date = models.DateTimeField()
+    timezone_offset = models.IntegerField(default=-120)
 
 class AccountSyncEvent(models.Model):
     ''' Identifies an account-sync event, where the user synchronizes the data in

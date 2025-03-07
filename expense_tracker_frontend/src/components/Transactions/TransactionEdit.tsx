@@ -4,9 +4,11 @@ import {useToken} from "../Auth/AuthContext";
 import {useNavigate, useParams} from "react-router-dom";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {SubmitButton} from "../SubmitButton";
-import {centsToString, formatDateTimeForInput} from "../Tools";
+import {centsToString, formatDateIso8601, formatDateTimeForInput} from "../Tools";
 import {AuthAxios} from "../../utils/Network";
 import {Card, Col, Form, InputGroup, Row, Button, Container, Alert, Collapse} from "react-bootstrap";
+import dayjs, {Dayjs} from "dayjs";
+import {TimezoneSelect} from "../TimezoneSelect";
 
 
 interface Preset {
@@ -66,7 +68,8 @@ export const TransactionEdit = observer(function TransactionCreate() {
     const [presetInUse, setPresetInUse] = useState<Preset>(defaultPreset);
     const [openPresets, setOpenPresets] = useState(false);
     const [desc, setDesc] = useState("");
-    const [date, setDate] = useState<Date>(new Date(Date.now()));
+    const [date, setDate] = useState<Dayjs>(dayjs());
+    const [timezoneOffset, setTimezoneOffset] = useState<number>(-dayjs().utcOffset());
     const {id} = useParams()
     const intervalRef = useRef<number | null>(null);
     const timeoutRef = useRef<number | null>(null);
@@ -79,8 +82,9 @@ export const TransactionEdit = observer(function TransactionCreate() {
         const FetchTransaction = async () => {
             await AuthAxios.get(`transactions?id=${id}`, auth.getToken()).then(async (transactionRes) => {
                 const transaction = transactionRes.data[0];
-                setDate(new Date(transaction.date_time));
+                setDate(dayjs(transaction.date_time));
                 setDesc(transaction.desc);
+                setTimezoneOffset(transaction.timezone_offset)
                 const updatedAccounts = await AuthAxios.get("accounts", auth.getToken()).then(async (accountsRes) => {
                     const accountsData: AccountElement[] = accountsRes.data;
                     return await Promise.all(accountsData.map(async (account) => {
@@ -176,7 +180,8 @@ export const TransactionEdit = observer(function TransactionCreate() {
             action: "edit",
             id: id,
             desc: desc,
-            date: date,
+            date: formatDateIso8601(date),
+            timezoneOffset: timezoneOffset,
             preset: presetInUse
         };
         await AuthAxios.post("transactions", auth.getToken(), bodyParams);
@@ -490,10 +495,16 @@ const handlePresetAmountChange = (e) => {
                             <Form.Label className="mb-0" htmlFor="id_Date">Date</Form.Label>
                         </Col>
                         <Col xs={8} sm={10} className="align-content-center">
-                            <Form.Control type="datetime-local" name="date"
+                            <InputGroup size="sm">
+                                <Form.Control type="datetime-local" name="date"
                                           value={formatDateTimeForInput(date)}
                                           key="id_date" required={true} id="id_Date"
-                                          onChange={(e) => setDate(new Date(e.target.value))}/>
+                                          onChange={(e) => setDate(dayjs(e.target.value))}/>
+                                <InputGroup.Text>
+                                    Using timezone:&nbsp;
+                                    <TimezoneSelect offset={timezoneOffset} onChange={setTimezoneOffset}/>
+                                </InputGroup.Text>
+                            </InputGroup>
                         </Col>
                     </Row>
                 </Form.Group>
