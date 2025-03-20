@@ -2,13 +2,19 @@ import {useNavigate} from "react-router-dom";
 import {AuthAxios} from "../utils/Network";
 import {useToken} from "./Auth/AuthContext";
 import {Col, Form, Row, Button} from "react-bootstrap";
+import {FormEvent} from "react";
 
+type DefaultDeleteProps = {
+    deleteRequestUrl: string,
+    returnPoint: string,
+    id: string,
+    backLink: string
+}
 
-
-export function DefaultDelete(defaultDeleteProps) {
+export function DefaultDelete(defaultDeleteProps: DefaultDeleteProps) {
     const auth = useToken();
     const navigate = useNavigate();
-    const submitHandle = async (e) => {
+    const submitHandle = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         let bodyParameters = {
             'id': defaultDeleteProps.id,

@@ -3,7 +3,11 @@ import {Button} from "react-bootstrap";
 import React from "react";
 import dayjs from "dayjs";
 
-export function TimezoneTag(props) {
+type TimezoneTagProps = {
+    offset: number
+}
+
+export function TimezoneTag(props: TimezoneTagProps) {
     if (props.offset !== -dayjs().utcOffset()) {
         return (
             <Button variant="secondary" className="btn-xs" style={{marginLeft: 5}}>

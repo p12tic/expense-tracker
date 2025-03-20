@@ -13,7 +13,7 @@ import dayjs, {Dayjs} from "dayjs";
 interface Transaction {
     id: number;
     desc: string;
-    dateTime: Dayjs;
+    date_time: Dayjs;
     user: string;
     transactionTag: TransactionTag[];
     subtransaction: Subtransaction[];
@@ -66,7 +66,7 @@ export const TransactionsList = observer(function TransactionsList() {
                 const res = await AuthAxios.get("transactions", auth.getToken());
                 let data: Transaction[] = res.data;
                 const transactionWithTags = await Promise.all(data.map(async (transaction) => {
-                    transaction.dateTime = dayjs(transaction.date_time);
+                    transaction.date_time = dayjs(transaction.date_time);
                     const transactionTagRes = await AuthAxios.get(`transaction_tags?transaction=${transaction.id}`, auth.getToken());
                     transaction.transactionTag = transactionTagRes.data;
                     const tagOfTransaction = await Promise.all(transaction.transactionTag.map(async (transTag) => {
@@ -144,7 +144,7 @@ export const TransactionsList = observer(function TransactionsList() {
                                     )}
 
                                 <td>
-                                    {formatDate(output.dateTime)}
+                                    {formatDate(output.date_time)}
                                     <TimezoneTag offset={output.timezone_offset}/>
                                 </td>
                                 <td>{output.subtransaction ?

@@ -1,5 +1,5 @@
 import axios from "axios";
-import {useState} from "react";
+import {FormEvent, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {NavbarEmpty} from "../NavbarEmpty";
 import {observer} from "mobx-react-lite";
@@ -21,7 +21,7 @@ export const Login = function Login() {
     if (auth.getToken() !== '') {
         navigate('/transactions');
     }
-    const submitHandler = (e) => {
+    const submitHandler = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         bodyParameters.username=username;
         bodyParameters.password = password;

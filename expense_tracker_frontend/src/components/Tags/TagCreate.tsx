@@ -1,6 +1,6 @@
 import {NavbarEmpty} from "../NavbarEmpty";
 import {observer} from "mobx-react-lite";
-import {useState} from "react";
+import {FormEvent, useState} from "react";
 import {useToken} from "../Auth/AuthContext";
 import {NavbarComponent} from "../Navbar";
 import {useNavigate} from "react-router-dom";
@@ -23,7 +23,7 @@ export const TagCreate = observer(function TagCreate() {
         'action': 'create'
     };
 
-    const submitHandler = async (e) => {
+    const submitHandler = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         bodyParameters.Name = name;
         bodyParameters.Description = desc;

@@ -10,7 +10,7 @@ interface Subtransaction {
 interface Transaction {
     id: number;
     desc: string;
-    dateTime: Dayjs;
+    date_time: Dayjs;
     user: string;
     syncEvent: SyncEvent;
 }

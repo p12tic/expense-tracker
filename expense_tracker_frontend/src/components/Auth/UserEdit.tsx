@@ -6,7 +6,7 @@ import {Container, Button} from "react-bootstrap";
 
 export const UserEdit = observer(function UserEdit() {
     const Auth = useToken();
-    const logout =( (e) => {
+    const logout =( () => {
         Auth.setToken('');
     });
 

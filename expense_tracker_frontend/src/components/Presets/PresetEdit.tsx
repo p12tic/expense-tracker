@@ -1,5 +1,5 @@
 import {observer} from "mobx-react-lite";
-import {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {useToken} from "../Auth/AuthContext";
 import {useNavigate, useParams} from "react-router-dom";
 import {NavbarComponent} from "../Navbar";
@@ -12,7 +12,7 @@ interface Preset {
     id: number;
     name: string;
     desc: string;
-    transactionDesc: string;
+    transaction_desc: string;
     user: string;
 }
 interface AccountElement {
@@ -91,7 +91,7 @@ export const PresetEdit = observer(function PresetEdit() {
             )
         );
     }, []);
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const bodyParams = {
             'id': id,
@@ -136,7 +136,7 @@ export const PresetEdit = observer(function PresetEdit() {
             timeoutRef.current = null;
         }
     };
-    const handleMultiplierChange = ((e, accMulti: AccountElement) => {
+    const handleMultiplierChange = ((e: ChangeEvent<HTMLInputElement>, accMulti: AccountElement) => {
         setAccounts(prevAccounts =>
             prevAccounts.map(acc =>
                 acc.id === accMulti.id ? { ...acc, fraction: acc.fraction=parseFloat(e.target.value).toString() } : acc
@@ -192,7 +192,7 @@ export const PresetEdit = observer(function PresetEdit() {
                                                       placeholder="Amount"
                                                       id="id_accounts-0-amount"
                                                       style={{ display: "block" }}
-                                                      onChange={(e) => handleMultiplierChange(e, acc)}/>
+                                                      onChange={(e) => handleMultiplierChange(e as ChangeEvent<HTMLInputElement>, acc)}/>
                                         <span className="input-group-addon bootstrap-touchspin-postfix"
                                               style={{ display: "none" }}></span>
                                         <Button variant="default" className="bootstrap-touchspin-up"

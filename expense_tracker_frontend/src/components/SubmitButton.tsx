@@ -1,7 +1,10 @@
 import {Col, Row, Button} from "react-bootstrap";
 
+type SubmitButtonProps = {
+    text: string
+}
 
-export function SubmitButton(submitButtonProps) {
+export function SubmitButton(submitButtonProps: SubmitButtonProps) {
     return (
         <Row>
             <Col xs={4} sm={2} className="ms-auto">

@@ -30,8 +30,8 @@ interface Subtransaction {
 interface Transaction {
     id: number;
     desc: string;
-    dateTime: Dayjs;
-    timezoneOffset: number;
+    date_time: Dayjs;
+    timezone_offset: number;
     user: string;
     syncEvent: SyncEvent;
 }
@@ -66,8 +66,7 @@ export const Account = observer(function Account() {
             account.subtransactions = await Promise.all(accountSubs.map(async (sub) => {
                 const transactionRes = await AuthAxios.get(`transactions?id=${sub.transaction}`, auth.getToken());
                 const transaction: Transaction = transactionRes.data[0];
-                transaction.dateTime = dayjs(transaction.date_time);
-                transaction.timezoneOffset = transaction.timezone_offset;
+                transaction.date_time = dayjs(transaction.date_time);
                 if(!transaction.desc) {
                     const syncRes = await AuthAxios.get(`account_sync_event?subtransaction=${sub.id}`, auth.getToken());
                     transaction.syncEvent = syncRes.data[0];
@@ -85,7 +84,7 @@ export const Account = observer(function Account() {
                     sum = 0;
                 }
                 const cacheSubsRes = await AuthAxios.get(
-                    `subtransactions?account=${id}&date_gte=${formatDate(dayjs(cacheDate))}&date_lte=${formatDate(dayjs(sub.transactionElement.dateTime))}`,
+                    `subtransactions?account=${id}&date_gte=${formatDate(dayjs(cacheDate))}&date_lte=${formatDate(dayjs(sub.transactionElement.date_time))}`,
                     auth.getToken());
                 const cacheSubs: Subtransaction[] = cacheSubsRes.data;
                 await Promise.all(cacheSubs.map(async (cacheSub) => {
@@ -143,8 +142,8 @@ export const Account = observer(function Account() {
                                         <Link to={`/sync/${sub.transactionElement.syncEvent.id}`}>
                                             Sync event</Link>}</td>
                                     <td>
-                                        {formatDate(sub.transactionElement.dateTime)}
-                                        <TimezoneTag offset={sub.transactionElement.timezoneOffset}/>
+                                        {formatDate(sub.transactionElement.date_time)}
+                                        <TimezoneTag offset={sub.transactionElement.timezone_offset}/>
                                     </td>
                                     <td>{centsToString(sub.amount)}</td>
                                     <td>{centsToString(state.balances[state.balances.length - 1 - id])}</td>

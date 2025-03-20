@@ -1,6 +1,6 @@
 import {NavbarComponent} from "../Navbar";
 import {observer} from "mobx-react-lite";
-import {useEffect, useState} from "react";
+import {FormEvent, useEffect, useState} from "react";
 import {SubmitButton} from "../SubmitButton";
 import {useToken} from "../Auth/AuthContext";
 import {useNavigate, useParams} from "react-router-dom";
@@ -64,7 +64,7 @@ export const AccountSync = observer(function AccountSync() {
         }
         fetchAccounts();
     }, []);
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const bodyParams = {
             action: "sync",

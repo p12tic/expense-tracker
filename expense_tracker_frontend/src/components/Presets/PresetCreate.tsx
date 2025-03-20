@@ -3,7 +3,7 @@ import {SubmitButton} from "../SubmitButton";
 import {NavbarComponent} from "../Navbar";
 import {useToken} from "../Auth/AuthContext";
 import {useNavigate} from "react-router-dom";
-import {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {AuthAxios} from "../../utils/Network";
 import {Col, Form, InputGroup, Row, Button, Container, Alert} from "react-bootstrap";
 
@@ -73,7 +73,7 @@ export const PresetCreate = observer(function PresetCreate() {
             timeoutRef.current = null;
         }
     };
-    const handleMultiplierChange = ((e, accMulti:AccountElement) => {
+    const handleMultiplierChange = ((e: ChangeEvent<HTMLInputElement>, accMulti:AccountElement) => {
         setAccounts(prevAccounts =>
             prevAccounts.map(acc =>
                 acc.id === accMulti.id ? { ...acc, fraction: acc.fraction=parseFloat(e.target.value).toString() } : acc
@@ -132,7 +132,7 @@ export const PresetCreate = observer(function PresetCreate() {
                                                       placeholder="Amount"
                                                       id="id_accounts-0-amount"
                                                       style={{ display: "block" }}
-                                                      onChange={(e) => handleMultiplierChange(e, acc)}/>
+                                                      onChange={(e) => handleMultiplierChange(e as ChangeEvent<HTMLInputElement>, acc)}/>
                                         <span className="input-group-addon bootstrap-touchspin-postfix"
                                               style={{ display: "none" }}></span>
                                         <Button variant="default" className="bootstrap-touchspin-up"
@@ -165,7 +165,7 @@ export const PresetCreate = observer(function PresetCreate() {
 
         )
     }, [accounts])
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const bodyParams = {
             'action': "create",
