@@ -6,14 +6,14 @@ type StaticFieldProps = {
   content: string | ReactNode;
 };
 
-export function StaticField(staticFieldProps: StaticFieldProps) {
+export function StaticField({label, content}: StaticFieldProps) {
   return (
     <Row>
       <Col xs={4} sm={2} className="tmp-static-field-label">
-        {staticFieldProps.label}
+        {label}
       </Col>
       <Col xs={8} sm={10} className="tmp-static-field-content">
-        {staticFieldProps.content}
+        {content}
       </Col>
     </Row>
   );

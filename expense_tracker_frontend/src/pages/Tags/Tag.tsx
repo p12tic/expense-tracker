@@ -1,15 +1,15 @@
 import {observer} from "mobx-react-lite";
-import {StaticField} from "../StaticField";
-import {useToken} from "../Auth/AuthContext";
+import {StaticField} from "../../components/StaticField";
+import {useToken} from "../../utils/AuthContext";
 import {Link, useNavigate, useParams} from "react-router-dom";
 import axios from "axios";
 import React, {useEffect, useState} from "react";
-import {NavbarComponent} from "../Navbar";
-import {TableButton} from "../TableButton";
-import {centsToString, formatDate} from "../Tools";
+import {NavbarComponent} from "../../components/Navbar";
+import {TableButton} from "../../components/TableButton";
+import {centsToString, formatDate} from "../../components/Tools";
 import {AuthAxios} from "../../utils/Network";
 import {Col, Row, Container, Table, Button} from "react-bootstrap";
-import {TimezoneTag} from "../TimezoneTag";
+import {TimezoneTag} from "../../components/TimezoneTag";
 import dayjs, {Dayjs} from "dayjs";
 
 interface TagElement {
@@ -46,7 +46,7 @@ interface Account {
   desc: string;
   user: string;
 }
-export const Tag = observer(function Tag() {
+export const Tag = observer(() => {
   const auth = useToken();
   const [state, setState] = useState<TagElement>({
     id: 0,
@@ -107,6 +107,10 @@ export const Tag = observer(function Tag() {
     };
     fetchTag();
   }, []);
+  if (id === undefined) {
+    navigate("/tags");
+    return;
+  }
 
   return (
     <Container>
@@ -121,7 +125,7 @@ export const Tag = observer(function Tag() {
             <TableButton
               dest={`/tags/${state.id}/delete`}
               name={"Delete"}
-              class="danger"
+              type="danger"
             />
           </Col>
         </Row>

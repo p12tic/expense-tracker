@@ -1,9 +1,9 @@
 import {observer} from "mobx-react-lite";
-import {TableButton} from "../TableButton";
+import {TableButton} from "../../components/TableButton";
 import React, {useEffect, useState} from "react";
-import {StaticField} from "../StaticField";
-import {NavbarComponent} from "../Navbar";
-import {useToken} from "../Auth/AuthContext";
+import {StaticField} from "../../components/StaticField";
+import {NavbarComponent} from "../../components/Navbar";
+import {useToken} from "../../utils/AuthContext";
 import {Link, useNavigate, useParams} from "react-router-dom";
 import {AuthAxios} from "../../utils/Network";
 import {Col, Row, Container, Table, Button, Alert} from "react-bootstrap";
@@ -41,7 +41,7 @@ const defaultPreset: Preset = {
   presetSubs: [],
   presetTransTags: [],
 };
-export const Preset = observer(function Preset() {
+export const Preset = observer(() => {
   const auth = useToken();
   const [state, setState] = useState<Preset>(defaultPreset);
   const {id} = useParams();
@@ -94,6 +94,10 @@ export const Preset = observer(function Preset() {
     };
     fetchPreset();
   }, []);
+  if (id === undefined) {
+    navigate("/presets");
+    return;
+  }
 
   return (
     <Container>
@@ -107,7 +111,7 @@ export const Preset = observer(function Preset() {
           <TableButton
             dest={`/presets/${id}/delete`}
             name={"Delete"}
-            class="danger"
+            type="danger"
           />
         </Col>
       </Row>

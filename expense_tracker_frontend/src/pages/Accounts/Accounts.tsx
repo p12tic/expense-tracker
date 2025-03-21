@@ -1,11 +1,11 @@
 import React, {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
-import {NavbarComponent} from "../Navbar";
-import "../common.scss";
-import {TableButton} from "../TableButton";
-import {useToken} from "../Auth/AuthContext";
+import {NavbarComponent} from "../../components/Navbar";
+import "../../components/common.scss";
+import {TableButton} from "../../components/TableButton";
+import {useToken} from "../../utils/AuthContext";
 import {observer} from "mobx-react-lite";
-import {formatDate} from "../Tools";
+import {formatDate} from "../../components/Tools";
 import {AuthAxios} from "../../utils/Network";
 import {Col, Row, Container, Table, Button} from "react-bootstrap";
 import dayjs, {Dayjs} from "dayjs";
@@ -25,7 +25,7 @@ interface Subtransaction {
   transaction: string;
   account: string;
 }
-export const Accounts = observer(function Accounts() {
+export const Accounts = observer(() => {
   const auth = useToken();
   const navigate = useNavigate();
   if (auth.getToken() === "") {

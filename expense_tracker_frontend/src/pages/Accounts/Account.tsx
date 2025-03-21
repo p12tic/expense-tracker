@@ -1,15 +1,15 @@
 import {observer} from "mobx-react-lite";
-import {useToken} from "../Auth/AuthContext";
+import {useToken} from "../../utils/AuthContext";
 import React, {useEffect, useState} from "react";
 import {Link, useNavigate, useParams} from "react-router-dom";
-import {NavbarComponent} from "../Navbar";
-import {TableButton} from "../TableButton";
-import {StaticField} from "../StaticField";
-import {getSubtransactionBalances} from "../getSubtransactionBalances";
-import {centsToString, formatDate} from "../Tools";
+import {NavbarComponent} from "../../components/Navbar";
+import {TableButton} from "../../components/TableButton";
+import {StaticField} from "../../components/StaticField";
+import {getSubtransactionBalances} from "../../components/getSubtransactionBalances";
+import {centsToString, formatDate} from "../../components/Tools";
 import {AuthAxios} from "../../utils/Network";
 import {Col, Dropdown, Row, Container, Table} from "react-bootstrap";
-import {TimezoneTag} from "../TimezoneTag";
+import {TimezoneTag} from "../../components/TimezoneTag";
 import dayjs, {Dayjs} from "dayjs";
 
 interface AccountElement {
@@ -41,7 +41,7 @@ interface SyncEvent {
   account: string;
   subtransaction: string;
 }
-export const Account = observer(function Account() {
+export const Account = observer(() => {
   const auth = useToken();
   const [state, setState] = useState<AccountElement>({
     id: 0,
@@ -118,6 +118,10 @@ export const Account = observer(function Account() {
 
     fetchTag();
   }, []);
+  if (id === undefined) {
+    navigate("/accounts");
+    return;
+  }
 
   return (
     <Container>
@@ -133,7 +137,7 @@ export const Account = observer(function Account() {
             <TableButton
               dest={`/accounts/${state.id}/delete`}
               name={"Delete"}
-              class="danger"
+              type="danger"
             />
           </Col>
         </Row>

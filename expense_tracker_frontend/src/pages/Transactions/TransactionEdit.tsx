@@ -1,6 +1,6 @@
 import {observer} from "mobx-react-lite";
-import {NavbarComponent} from "../Navbar";
-import {useToken} from "../Auth/AuthContext";
+import {NavbarComponent} from "../../components/Navbar";
+import {useToken} from "../../utils/AuthContext";
 import {useNavigate, useParams} from "react-router-dom";
 import {
   ChangeEvent,
@@ -11,12 +11,12 @@ import {
   useRef,
   useState,
 } from "react";
-import {SubmitButton} from "../SubmitButton";
+import {SubmitButton} from "../../components/SubmitButton";
 import {
   centsToString,
   formatDateIso8601,
   formatDateTimeForInput,
-} from "../Tools";
+} from "../../components/Tools";
 import {AuthAxios} from "../../utils/Network";
 import {
   Card,
@@ -30,7 +30,7 @@ import {
   Collapse,
 } from "react-bootstrap";
 import dayjs, {Dayjs} from "dayjs";
-import {TimezoneSelect} from "../TimezoneSelect";
+import {TimezoneSelect} from "../../components/TimezoneSelect";
 
 interface Preset {
   id: number;
@@ -82,7 +82,7 @@ const defaultPreset: Preset = {
   accounts: [],
   tags: [],
 };
-export const TransactionEdit = observer(function TransactionCreate() {
+export const TransactionEdit = observer(() => {
   const auth = useToken();
   const navigate = useNavigate();
   const [presets, setPresets] = useState<Preset[]>([]);
@@ -236,6 +236,10 @@ export const TransactionEdit = observer(function TransactionCreate() {
     FetchTransaction();
     FetchPresets();
   }, []);
+  if (id === undefined) {
+    navigate("/transactions");
+    return;
+  }
 
   const handlePresetSelect = async (selectedPreset: Preset) => {
     setPresetInUse(selectedPreset);

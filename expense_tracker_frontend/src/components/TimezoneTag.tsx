@@ -7,12 +7,12 @@ type TimezoneTagProps = {
   offset: number;
 };
 
-export function TimezoneTag(props: TimezoneTagProps) {
-  if (props.offset !== -dayjs().utcOffset()) {
+export function TimezoneTag({offset}: TimezoneTagProps) {
+  if (offset !== -dayjs().utcOffset()) {
     return (
       <Button variant="secondary" className="btn-xs" style={{marginLeft: 5}}>
-        UTC {props.offset < 0 ? "+" : ""}
-        {-props.offset / 60}:{pad(Math.abs(props.offset % 60))}
+        UTC {offset < 0 ? "+" : ""}
+        {-offset / 60}:{pad(Math.abs(offset % 60))}
       </Button>
     );
   } else {

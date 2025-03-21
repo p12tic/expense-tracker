@@ -4,19 +4,21 @@ import {Button} from "react-bootstrap";
 interface TableButtonProps {
   dest: string;
   name: string;
-  class?: string;
+  type?: string;
 }
-export const TableButton = function TableButton(
-  tableButtonProps: TableButtonProps,
-) {
+export const TableButton = ({
+  dest,
+  name,
+  type,
+}: TableButtonProps) => {
   return (
     <Button
       style={{marginLeft: 10}}
       className="my-auto"
-      href={tableButtonProps.dest}
-      variant={`${tableButtonProps.class ? tableButtonProps.class : `primary`}`}
+      href={dest}
+      variant={`${type ? type : `primary`}`}
     >
-      {tableButtonProps.name}
+      {name}
     </Button>
   );
 };

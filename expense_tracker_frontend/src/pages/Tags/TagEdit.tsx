@@ -1,11 +1,11 @@
 import {observer} from "mobx-react-lite";
 import {FormEvent, useEffect, useState} from "react";
-import {useToken} from "../Auth/AuthContext";
-import {NavbarComponent} from "../Navbar";
+import {useToken} from "../../utils/AuthContext";
+import {NavbarComponent} from "../../components/Navbar";
 import {useNavigate, useParams} from "react-router-dom";
 import {AuthAxios} from "../../utils/Network";
 import {Col, Form, Row, Container} from "react-bootstrap";
-import {SubmitButton} from "../SubmitButton";
+import {SubmitButton} from "../../components/SubmitButton";
 
 interface Tag {
   id: number;
@@ -14,7 +14,7 @@ interface Tag {
   user: string;
 }
 
-export const TagEdit = observer(function TagEdit() {
+export const TagEdit = observer(() => {
   const auth = useToken();
   const navigate = useNavigate();
   const {id} = useParams();
@@ -32,6 +32,10 @@ export const TagEdit = observer(function TagEdit() {
       })
       .catch((err) => console.error(err));
   }, []);
+  if (id === undefined) {
+    navigate("/tags");
+    return;
+  }
 
   let bodyParameters = {
     id: id,

@@ -1,10 +1,10 @@
 import React, {useState} from "react";
 import {observer} from "mobx-react-lite";
-import {useToken} from "./Auth/AuthContext";
+import {useToken} from "../utils/AuthContext";
 import {AuthAxios} from "../utils/Network";
 import {Navbar, Container, Nav, NavDropdown} from "react-bootstrap";
 
-export const NavbarComponent = observer(function NavbarComponent() {
+export const NavbarComponent = observer(() => {
   const auth = useToken();
   const [username, setUsername] = useState("");
   AuthAxios.get("token", auth.getToken()).then((res) => {

@@ -1,9 +1,9 @@
 import {observer} from "mobx-react-lite";
-import {useToken} from "./AuthContext";
-import {NavbarComponent} from "../Navbar";
+import {useToken} from "../../utils/AuthContext";
+import {NavbarComponent} from "../../components/Navbar";
 import {Container, Button} from "react-bootstrap";
 
-export const UserEdit = observer(function UserEdit() {
+export const UserEdit = observer(() => {
   const Auth = useToken();
   const logout = () => {
     Auth.setToken("");

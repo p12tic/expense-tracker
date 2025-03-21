@@ -1,13 +1,13 @@
-import {NavbarComponent} from "../Navbar";
+import {NavbarComponent} from "../../components/Navbar";
 import React, {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
-import {TableButton} from "../TableButton";
-import {formatDate, centsToString} from "../Tools";
+import {TableButton} from "../../components/TableButton";
+import {formatDate, centsToString} from "../../components/Tools";
 import {observer} from "mobx-react-lite";
-import {useToken} from "../Auth/AuthContext";
+import {useToken} from "../../utils/AuthContext";
 import {AuthAxios} from "../../utils/Network";
 import {Col, Row, Table, Button, Container} from "react-bootstrap";
-import {TimezoneTag} from "../TimezoneTag";
+import {TimezoneTag} from "../../components/TimezoneTag";
 import dayjs, {Dayjs} from "dayjs";
 
 interface Transaction {
@@ -53,7 +53,7 @@ interface Account {
   user: string;
 }
 
-export const TransactionsList = observer(function TransactionsList() {
+export const TransactionsList = observer(() => {
   const auth = useToken();
   const [state, setState] = useState<Transaction[]>([]);
   const navigate = useNavigate();

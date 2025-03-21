@@ -1,8 +1,8 @@
-import {NavbarComponent} from "../Navbar";
+import {NavbarComponent} from "../../components/Navbar";
 import React, {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
-import {TableButton} from "../TableButton";
-import {useToken} from "../Auth/AuthContext";
+import {TableButton} from "../../components/TableButton";
+import {useToken} from "../../utils/AuthContext";
 import {observer} from "mobx-react-lite";
 import {AuthAxios} from "../../utils/Network";
 import {Col, Row, Container, Table, Button} from "react-bootstrap";
@@ -29,7 +29,7 @@ interface PresetTransactionTag {
   tag: string;
 }
 
-export const PresetsList = observer(function PresetsList() {
+export const PresetsList = observer(() => {
   const auth = useToken();
   const [state, setState] = useState<Presets[]>([]);
   const navigate = useNavigate();

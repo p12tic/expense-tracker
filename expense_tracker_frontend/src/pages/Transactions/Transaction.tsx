@@ -1,11 +1,15 @@
 import {observer} from "mobx-react-lite";
-import {NavbarComponent} from "../Navbar";
-import {TableButton} from "../TableButton";
-import {StaticField} from "../StaticField";
+import {NavbarComponent} from "../../components/Navbar";
+import {TableButton} from "../../components/TableButton";
+import {StaticField} from "../../components/StaticField";
 import React, {useEffect, useState} from "react";
-import {useToken} from "../Auth/AuthContext";
+import {useToken} from "../../utils/AuthContext";
 import {Link, useNavigate, useParams} from "react-router-dom";
-import {centsToString, formatDate, formatTimezone} from "../Tools";
+import {
+  centsToString,
+  formatDate,
+  formatTimezone,
+} from "../../components/Tools";
 import {AuthAxios} from "../../utils/Network";
 import {Col, Row, Table, Button, Alert, Container} from "react-bootstrap";
 import dayjs, {Dayjs} from "dayjs";
@@ -42,7 +46,7 @@ interface Account {
   desc: string;
 }
 
-export const Transaction = observer(function Transaction() {
+export const Transaction = observer(() => {
   const auth = useToken();
   const [state, setState] = useState<TransactionElement>({
     desc: "",
@@ -106,6 +110,10 @@ export const Transaction = observer(function Transaction() {
     };
     FetchTransaction();
   }, []);
+  if (id === undefined) {
+    navigate("/transactions");
+    return;
+  }
 
   return (
     <Container>
@@ -119,7 +127,7 @@ export const Transaction = observer(function Transaction() {
           <TableButton
             dest={`/transactions/${id}/delete`}
             name={"Delete"}
-            class="danger"
+            type="danger"
           />
         </Col>
       </Row>

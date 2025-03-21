@@ -1,4 +1,8 @@
 import {observer} from "mobx-react-lite";
+import {SubmitButton} from "../../components/SubmitButton";
+import {NavbarComponent} from "../../components/Navbar";
+import {useToken} from "../../utils/AuthContext";
+import {useNavigate} from "react-router-dom";
 import {
   ChangeEvent,
   FormEvent,
@@ -8,10 +12,6 @@ import {
   useRef,
   useState,
 } from "react";
-import {useToken} from "../Auth/AuthContext";
-import {useNavigate, useParams} from "react-router-dom";
-import {NavbarComponent} from "../Navbar";
-import {SubmitButton} from "../SubmitButton";
 import {AuthAxios} from "../../utils/Network";
 import {
   Col,
@@ -19,17 +19,10 @@ import {
   InputGroup,
   Row,
   Button,
-  Alert,
   Container,
+  Alert,
 } from "react-bootstrap";
 
-interface Preset {
-  id: number;
-  name: string;
-  desc: string;
-  transaction_desc: string;
-  user: string;
-}
 interface AccountElement {
   id: number;
   name: string;
@@ -45,73 +38,19 @@ interface TagElement {
   user: number;
   isChecked: boolean;
 }
-
-export const PresetEdit = observer(function PresetEdit() {
+export const PresetCreate = observer(() => {
+  const auth = useToken();
   const navigate = useNavigate();
-  const intervalRef = useRef<number | null>(null);
-  const timeoutRef = useRef<number | null>(null);
   const [tags, setTags] = useState<TagElement[]>([]);
   const [accounts, setAccounts] = useState<AccountElement[]>([]);
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
-  const [transDesc, setTransDesc] = useState("");
-  const auth = useToken();
-  const {id} = useParams();
+  const [transactionDesc, setTransactionDesc] = useState("");
+  const intervalRef = useRef<number | null>(null);
+  const timeoutRef = useRef<number | null>(null);
   if (auth.getToken() === "") {
     navigate("/login");
   }
-  useEffect(() => {
-    const FetchPreset = async () => {
-      const presetRes = await AuthAxios.get(
-        `presets?id=${id}`,
-        auth.getToken(),
-      );
-      const presetData: Preset = presetRes.data[0];
-      setName(presetData.name);
-      setDesc(presetData.desc);
-      setTransDesc(presetData.transaction_desc);
-    };
-    const FetchTags = async () => {
-      const TagsRes = await AuthAxios.get("tags", auth.getToken());
-      const Tags: TagElement[] = TagsRes.data;
-      await Promise.all(
-        Tags.map(async (tag) => {
-          await AuthAxios.get(
-            `preset_transaction_tags?tag=${tag.id}&preset=${id}`,
-            auth.getToken(),
-          ).then((res) => {
-            tag.isChecked = res.data.length > 0;
-          });
-        }),
-      );
-
-      setTags(Tags);
-    };
-    const FetchAccounts = async () => {
-      const AccountsRes = await AuthAxios.get("accounts", auth.getToken());
-      const Accounts: AccountElement[] = AccountsRes.data;
-      await Promise.all(
-        Accounts.map(async (acc) => {
-          await AuthAxios.get(
-            `preset_subtransactions?account=${acc.id}&preset=${id}`,
-            auth.getToken(),
-          ).then((res) => {
-            if (res.data.length > 0) {
-              acc.isUsed = true;
-              acc.fraction = res.data[0].fraction;
-            } else {
-              acc.isUsed = false;
-              acc.fraction = "0";
-            }
-          });
-        }),
-      );
-      setAccounts(Accounts);
-    };
-    FetchPreset();
-    FetchTags();
-    FetchAccounts();
-  }, []);
   const handleTagClick = useCallback((clickedTag: TagElement) => {
     setTags((prevTags) =>
       prevTags.map((tag) =>
@@ -119,20 +58,6 @@ export const PresetEdit = observer(function PresetEdit() {
       ),
     );
   }, []);
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const bodyParams = {
-      id: id,
-      action: "edit",
-      name: name,
-      desc: desc,
-      transDesc: transDesc ? transDesc : "",
-      tags: tags,
-      accounts: accounts,
-    };
-    await AuthAxios.post("presets", auth.getToken(), bodyParams);
-    navigate(`/presets/${id}`);
-  };
   const handleMultiplierMouseDown = (
     clickedAccUse: AccountElement,
     step: number,
@@ -193,6 +118,7 @@ export const PresetEdit = observer(function PresetEdit() {
       ),
     );
   }, []);
+
   const renderTags = useMemo(() => {
     return tags.map((tag, id) => (
       <Button
@@ -300,6 +226,40 @@ export const PresetEdit = observer(function PresetEdit() {
       </Form.Group>
     ));
   }, [accounts]);
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const bodyParams = {
+      action: "create",
+      name: name,
+      desc: desc,
+      transDesc: transactionDesc,
+      tags: tags,
+      accounts: accounts,
+    };
+    await AuthAxios.post("presets", auth.getToken(), bodyParams);
+    navigate("/presets");
+  };
+  useEffect(() => {
+    const FetchTags = async () => {
+      const TagsRes = await AuthAxios.get("tags", auth.getToken());
+      const Tags: TagElement[] = TagsRes.data;
+      Tags.map((tag) => {
+        tag.isChecked = false;
+      });
+      setTags(Tags);
+    };
+    const FetchAccounts = async () => {
+      const AccountsRes = await AuthAxios.get("accounts", auth.getToken());
+      const Accounts: AccountElement[] = AccountsRes.data;
+      Accounts.map((acc) => {
+        acc.isUsed = false;
+        acc.fraction = "0";
+      });
+      setAccounts(Accounts);
+    };
+    FetchTags();
+    FetchAccounts();
+  }, []);
 
   return (
     <Container>
@@ -317,7 +277,6 @@ export const PresetEdit = observer(function PresetEdit() {
                 name="name"
                 key="id_name"
                 required={true}
-                value={name}
                 onChange={(e) => setName(e.target.value)}
               />
             </Col>
@@ -331,7 +290,6 @@ export const PresetEdit = observer(function PresetEdit() {
                 type="text"
                 name="description"
                 key="id_description"
-                value={desc}
                 onChange={(e) => setDesc(e.target.value)}
               />
             </Col>
@@ -348,8 +306,7 @@ export const PresetEdit = observer(function PresetEdit() {
                 type="text"
                 name="transaction_desc"
                 key="id_transaction_desc"
-                value={transDesc}
-                onChange={(e) => setTransDesc(e.target.value)}
+                onChange={(e) => setTransactionDesc(e.target.value)}
               />
             </Col>
           </Row>
