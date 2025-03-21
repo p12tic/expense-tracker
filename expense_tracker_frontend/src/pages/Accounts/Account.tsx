@@ -137,7 +137,7 @@ export const Account = observer(function Account() {
             <TableButton
               dest={`/accounts/${state.id}/delete`}
               name={"Delete"}
-              class="danger"
+              type="danger"
             />
           </Col>
         </Row>

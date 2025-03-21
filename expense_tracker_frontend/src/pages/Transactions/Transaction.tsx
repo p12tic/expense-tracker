@@ -127,7 +127,7 @@ export const Transaction = observer(function Transaction() {
           <TableButton
             dest={`/transactions/${id}/delete`}
             name={"Delete"}
-            class="danger"
+            type="danger"
           />
         </Col>
       </Row>

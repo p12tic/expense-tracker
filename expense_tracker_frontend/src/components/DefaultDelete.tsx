@@ -11,21 +11,22 @@ type DefaultDeleteProps = {
   backLink: string;
 };
 
-export function DefaultDelete(defaultDeleteProps: DefaultDeleteProps) {
+export function DefaultDelete({
+  deleteRequestUrl,
+  returnPoint,
+  id,
+  backLink,
+}: DefaultDeleteProps) {
   const auth = useToken();
   const navigate = useNavigate();
   const submitHandle = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     let bodyParameters = {
-      id: defaultDeleteProps.id,
+      id: id,
       action: `delete`,
     };
-    await AuthAxios.post(
-      defaultDeleteProps.deleteRequestUrl,
-      auth.getToken(),
-      bodyParameters,
-    );
-    navigate(`${defaultDeleteProps.returnPoint}`);
+    await AuthAxios.post(deleteRequestUrl, auth.getToken(), bodyParameters);
+    navigate(`${returnPoint}`);
   };
   return (
     <>
@@ -33,7 +34,7 @@ export function DefaultDelete(defaultDeleteProps: DefaultDeleteProps) {
       <Form onSubmit={submitHandle}>
         <Row>
           <Col md="auto">
-            <Button variant="primary" href={defaultDeleteProps.backLink}>
+            <Button variant="primary" href={backLink}>
               Cancel
             </Button>
           </Col>

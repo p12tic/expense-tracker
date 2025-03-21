@@ -111,7 +111,7 @@ export const Preset = observer(function Preset() {
           <TableButton
             dest={`/presets/${id}/delete`}
             name={"Delete"}
-            class="danger"
+            type="danger"
           />
         </Col>
       </Row>

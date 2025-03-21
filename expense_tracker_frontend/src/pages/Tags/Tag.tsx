@@ -125,7 +125,7 @@ export const Tag = observer(function Tag() {
             <TableButton
               dest={`/tags/${state.id}/delete`}
               name={"Delete"}
-              class="danger"
+              type="danger"
             />
           </Col>
         </Row>
