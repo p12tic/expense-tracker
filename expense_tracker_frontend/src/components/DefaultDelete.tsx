@@ -1,6 +1,6 @@
 import {useNavigate} from "react-router-dom";
 import {AuthAxios} from "../utils/Network";
-import {useToken} from "./Auth/AuthContext";
+import {useToken} from "../utils/AuthContext";
 import {Col, Form, Row, Button} from "react-bootstrap";
 import {FormEvent} from "react";
 

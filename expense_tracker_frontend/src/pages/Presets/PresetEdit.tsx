@@ -8,10 +8,10 @@ import {
   useRef,
   useState,
 } from "react";
-import {useToken} from "../Auth/AuthContext";
+import {useToken} from "../../utils/AuthContext";
 import {useNavigate, useParams} from "react-router-dom";
-import {NavbarComponent} from "../Navbar";
-import {SubmitButton} from "../SubmitButton";
+import {NavbarComponent} from "../../components/Navbar";
+import {SubmitButton} from "../../components/SubmitButton";
 import {AuthAxios} from "../../utils/Network";
 import {
   Col,

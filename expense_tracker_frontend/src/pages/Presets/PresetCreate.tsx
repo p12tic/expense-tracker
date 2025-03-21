@@ -1,7 +1,7 @@
 import {observer} from "mobx-react-lite";
-import {SubmitButton} from "../SubmitButton";
-import {NavbarComponent} from "../Navbar";
-import {useToken} from "../Auth/AuthContext";
+import {SubmitButton} from "../../components/SubmitButton";
+import {NavbarComponent} from "../../components/Navbar";
+import {useToken} from "../../utils/AuthContext";
 import {useNavigate} from "react-router-dom";
 import {
   ChangeEvent,

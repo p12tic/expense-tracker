@@ -1,8 +1,8 @@
 import React, {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
-import {NavbarComponent} from "../Navbar";
-import {TableButton} from "../TableButton";
-import {useToken} from "../Auth/AuthContext";
+import {NavbarComponent} from "../../components/Navbar";
+import {TableButton} from "../../components/TableButton";
+import {useToken} from "../../utils/AuthContext";
 import {observer} from "mobx-react-lite";
 import {AuthAxios} from "../../utils/Network";
 import {Col, Row, Container, Table} from "react-bootstrap";

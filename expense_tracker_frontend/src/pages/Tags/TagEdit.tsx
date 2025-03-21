@@ -1,40 +1,59 @@
-import {useToken} from "../Auth/AuthContext";
-import {FormEvent, useState} from "react";
-import {NavbarComponent} from "../Navbar";
 import {observer} from "mobx-react-lite";
-import {useNavigate} from "react-router-dom";
+import {FormEvent, useEffect, useState} from "react";
+import {useToken} from "../../utils/AuthContext";
+import {NavbarComponent} from "../../components/Navbar";
+import {useNavigate, useParams} from "react-router-dom";
 import {AuthAxios} from "../../utils/Network";
 import {Col, Form, Row, Container} from "react-bootstrap";
-import {SubmitButton} from "../SubmitButton";
+import {SubmitButton} from "../../components/SubmitButton";
 
-export const AccountCreate = observer(function AccountCreate() {
+interface Tag {
+  id: number;
+  name: string;
+  desc: string;
+  user: string;
+}
+
+export const TagEdit = observer(function TagEdit() {
   const auth = useToken();
   const navigate = useNavigate();
-  const [name, setName] = useState("");
-  const [desc, setDesc] = useState("");
+  const {id} = useParams();
   if (auth.getToken() === "") {
     navigate("/login");
   }
+  const [name, setName] = useState("");
+  const [desc, setDesc] = useState("");
+  useEffect(() => {
+    AuthAxios.get(`tags?id=${id}`, auth.getToken())
+      .then((res) => {
+        const data: Tag = res.data[0];
+        setName(data.name);
+        setDesc(data.desc);
+      })
+      .catch((err) => console.error(err));
+  }, []);
+
   let bodyParameters = {
+    id: id,
     Name: ``,
     Description: ``,
-    action: `create`,
+    action: "edit",
   };
 
-  const submitHandler = async (e: FormEvent<HTMLFormElement>) => {
+  const submitHandler = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     bodyParameters.Name = name;
     bodyParameters.Description = desc;
-    await AuthAxios.post("accounts", auth.getToken(), bodyParameters).catch(
-      (err) => console.error(err),
+    AuthAxios.post("tags", auth.getToken(), bodyParameters).catch((err) =>
+      console.error(err),
     );
-    navigate("/accounts");
+    navigate(`/tags/${id}`);
   };
   return (
     <Container>
       <NavbarComponent />
-      <h1>Create new account</h1>
-      <Form id="account-create-form" onSubmit={submitHandler}>
+      <h1>Edit</h1>
+      <Form id="tag-create-form" onSubmit={submitHandler}>
         <Form.Group>
           <Row className="mb-3">
             <Col xs={4} sm={2} className="text-end">
@@ -42,6 +61,7 @@ export const AccountCreate = observer(function AccountCreate() {
             </Col>
             <Col xs={8} sm={10}>
               <Form.Control
+                value={name}
                 type="text"
                 name="name"
                 key="id_name"
@@ -56,6 +76,7 @@ export const AccountCreate = observer(function AccountCreate() {
             </Col>
             <Col xs={8} sm={10}>
               <Form.Control
+                value={desc}
                 type="text"
                 name="description"
                 key="id_desc"

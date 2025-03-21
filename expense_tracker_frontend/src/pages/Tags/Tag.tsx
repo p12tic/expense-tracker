@@ -1,15 +1,15 @@
 import {observer} from "mobx-react-lite";
-import {StaticField} from "../StaticField";
-import {useToken} from "../Auth/AuthContext";
+import {StaticField} from "../../components/StaticField";
+import {useToken} from "../../utils/AuthContext";
 import {Link, useNavigate, useParams} from "react-router-dom";
 import axios from "axios";
 import React, {useEffect, useState} from "react";
-import {NavbarComponent} from "../Navbar";
-import {TableButton} from "../TableButton";
-import {centsToString, formatDate} from "../Tools";
+import {NavbarComponent} from "../../components/Navbar";
+import {TableButton} from "../../components/TableButton";
+import {centsToString, formatDate} from "../../components/Tools";
 import {AuthAxios} from "../../utils/Network";
 import {Col, Row, Container, Table, Button} from "react-bootstrap";
-import {TimezoneTag} from "../TimezoneTag";
+import {TimezoneTag} from "../../components/TimezoneTag";
 import dayjs, {Dayjs} from "dayjs";
 
 interface TagElement {

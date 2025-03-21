@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./index.css";
-import {AuthProvider} from "./components/Auth/AuthContext";
+import {AuthProvider} from "./utils/AuthContext";
 import "./boot_override.scss";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

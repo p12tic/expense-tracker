@@ -1,9 +1,9 @@
 import {observer} from "mobx-react-lite";
-import {TableButton} from "../TableButton";
+import {TableButton} from "../../components/TableButton";
 import React, {useEffect, useState} from "react";
-import {StaticField} from "../StaticField";
-import {NavbarComponent} from "../Navbar";
-import {useToken} from "../Auth/AuthContext";
+import {StaticField} from "../../components/StaticField";
+import {NavbarComponent} from "../../components/Navbar";
+import {useToken} from "../../utils/AuthContext";
 import {Link, useNavigate, useParams} from "react-router-dom";
 import {AuthAxios} from "../../utils/Network";
 import {Col, Row, Container, Table, Button, Alert} from "react-bootstrap";

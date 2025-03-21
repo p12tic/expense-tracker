@@ -1,19 +1,19 @@
-import {NavbarComponent} from "../Navbar";
+import {NavbarComponent} from "../../components/Navbar";
 import {observer} from "mobx-react-lite";
 import {FormEvent, useEffect, useState} from "react";
-import {SubmitButton} from "../SubmitButton";
-import {useToken} from "../Auth/AuthContext";
+import {SubmitButton} from "../../components/SubmitButton";
+import {useToken} from "../../utils/AuthContext";
 import {useNavigate, useParams} from "react-router-dom";
 import {
   centsToString,
   formatDate,
   formatDateIso8601,
   formatDateTimeForInput,
-} from "../Tools";
+} from "../../components/Tools";
 import {AuthAxios} from "../../utils/Network";
 import {Col, Form, Row, Container, InputGroup} from "react-bootstrap";
 import dayjs, {Dayjs} from "dayjs";
-import {TimezoneSelect} from "../TimezoneSelect";
+import {TimezoneSelect} from "../../components/TimezoneSelect";
 
 interface Subtransaction {
   id: number;

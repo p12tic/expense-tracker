@@ -1,27 +1,26 @@
 import {observer} from "mobx-react-lite";
-import {DefaultDelete} from "../DefaultDelete";
-import {NavbarComponent} from "../Navbar";
+import {DefaultDelete} from "../../components/DefaultDelete";
+import {NavbarComponent} from "../../components/Navbar";
 import {useNavigate, useParams} from "react-router-dom";
-import {useToken} from "../Auth/AuthContext";
+import {useToken} from "../../utils/AuthContext";
 import {Container} from "react-bootstrap";
 
-export const PresetDelete = observer(function PresetDelete() {
+export const TagDelete = observer(function TagDelete() {
+  const {id} = useParams();
+  const backLink: string = `/tags/${id}`;
   const auth = useToken();
   const navigate = useNavigate();
-  const {id} = useParams();
-  const backLink: string = `/presets/${id}`;
   if (auth.getToken() === "") {
     navigate("/login");
   }
-
   return (
     <Container>
       <NavbarComponent />
       <DefaultDelete
         backLink={backLink}
+        returnPoint={`/tags`}
         id={id ? id : ""}
-        returnPoint={`/presets`}
-        deleteRequestUrl={"presets"}
+        deleteRequestUrl={`tags`}
       />
     </Container>
   );

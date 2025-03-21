@@ -1,14 +1,13 @@
-import {NavbarEmpty} from "../NavbarEmpty";
-import {observer} from "mobx-react-lite";
+import {useToken} from "../../utils/AuthContext";
 import {FormEvent, useState} from "react";
-import {useToken} from "../Auth/AuthContext";
-import {NavbarComponent} from "../Navbar";
+import {NavbarComponent} from "../../components/Navbar";
+import {observer} from "mobx-react-lite";
 import {useNavigate} from "react-router-dom";
 import {AuthAxios} from "../../utils/Network";
 import {Col, Form, Row, Container} from "react-bootstrap";
-import {SubmitButton} from "../SubmitButton";
+import {SubmitButton} from "../../components/SubmitButton";
 
-export const TagCreate = observer(function TagCreate() {
+export const AccountCreate = observer(function AccountCreate() {
   const auth = useToken();
   const navigate = useNavigate();
   const [name, setName] = useState("");
@@ -19,23 +18,23 @@ export const TagCreate = observer(function TagCreate() {
   let bodyParameters = {
     Name: ``,
     Description: ``,
-    action: "create",
+    action: `create`,
   };
 
   const submitHandler = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     bodyParameters.Name = name;
     bodyParameters.Description = desc;
-    await AuthAxios.post("tags", auth.getToken(), bodyParameters).catch((err) =>
-      console.error(err),
+    await AuthAxios.post("accounts", auth.getToken(), bodyParameters).catch(
+      (err) => console.error(err),
     );
-    navigate("/tags");
+    navigate("/accounts");
   };
   return (
     <Container>
       <NavbarComponent />
-      <h1>Create new tag</h1>
-      <Form id="tag-create-form" onSubmit={submitHandler}>
+      <h1>Create new account</h1>
+      <Form id="account-create-form" onSubmit={submitHandler}>
         <Form.Group>
           <Row className="mb-3">
             <Col xs={4} sm={2} className="text-end">
