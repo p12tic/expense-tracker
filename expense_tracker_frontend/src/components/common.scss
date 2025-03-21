@@ -1,19 +1,19 @@
 @import "bootstrap/scss/bootstrap";
 .btn-default {
-    border-color: #ccc;
-    --bs-btn-hover-border-color: #bbb;
-    --bs-btn-hover-bg: #ddd;
+  border-color: #ccc;
+  --bs-btn-hover-border-color: #bbb;
+  --bs-btn-hover-bg: #ddd;
 }
 .btn-info {
-    color: #fff;
+  color: #fff;
 }
 .btn-xs {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.625rem;
-    line-height: 1.2;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.625rem;
+  line-height: 1.2;
 }
 .btn-secondary {
-    background-color: #e7e7e7;
-    color: #000000;
-    border: transparent;
+  background-color: #e7e7e7;
+  color: #000000;
+  border: transparent;
 }
