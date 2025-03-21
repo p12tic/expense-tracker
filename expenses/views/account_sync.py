@@ -9,6 +9,7 @@ from ..models import *
 from ..db_utils import *
 from datetime import datetime
 
+
 class AccountSyncForm(forms.ModelForm):
     date_time = forms.DateTimeField(required=True)
     balance = forms.FloatField(required=True)
@@ -17,8 +18,8 @@ class AccountSyncForm(forms.ModelForm):
         model = AccountSyncEvent
         fields = ['balance', 'date_time']
 
-class AccountSyncDetailView(AppLoginRequiredMixin, VerifyAccountUserMixin,
-                            DetailView):
+
+class AccountSyncDetailView(AppLoginRequiredMixin, VerifyAccountUserMixin, DetailView):
     model = AccountSyncEvent
     form_class = AccountSyncForm
     template_name = 'expenses/account_sync.html'
@@ -30,8 +31,8 @@ class AccountSyncDetailView(AppLoginRequiredMixin, VerifyAccountUserMixin,
         context['event'] = obj
         return context
 
-class AccountSyncCreateView(AppLoginRequiredMixin, VerifyAccountUserMixin,
-                            CreateView):
+
+class AccountSyncCreateView(AppLoginRequiredMixin, VerifyAccountUserMixin, CreateView):
     model = AccountSyncEvent
     form_class = AccountSyncForm
     template_name = 'expenses/default_create.html'
@@ -73,16 +74,15 @@ class AccountSyncCreateView(AppLoginRequiredMixin, VerifyAccountUserMixin,
     def get_success_url(self):
         return '/accounts/' + str(self.get_account().id)
 
-class AccountSyncUpdateView(AppLoginRequiredMixin, VerifyAccountUserMixin,
-                            UpdateView):
+
+class AccountSyncUpdateView(AppLoginRequiredMixin, VerifyAccountUserMixin, UpdateView):
     model = AccountSyncEvent
     form_class = AccountSyncForm
     template_name = 'expenses/default_update.html'
 
     def get_initial(self):
         initial = super().get_initial()
-        initial['date_time'] = \
-                self.get_object().subtransaction.transaction.date_time
+        initial['date_time'] = self.get_object().subtransaction.transaction.date_time
         initial['balance'] = self.get_object().balance / 100.0
         return initial
 
@@ -97,8 +97,8 @@ class AccountSyncUpdateView(AppLoginRequiredMixin, VerifyAccountUserMixin,
     def get_success_url(self):
         return '/accounts/' + str(self.get_object().account.id)
 
-class AccountSyncDeleteView(AppLoginRequiredMixin, VerifyAccountUserMixin,
-                            DeleteView):
+
+class AccountSyncDeleteView(AppLoginRequiredMixin, VerifyAccountUserMixin, DeleteView):
     model = AccountSyncEvent
     template_name = 'expenses/default_delete.html'
 

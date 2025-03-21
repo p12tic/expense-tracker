@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('expenses', '0003_auto_20180430_0929'),
     ]
@@ -14,11 +13,19 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='presetsubtransaction',
             name='preset',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='preset_subtransactions', to='expenses.Preset'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='preset_subtransactions',
+                to='expenses.Preset',
+            ),
         ),
         migrations.AlterField(
             model_name='presettransactiontag',
             name='preset',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='preset_tags', to='expenses.Preset'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='preset_tags',
+                to='expenses.Preset',
+            ),
         ),
     ]

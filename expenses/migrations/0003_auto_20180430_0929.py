@@ -3,11 +3,13 @@
 from django.db import migrations
 from expenses.models import *
 
+
 def update_subtransaction_amount(apps, schema_editor):
     Subtransaction = apps.get_model('expenses', 'subtransaction')
     for sub in Subtransaction.objects.all():
         sub.amount *= 100
         sub.save()
+
 
 def update_account_balance_cache_balance(apps, schema_editor):
     AccountBalanceCache = apps.get_model('expenses', 'accountbalancecache')
@@ -15,14 +17,15 @@ def update_account_balance_cache_balance(apps, schema_editor):
         cache.balance *= 100
         cache.save()
 
+
 def update_account_sync_event(apps, schema_editor):
     AccountSyncEvent = apps.get_model('expenses', 'accountsyncevent')
     for event in AccountSyncEvent.objects.all():
         event.balance *= 100
         event.save()
 
-class Migration(migrations.Migration):
 
+class Migration(migrations.Migration):
     dependencies = [
         ('expenses', '0002_auto_20180428_1815'),
     ]
