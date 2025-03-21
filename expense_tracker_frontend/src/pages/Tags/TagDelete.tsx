@@ -13,13 +13,17 @@ export const TagDelete = observer(function TagDelete() {
   if (auth.getToken() === "") {
     navigate("/login");
   }
+  if (id === undefined) {
+    navigate("/tags");
+    return;
+  }
   return (
     <Container>
       <NavbarComponent />
       <DefaultDelete
         backLink={backLink}
         returnPoint={`/tags`}
-        id={id ? id : ""}
+        id={id}
         deleteRequestUrl={`tags`}
       />
     </Container>

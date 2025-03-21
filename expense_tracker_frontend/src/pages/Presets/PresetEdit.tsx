@@ -112,6 +112,10 @@ export const PresetEdit = observer(function PresetEdit() {
     FetchTags();
     FetchAccounts();
   }, []);
+  if (id === undefined) {
+    navigate("/presets");
+    return;
+  }
   const handleTagClick = useCallback((clickedTag: TagElement) => {
     setTags((prevTags) =>
       prevTags.map((tag) =>

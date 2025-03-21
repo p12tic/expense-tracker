@@ -13,13 +13,17 @@ export const AccountDelete = observer(function AccountDelete() {
   if (auth.getToken() === "") {
     navigate("/login");
   }
+  if (id === undefined) {
+    navigate("/accounts");
+    return;
+  }
 
   return (
     <Container>
       <NavbarComponent />
       <DefaultDelete
         backLink={backLink}
-        id={id ? id : ""}
+        id={id}
         returnPoint={`/accounts`}
         deleteRequestUrl={"accounts"}
       />

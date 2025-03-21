@@ -13,13 +13,17 @@ export const PresetDelete = observer(function PresetDelete() {
   if (auth.getToken() === "") {
     navigate("/login");
   }
+  if (id === undefined) {
+    navigate("/presets");
+    return;
+  }
 
   return (
     <Container>
       <NavbarComponent />
       <DefaultDelete
         backLink={backLink}
-        id={id ? id : ""}
+        id={id}
         returnPoint={`/presets`}
         deleteRequestUrl={"presets"}
       />

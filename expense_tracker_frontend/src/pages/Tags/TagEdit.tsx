@@ -32,6 +32,10 @@ export const TagEdit = observer(function TagEdit() {
       })
       .catch((err) => console.error(err));
   }, []);
+  if (id === undefined) {
+    navigate("/tags");
+    return;
+  }
 
   let bodyParameters = {
     id: id,

@@ -110,6 +110,10 @@ export const Transaction = observer(function Transaction() {
     };
     FetchTransaction();
   }, []);
+  if (id === undefined) {
+    navigate("/transactions");
+    return;
+  }
 
   return (
     <Container>

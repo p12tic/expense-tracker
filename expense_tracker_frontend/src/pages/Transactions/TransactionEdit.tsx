@@ -236,6 +236,10 @@ export const TransactionEdit = observer(function TransactionCreate() {
     FetchTransaction();
     FetchPresets();
   }, []);
+  if (id === undefined) {
+    navigate("/transactions");
+    return;
+  }
 
   const handlePresetSelect = async (selectedPreset: Preset) => {
     setPresetInUse(selectedPreset);

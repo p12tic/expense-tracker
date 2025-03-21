@@ -107,6 +107,10 @@ export const Tag = observer(function Tag() {
     };
     fetchTag();
   }, []);
+  if (id === undefined) {
+    navigate("/tags");
+    return;
+  }
 
   return (
     <Container>

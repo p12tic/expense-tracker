@@ -118,6 +118,10 @@ export const Account = observer(function Account() {
 
     fetchTag();
   }, []);
+  if (id === undefined) {
+    navigate("/accounts");
+    return;
+  }
 
   return (
     <Container>

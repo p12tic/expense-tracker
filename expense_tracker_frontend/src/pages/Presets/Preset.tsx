@@ -94,6 +94,10 @@ export const Preset = observer(function Preset() {
     };
     fetchPreset();
   }, []);
+  if (id === undefined) {
+    navigate("/presets");
+    return;
+  }
 
   return (
     <Container>

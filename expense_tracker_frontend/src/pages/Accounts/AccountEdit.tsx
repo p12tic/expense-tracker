@@ -32,6 +32,10 @@ export const AccountEdit = observer(function AccountEdit() {
       })
       .catch((err) => console.error(err));
   }, []);
+  if (id === undefined) {
+    navigate("/accounts");
+    return;
+  }
   let bodyParameters = {
     id: id,
     Name: ``,

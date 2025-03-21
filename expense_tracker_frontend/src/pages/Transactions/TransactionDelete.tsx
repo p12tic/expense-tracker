@@ -13,13 +13,17 @@ export const TransactionDelete = observer(function TransactionDelete() {
   if (auth.getToken() === "") {
     navigate("/login");
   }
+  if (id === undefined) {
+    navigate("/transactions");
+    return;
+  }
   return (
     <Container>
       <NavbarComponent />
       <DefaultDelete
         backLink={backLink}
         returnPoint={`/transactions`}
-        id={id ? id : ""}
+        id={id}
         deleteRequestUrl={`transactions`}
       />
     </Container>
