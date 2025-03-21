@@ -5,6 +5,7 @@ from django.core.exceptions import PermissionDenied
 from ..models import *
 from ..db_utils import *
 
+
 class AccountListView(AppLoginRequiredMixin, ListView):
     model = Account
     template_name = 'expenses/accounts.html'
@@ -14,15 +15,16 @@ class AccountListView(AppLoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['object_list'] = \
-                get_account_balances_for_accounts(context['object_list'])
+        context['object_list'] = get_account_balances_for_accounts(context['object_list'])
         return context
+
 
 class AccountCreateView(AppLoginRequiredMixin, VerifyOwnerMixin, CreateView):
     model = Account
     fields = ['name', 'desc']
     template_name = 'expenses/default_create.html'
     success_url = '/accounts'
+
 
 class AccountUpdateView(AppLoginRequiredMixin, VerifyOwnerMixin, UpdateView):
     model = Account
@@ -32,10 +34,12 @@ class AccountUpdateView(AppLoginRequiredMixin, VerifyOwnerMixin, UpdateView):
     def get_success_url(self):
         return '/accounts/' + str(self.kwargs['pk'])
 
+
 class AccountDeleteView(AppLoginRequiredMixin, VerifyOwnerMixin, DeleteView):
     model = Account
     template_name = 'expenses/default_delete.html'
     success_url = '/accounts'
+
 
 class AccountSubtransactionsListView(AppLoginRequiredMixin, ListView):
     model = Subtransaction
@@ -50,11 +54,12 @@ class AccountSubtransactionsListView(AppLoginRequiredMixin, ListView):
         # we reverse the order of the transaction list to satisfy the
         # requirements of get_account_balances_for_subtransactions_range and
         # then reverse the returned data back
-        data = get_account_balances_for_subtransactions_range(account,
-                queryset.order_by('transaction__date_time'))
+        data = get_account_balances_for_subtransactions_range(
+            account, queryset.order_by('transaction__date_time')
+        )
         data.reverse()
 
-        data = [ ( sub.sync_event.first(), sub, balance ) for sub, balance in data ]
+        data = [(sub.sync_event.first(), sub, balance) for sub, balance in data]
 
         context['account'] = account
         context['object_list'] = data
@@ -66,6 +71,7 @@ class AccountSubtransactionsListView(AppLoginRequiredMixin, ListView):
         if account.user != self.request.user:
             raise PermissionDenied()
         return account.subtransactions.all().order_by('-transaction__date_time')
+
 
 class ChainedAccountListView(AppLoginRequiredMixin, ListView):
     model = ChainedAccount

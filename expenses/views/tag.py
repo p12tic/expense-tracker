@@ -5,6 +5,7 @@ from .auth import AppLoginRequiredMixin, VerifyOwnerMixin
 from ..models import *
 from ..db_utils import *
 
+
 class TagListView(AppLoginRequiredMixin, ListView):
     model = Tag
     template_name = 'expenses/tags.html'
@@ -12,11 +13,13 @@ class TagListView(AppLoginRequiredMixin, ListView):
     def get_queryset(self):
         return Tag.objects.filter(user=self.request.user)
 
+
 class TagCreateView(AppLoginRequiredMixin, VerifyOwnerMixin, CreateView):
     model = Tag
     fields = ['name', 'desc']
     template_name = 'expenses/default_create.html'
     success_url = '/tags'
+
 
 class TagUpdateView(AppLoginRequiredMixin, VerifyOwnerMixin, UpdateView):
     model = Tag
@@ -26,10 +29,12 @@ class TagUpdateView(AppLoginRequiredMixin, VerifyOwnerMixin, UpdateView):
     def get_success_url(self):
         return '/tags/' + str(self.kwargs['pk'])
 
+
 class TagDeleteView(AppLoginRequiredMixin, VerifyOwnerMixin, DeleteView):
     model = Tag
     template_name = 'expenses/default_delete.html'
     success_url = '/tags'
+
 
 class TagTransactionListView(AppLoginRequiredMixin, ListView):
     model = Transaction
@@ -38,8 +43,7 @@ class TagTransactionListView(AppLoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['tag'] = Tag.objects.get(id=self.kwargs['pk'])
-        context['object_list'] = \
-                get_transactions_actions_and_tags(context['object_list'])
+        context['object_list'] = get_transactions_actions_and_tags(context['object_list'])
         return context
 
     def get_queryset(self):

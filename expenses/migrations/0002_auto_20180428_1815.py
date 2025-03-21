@@ -6,7 +6,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('expenses', '0001_initial'),
     ]
@@ -15,51 +14,91 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='account',
             name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='accounts', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='accounts',
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AlterField(
             model_name='accountbalancecache',
             name='account',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='balance_caches', to='expenses.Account'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='balance_caches',
+                to='expenses.Account',
+            ),
         ),
         migrations.AlterField(
             model_name='accountsyncevent',
             name='account',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sync_events', to='expenses.Account'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='sync_events',
+                to='expenses.Account',
+            ),
         ),
         migrations.AlterField(
             model_name='accountsyncevent',
             name='subtransaction',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sync_event', to='expenses.Subtransaction'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='sync_event',
+                to='expenses.Subtransaction',
+            ),
         ),
         migrations.AlterField(
             model_name='subtransaction',
             name='account',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='subtransactions', to='expenses.Account'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='subtransactions',
+                to='expenses.Account',
+            ),
         ),
         migrations.AlterField(
             model_name='subtransaction',
             name='transaction',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='subtransactions', to='expenses.Transaction'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='subtransactions',
+                to='expenses.Transaction',
+            ),
         ),
         migrations.AlterField(
             model_name='tag',
             name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tags', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='tags',
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AlterField(
             model_name='transaction',
             name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='transactions', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='transactions',
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AlterField(
             model_name='transactiontag',
             name='tag',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='transaction_tags', to='expenses.Tag'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='transaction_tags',
+                to='expenses.Tag',
+            ),
         ),
         migrations.AlterField(
             model_name='transactiontag',
             name='transaction',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='transaction_tags', to='expenses.Transaction'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='transaction_tags',
+                to='expenses.Transaction',
+            ),
         ),
     ]
