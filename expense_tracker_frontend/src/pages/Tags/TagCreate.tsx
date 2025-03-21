@@ -8,7 +8,7 @@ import {AuthAxios} from "../../utils/Network";
 import {Col, Form, Row, Container} from "react-bootstrap";
 import {SubmitButton} from "../../components/SubmitButton";
 
-export const TagCreate = observer(function TagCreate() {
+export const TagCreate = observer(() => {
   const auth = useToken();
   const navigate = useNavigate();
   const [name, setName] = useState("");

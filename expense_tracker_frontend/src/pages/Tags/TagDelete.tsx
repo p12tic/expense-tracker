@@ -5,7 +5,7 @@ import {useNavigate, useParams} from "react-router-dom";
 import {useToken} from "../../utils/AuthContext";
 import {Container} from "react-bootstrap";
 
-export const TagDelete = observer(function TagDelete() {
+export const TagDelete = observer(() => {
   const {id} = useParams();
   const backLink: string = `/tags/${id}`;
   const auth = useToken();

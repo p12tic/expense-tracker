@@ -80,7 +80,7 @@ const defaultPreset: Preset = {
   accounts: [],
   tags: [],
 };
-export const TransactionCreate = observer(function TransactionCreate() {
+export const TransactionCreate = observer(() => {
   const auth = useToken();
   const navigate = useNavigate();
   const [presets, setPresets] = useState<Preset[]>([]);

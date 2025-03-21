@@ -38,7 +38,7 @@ interface TagElement {
   user: number;
   isChecked: boolean;
 }
-export const PresetCreate = observer(function PresetCreate() {
+export const PresetCreate = observer(() => {
   const auth = useToken();
   const navigate = useNavigate();
   const [tags, setTags] = useState<TagElement[]>([]);

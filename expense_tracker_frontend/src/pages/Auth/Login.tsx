@@ -8,7 +8,7 @@ import {getApiUrlForCurrentWindow} from "../../utils/Network";
 import {Col, Form, Row, Container} from "react-bootstrap";
 import {SubmitButton} from "../../components/SubmitButton";
 
-export const Login = function Login() {
+export const Login = () => {
   const auth = useToken();
 
   let bodyParameters = {

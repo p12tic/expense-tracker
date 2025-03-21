@@ -46,7 +46,7 @@ interface TagElement {
   isChecked: boolean;
 }
 
-export const PresetEdit = observer(function PresetEdit() {
+export const PresetEdit = observer(() => {
   const navigate = useNavigate();
   const intervalRef = useRef<number | null>(null);
   const timeoutRef = useRef<number | null>(null);

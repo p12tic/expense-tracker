@@ -14,7 +14,7 @@ interface Tag {
   user: string;
 }
 
-export const TagEdit = observer(function TagEdit() {
+export const TagEdit = observer(() => {
   const auth = useToken();
   const navigate = useNavigate();
   const {id} = useParams();

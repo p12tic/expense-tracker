@@ -13,7 +13,7 @@ interface Tag {
   desc: string;
   user: string;
 }
-export const Tags = observer(function Tags() {
+export const Tags = observer(() => {
   const auth = useToken();
   const [state, setState] = useState<Tag[]>([]);
   const navigate = useNavigate();

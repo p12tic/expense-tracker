@@ -21,7 +21,7 @@ interface Subtransaction {
   transaction: string;
   account: string;
 }
-export const AccountSync = observer(function AccountSync() {
+export const AccountSync = observer(() => {
   const [lastBalance, setLastBalance] = useState(0);
   const [balance, setBalance] = useState(0);
   const [date, setDate] = useState(dayjs());

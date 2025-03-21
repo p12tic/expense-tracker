@@ -29,7 +29,7 @@ interface PresetTransactionTag {
   tag: string;
 }
 
-export const PresetsList = observer(function PresetsList() {
+export const PresetsList = observer(() => {
   const auth = useToken();
   const [state, setState] = useState<Presets[]>([]);
   const navigate = useNavigate();

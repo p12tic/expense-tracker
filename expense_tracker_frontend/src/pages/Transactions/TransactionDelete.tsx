@@ -5,7 +5,7 @@ import {useNavigate, useParams} from "react-router-dom";
 import {useToken} from "../../utils/AuthContext";
 import {Container} from "react-bootstrap";
 
-export const TransactionDelete = observer(function TransactionDelete() {
+export const TransactionDelete = observer(() => {
   const {id} = useParams();
   const backLink: string = `/transactions/${id}`;
   const auth = useToken();

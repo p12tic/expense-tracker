@@ -46,7 +46,7 @@ interface Account {
   desc: string;
 }
 
-export const Transaction = observer(function Transaction() {
+export const Transaction = observer(() => {
   const auth = useToken();
   const [state, setState] = useState<TransactionElement>({
     desc: "",

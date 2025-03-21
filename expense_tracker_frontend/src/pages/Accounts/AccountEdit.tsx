@@ -14,7 +14,7 @@ interface Account {
   user: string;
 }
 
-export const AccountEdit = observer(function AccountEdit() {
+export const AccountEdit = observer(() => {
   const auth = useToken();
   const navigate = useNavigate();
   const {id} = useParams();

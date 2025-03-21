@@ -6,11 +6,11 @@ interface TableButtonProps {
   name: string;
   type?: string;
 }
-export const TableButton = function TableButton({
+export const TableButton = ({
   dest,
   name,
   type,
-}: TableButtonProps) {
+}: TableButtonProps) => {
   return (
     <Button
       style={{marginLeft: 10}}

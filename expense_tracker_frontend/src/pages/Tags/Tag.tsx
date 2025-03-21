@@ -46,7 +46,7 @@ interface Account {
   desc: string;
   user: string;
 }
-export const Tag = observer(function Tag() {
+export const Tag = observer(() => {
   const auth = useToken();
   const [state, setState] = useState<TagElement>({
     id: 0,

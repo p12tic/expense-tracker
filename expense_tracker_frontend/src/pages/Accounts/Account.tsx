@@ -41,7 +41,7 @@ interface SyncEvent {
   account: string;
   subtransaction: string;
 }
-export const Account = observer(function Account() {
+export const Account = observer(() => {
   const auth = useToken();
   const [state, setState] = useState<AccountElement>({
     id: 0,

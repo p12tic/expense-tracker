@@ -41,7 +41,7 @@ const defaultPreset: Preset = {
   presetSubs: [],
   presetTransTags: [],
 };
-export const Preset = observer(function Preset() {
+export const Preset = observer(() => {
   const auth = useToken();
   const [state, setState] = useState<Preset>(defaultPreset);
   const {id} = useParams();

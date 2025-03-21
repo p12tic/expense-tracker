@@ -53,7 +53,7 @@ interface Account {
   user: string;
 }
 
-export const TransactionsList = observer(function TransactionsList() {
+export const TransactionsList = observer(() => {
   const auth = useToken();
   const [state, setState] = useState<Transaction[]>([]);
   const navigate = useNavigate();

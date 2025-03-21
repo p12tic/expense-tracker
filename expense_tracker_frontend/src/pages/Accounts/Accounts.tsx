@@ -25,7 +25,7 @@ interface Subtransaction {
   transaction: string;
   account: string;
 }
-export const Accounts = observer(function Accounts() {
+export const Accounts = observer(() => {
   const auth = useToken();
   const navigate = useNavigate();
   if (auth.getToken() === "") {

@@ -7,7 +7,7 @@ import {AuthAxios} from "../../utils/Network";
 import {Col, Form, Row, Container} from "react-bootstrap";
 import {SubmitButton} from "../../components/SubmitButton";
 
-export const AccountCreate = observer(function AccountCreate() {
+export const AccountCreate = observer(() => {
   const auth = useToken();
   const navigate = useNavigate();
   const [name, setName] = useState("");
