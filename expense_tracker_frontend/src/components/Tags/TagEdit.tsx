@@ -1,5 +1,5 @@
 import {observer} from "mobx-react-lite";
-import {useEffect, useState} from "react";
+import {FormEvent, useEffect, useState} from "react";
 import {useToken} from "../Auth/AuthContext";
 import {NavbarComponent} from "../Navbar";
 import {useNavigate, useParams} from "react-router-dom";
@@ -38,7 +38,7 @@ export const TagEdit = observer(function TagEdit() {
         'action': 'edit'
     };
 
-    const submitHandler = (e) => {
+    const submitHandler = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         bodyParameters.Name = name;
         bodyParameters.Description = desc;

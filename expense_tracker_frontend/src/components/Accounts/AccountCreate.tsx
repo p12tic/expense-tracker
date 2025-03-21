@@ -1,5 +1,5 @@
 import {useToken} from "../Auth/AuthContext";
-import {useState} from "react";
+import {FormEvent, useState} from "react";
 import {NavbarComponent} from "../Navbar";
 import {observer} from "mobx-react-lite";
 import {useNavigate} from "react-router-dom";
@@ -22,7 +22,7 @@ export const AccountCreate = observer(function AccountCreate() {
         'action': `create`
     };
 
-    const submitHandler = async (e) => {
+    const submitHandler = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         bodyParameters.Name = name;
         bodyParameters.Description = desc;

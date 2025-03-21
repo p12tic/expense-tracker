@@ -18,7 +18,7 @@ export const TagDelete = observer(function TagDelete() {
     return (
         <Container>
             <NavbarComponent/>
-            <DefaultDelete backLink={backLink} returnPoint={`/tags`} id={id}
+            <DefaultDelete backLink={backLink} returnPoint={`/tags`} id={id ? id : ""}
                            deleteRequestUrl={`tags`}/>
         </Container>
     )

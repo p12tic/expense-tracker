@@ -2,7 +2,7 @@ import {observer} from "mobx-react-lite";
 import {NavbarComponent} from "../Navbar";
 import {useToken} from "../Auth/AuthContext";
 import {useNavigate, useParams} from "react-router-dom";
-import {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {SubmitButton} from "../SubmitButton";
 import {centsToString, formatDateIso8601, formatDateTimeForInput} from "../Tools";
 import {AuthAxios} from "../../utils/Network";
@@ -15,7 +15,7 @@ interface Preset {
     id: number;
     name: string;
     desc: string;
-    transactionDesc: string;
+    transaction_desc: string;
     user: string;
     amount: string;
     accounts: AccountElement[];
@@ -55,7 +55,7 @@ const defaultPreset: Preset = {
     id: 0,
     name: "",
     desc: "",
-    transactionDesc: "",
+    transaction_desc: "",
     user: "",
     amount: "0",
     accounts: [],
@@ -115,7 +115,7 @@ export const TransactionEdit = observer(function TransactionCreate() {
                     id: 0,
                     name: "",
                     desc: "",
-                    transactionDesc: "",
+                    transaction_desc: "",
                     user: "",
                     amount: "0",
                     accounts: updatedAccounts,
@@ -129,7 +129,6 @@ export const TransactionEdit = observer(function TransactionCreate() {
             await AuthAxios.get("presets", auth.getToken()).then(async (presetsRes) => {
                 const PresetsData: Preset[] = await Promise.all(presetsRes.data.map(async (preset: Preset) => {
                     let AccountsData: AccountElement[] = [];
-                    preset.transactionDesc = preset.transaction_desc;
                     await AuthAxios.get(`preset_subtransactions?preset=${preset.id}`, auth.getToken()).then(async (presetSubtransactionsRes) => {
                         await AuthAxios.get("accounts", auth.getToken()).then(async (res) => {
                             AccountsData = await Promise.all(res.data.map(async (acc: AccountElement) => {
@@ -171,10 +170,10 @@ export const TransactionEdit = observer(function TransactionCreate() {
 
     const handlePresetSelect = async (selectedPreset: Preset) => {
         setPresetInUse(selectedPreset);
-        setDesc(selectedPreset.transactionDesc || "");
+        setDesc(selectedPreset.transaction_desc || "");
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const bodyParams = {
             action: "edit",
@@ -269,7 +268,7 @@ const handlePresetAmountMouseUp = () => {
     }
 };
 
-const handleAccountAmountChange = (e, accMulti: AccountElement) => {
+const handleAccountAmountChange = (e: ChangeEvent<HTMLInputElement>, accMulti: AccountElement) => {
     const newAmount = (e.target.value);
     setPresetInUse(prevPresetInUse => {
         if (!prevPresetInUse) return prevPresetInUse;
@@ -279,12 +278,12 @@ const handleAccountAmountChange = (e, accMulti: AccountElement) => {
         return { ...prevPresetInUse, accounts: updatedAccounts };
     });
 };
-const handlePresetAmountChange = (e) => {
+const handlePresetAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newAmount = (e.target.value);
     setPresetInUse(prevPresetInUse => {
         if (!prevPresetInUse) return prevPresetInUse;
         const updatedAccounts = prevPresetInUse.accounts.map(acc =>
-            acc.fraction ? { ...acc, amountView: ((newAmount)*acc.fraction).toFixed(2), amount: (parseFloat(newAmount)*acc.fraction) } : acc
+            acc.fraction ? { ...acc, amountView: (parseFloat(newAmount)*acc.fraction).toFixed(2), amount: (parseFloat(newAmount)*acc.fraction) } : acc
         );
         return { ...prevPresetInUse, accounts: updatedAccounts, amount: newAmount };
     });
@@ -341,7 +340,7 @@ const handlePresetAmountChange = (e) => {
                                               placeholder="Amount"
                                               id="id_accounts-0-amount"
                                               style={{ display: "block" }}
-                                              onChange={(e) => handleAccountAmountChange(e, acc)}/>
+                                              onChange={(e) => handleAccountAmountChange(e as ChangeEvent<HTMLInputElement>, acc)}/>
                                 <span className="input-group-addon bootstrap-touchspin-postfix"
                                       style={{ display: "none" }}></span>
                                 <Button variant="default" className="bootstrap-touchspin-up"
@@ -450,7 +449,7 @@ const handlePresetAmountChange = (e) => {
                                                                       placeholder="Amount"
                                                                       step="0.01" type="number"
                                                                       value={presetInUse.amount}
-                                                                      onChange={(e) => handlePresetAmountChange(e)}/>
+                                                                      onChange={(e) => handlePresetAmountChange(e as ChangeEvent<HTMLInputElement>)}/>
                                                         <span className="input-group-addon bootstrap-touchspin-postfix"
                                                               style={{display: "none"}}></span>
                                                         <Button variant="default"

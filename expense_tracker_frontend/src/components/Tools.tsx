@@ -4,7 +4,7 @@ export const formatDate = (date: Dayjs): string => {
     return date.format("YYYY-MM-DD HH:mm");
 };
 
-export function centsToString(value) {
+export function centsToString(value: number) {
     try{
         let Value: number = value;
         if (Value % 100 == 0) {
@@ -29,18 +29,18 @@ export function centsToString(value) {
     // don't use floating-point numbers here due to potential rounding
 }
 
-export function pad(num) {
+export function pad(num: number) {
     return (num < 10 ? '0' : '') + num;
 }
 
-export function formatDateTimeForInput(date) {
+export function formatDateTimeForInput(date: Dayjs) {
     return date.format("YYYY-MM-DD HH:mm:ss");
 }
 
-export function formatTimezone(timezoneOffset) {
+export function formatTimezone(timezoneOffset: number) {
     return `UTC ${timezoneOffset < 0 ? '+' : ''}${-timezoneOffset / 60}:${pad(Math.abs(timezoneOffset % 60))}`
 }
 
-export function formatDateIso8601(date) {
+export function formatDateIso8601(date: Dayjs) {
     return dayjs(date).format('YYYY-MM-DDTHH:mm:ss')
 }

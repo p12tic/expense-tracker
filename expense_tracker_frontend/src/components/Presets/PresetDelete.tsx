@@ -17,7 +17,7 @@ export const PresetDelete = observer(function PresetDelete() {
     return (
         <Container>
             <NavbarComponent/>
-            <DefaultDelete backLink={backLink} id={id} returnPoint={`/presets`}
+            <DefaultDelete backLink={backLink} id={id ? id : ""} returnPoint={`/presets`}
                            deleteRequestUrl={"presets"}/>
         </Container>
     )

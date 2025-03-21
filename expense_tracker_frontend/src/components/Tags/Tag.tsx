@@ -29,8 +29,8 @@ interface TransTag {
 interface Transaction {
     id: number;
     desc: string;
-    dateTime: Dayjs;
-    timezoneOffset: number;
+    date_time: Dayjs;
+    timezone_offset: number;
     user: string;
     subs: Subtransaction[];
 }
@@ -67,8 +67,7 @@ export const Tag = observer(function Tag() {
             const transTagsWithTrans = await Promise.all(transTagData.map(async (transTag:TransTag) => {
                 const transRes = await AuthAxios.get(`transactions?id=${transTag.transaction}`, auth.getToken());
                 const transData: Transaction = transRes.data[0];
-                transData.dateTime = dayjs(transData.date_time);
-                transData.timezoneOffset = transData.timezone_offset;
+                transData.date_time = dayjs(transData.date_time);
                 const subsRes = await AuthAxios.get(`subtransactions?transaction=${transData.id}`, auth.getToken());
                 const subsData: Subtransaction[] = subsRes.data;
                 transData.subs = await Promise.all(subsData.map(async (sub) => {
@@ -80,7 +79,7 @@ export const Tag = observer(function Tag() {
                 return transTag;
             }));
 
-            transTagsWithTrans.sort((a, b) => a.transactionElement.dateTime.valueOf()-b.transactionElement.dateTime.valueOf());
+            transTagsWithTrans.sort((a, b) => a.transactionElement.date_time.valueOf()-b.transactionElement.date_time.valueOf());
             tag.transTag = transTagsWithTrans;
             setState(tag);
         }
@@ -123,8 +122,8 @@ export const Tag = observer(function Tag() {
                                         </Link>
                                     </td>
                                     <td>
-                                        {formatDate(dayjs(output.transactionElement.dateTime))}
-                                        <TimezoneTag offset={output.transactionElement.timezoneOffset}/>
+                                        {formatDate(dayjs(output.transactionElement.date_time))}
+                                        <TimezoneTag offset={output.transactionElement.timezone_offset}/>
                                     </td>
                                     <td>
                                         {output.transactionElement.subs ? (
