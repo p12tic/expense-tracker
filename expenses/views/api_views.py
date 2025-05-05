@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.http import HttpResponse, Http404
 from django.utils.timezone import make_aware
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
@@ -456,3 +457,11 @@ class TokenView(generics.ListAPIView):
     def get_queryset(self):
         queryset = User.objects.all().filter(username=self.request.user)
         return queryset
+
+
+def get_transaction_image(self, image_id):
+    try:
+        image = models.TransactionImage.objects.get(id=image_id)
+        return HttpResponse(image.image, content_type=image.header)
+    except:
+        return Http404("Image not found")
