@@ -474,3 +474,15 @@ def get_transaction_image(self, image_id):
         return HttpResponse(image.image, content_type=image.header)
     except:
         return Http404("Image not found")
+
+
+class TransactionImageView(generics.ListAPIView):
+    queryset = models.TransactionImage.objects.all()
+    serializer_class = serializers.TransactionImageSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        transaction = self.request.query_params.get('transaction')
+        if transaction is not None:
+            queryset = models.TransactionImage.objects.filter(transaction=transaction)
+        return queryset
