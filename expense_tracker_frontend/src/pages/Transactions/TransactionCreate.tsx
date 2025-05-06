@@ -30,6 +30,8 @@ import {
 } from "react-bootstrap";
 import dayjs, {Dayjs} from "dayjs";
 import {TimezoneSelect} from "../../components/TimezoneSelect";
+import ModalImage from "react-modal-image";
+import {useDropzone} from "react-dropzone";
 
 interface Preset {
   id: number;
@@ -98,6 +100,8 @@ export const TransactionCreate = observer(() => {
   const timeoutRef = useRef<number | null>(null);
   const intervalRefPreset = useRef<number | null>(null);
   const timeoutRefPreset = useRef<number | null>(null);
+  const [base64Images, setBase64Images] = useState<string[]>([]);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const FetchAccounts = async () => {
@@ -219,6 +223,7 @@ export const TransactionCreate = observer(() => {
       date: formatDateIso8601(date),
       preset: presetInUse,
       timezoneOffset: timezoneOffset,
+      base64Images: base64Images,
     };
     await AuthAxios.post("transactions", auth.getToken(), bodyParams);
     navigate("/transactions");
@@ -383,6 +388,30 @@ export const TransactionCreate = observer(() => {
       return {...prevPresetInUse, tags: updatedTags};
     });
   }, []);
+
+  const {getRootProps, getInputProps} = useDropzone({
+    onDrop: (acceptedFiles) => {
+      const base64Promises = acceptedFiles.map((file) => {
+        return new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onloadend = () => resolve(reader.result as string);
+        });
+      });
+      Promise.all(base64Promises).then((images) => {
+        setBase64Images((prevImg) => [
+          ...prevImg,
+          ...images.filter((img) => !prevImg.includes(img)),
+        ]);
+      });
+      if (imageInputRef.current) {
+        imageInputRef.current.value = "";
+      }
+    },
+  });
+  const handleImageRemove = (targetImage: string) => {
+    setBase64Images((image) => image.filter((img) => img !== targetImage));
+  };
 
   const accountsList = (acc: AccountElement) => (
     <Form.Group key={acc.id} className="align-items-center">
@@ -666,6 +695,42 @@ export const TransactionCreate = observer(() => {
           <Alert variant="info" transition={false}>
             No tags have been created
           </Alert>
+        )}
+        <h4 className="pt-2">Images</h4>
+        <div
+          {...getRootProps({className: "dropzone"})}
+          style={{cursor: "pointer"}}
+        >
+          <input {...getInputProps()} />
+          <p className="image-dropbox">
+            Drag and drop images here, or click to select images
+          </p>
+        </div>
+        {base64Images.length > 0 ? (
+          <Container className="pb-3" fluid>
+            <Row>
+              <Col style={{overflowX: "auto"}}>
+                <div className="images-container">
+                  {base64Images.map((image: string, idx: number) => (
+                    <Col key={idx} className="image-box" xs="auto">
+                      <Button
+                        onClick={() => handleImageRemove(image)}
+                        variant={""}
+                        className="image-remove-button"
+                      >
+                        &#10006;
+                      </Button>
+                      <center>
+                        <ModalImage small={image} large={image} />
+                      </center>
+                    </Col>
+                  ))}
+                </div>
+              </Col>
+            </Row>
+          </Container>
+        ) : (
+          <p>No images attached to this transaction</p>
         )}
         <SubmitButton text="Save" />
       </Form>

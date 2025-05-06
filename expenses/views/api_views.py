@@ -1,3 +1,5 @@
+import base64
+
 from django.contrib.auth.models import User
 from django.http import HttpResponse, Http404
 from django.utils.timezone import make_aware
@@ -128,6 +130,13 @@ class TransactionView(generics.ListCreateAPIView):
                         transaction=transaction, tag=tagElement
                     )
                     transactionTag.save()
+            for img in self.request.data['base64Images']:
+                header, image = img.split(',', 1)
+                base64_image = base64.b64decode(image)
+                transaction_image = models.TransactionImage.objects.create(
+                    transaction=transaction, header=header, image=base64_image
+                )
+                transaction_image.save()
             return Response(status=status.HTTP_201_CREATED)
         if self.request.data['action'] == "delete":
             transaction = models.Transaction.objects.get(id=self.request.data['id'])
