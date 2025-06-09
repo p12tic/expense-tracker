@@ -17,7 +17,7 @@ import {
   formatDateIso8601,
   formatDateTimeForInput,
 } from "../../components/Tools";
-import {AuthAxios} from "../../utils/Network";
+import {AuthAxios, getApiUrlForCurrentWindow} from "../../utils/Network";
 import {
   Card,
   Col,
@@ -31,6 +31,9 @@ import {
 } from "react-bootstrap";
 import dayjs, {Dayjs} from "dayjs";
 import {TimezoneSelect} from "../../components/TimezoneSelect";
+import ModalImage from "react-modal-image";
+import {useDropzone} from "react-dropzone";
+import {v4 as uuidv4} from "uuid";
 
 interface Preset {
   id: number;
@@ -72,6 +75,10 @@ interface PresetTransactionTag {
   preset: number;
   tag: number;
 }
+interface TransactionImage {
+  id: string;
+  full_image: string;
+}
 const defaultPreset: Preset = {
   id: 0,
   name: "",
@@ -93,11 +100,15 @@ export const TransactionEdit = observer(() => {
   const [timezoneOffset, setTimezoneOffset] = useState<number>(
     -dayjs().utcOffset(),
   );
+  const [transactionImages, setTransactionImages] = useState<
+    TransactionImage[]
+  >([]);
   const {id} = useParams();
   const intervalRef = useRef<number | null>(null);
   const timeoutRef = useRef<number | null>(null);
   const intervalRefPreset = useRef<number | null>(null);
   const timeoutRefPreset = useRef<number | null>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   if (auth.getToken() === "") {
     navigate("/login");
   }
@@ -164,6 +175,11 @@ export const TransactionEdit = observer(() => {
             tags: updatedTags,
           };
           setPresetInUse(newPreset);
+          const imageRes = await AuthAxios.get(
+            `transaction_image?transaction=${id}`,
+            auth.getToken(),
+          );
+          setTransactionImages(imageRes.data);
         },
       );
     };
@@ -255,6 +271,7 @@ export const TransactionEdit = observer(() => {
       date: formatDateIso8601(date),
       timezoneOffset: timezoneOffset,
       preset: presetInUse,
+      images: transactionImages,
     };
     await AuthAxios.post("transactions", auth.getToken(), bodyParams);
     navigate("/transactions");
@@ -441,6 +458,36 @@ export const TransactionEdit = observer(() => {
       return {...prevPresetInUse, tags: updatedTags};
     });
   }, []);
+  const {getRootProps, getInputProps} = useDropzone({
+    onDrop: (acceptedFiles) => {
+      const base64Promises = acceptedFiles.map((file) => {
+        return new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onloadend = () => resolve(reader.result as string);
+        });
+      });
+      Promise.all(base64Promises).then((images) => {
+        setTransactionImages((prevImg) => [
+          ...prevImg,
+          ...images
+            .filter((img) => !prevImg.some((item) => item.full_image === img))
+            .map((img) => ({
+              id: uuidv4(),
+              full_image: img,
+            })),
+        ]);
+      });
+      if (imageInputRef.current) {
+        imageInputRef.current.value = "";
+      }
+    },
+  });
+  const handleImageRemove = (targetImage: string) => {
+    setTransactionImages((image) =>
+      image.filter((img) => img.id !== targetImage),
+    );
+  };
 
   const accountsList = (acc: AccountElement) => (
     <Form.Group key={acc.id} className="align-items-center">
@@ -724,6 +771,55 @@ export const TransactionEdit = observer(() => {
           <Alert variant="info" transition={false}>
             No tags have been created
           </Alert>
+        )}
+        <h4 className="pt-2">Images</h4>
+        <div
+          {...getRootProps({className: "dropzone"})}
+          style={{cursor: "pointer"}}
+        >
+          <input {...getInputProps()} />
+          <p className="image-dropbox">
+            Drag and drop images here, or click to select images
+          </p>
+        </div>
+        {transactionImages.length > 0 ? (
+          <Container className="pb-3" fluid>
+            <Row>
+              <Col style={{overflowX: "auto"}}>
+                <div className="images-container">
+                  {transactionImages.map((image: TransactionImage) => (
+                    <Col key={image.id} className="image-box" xs="auto">
+                      <Button
+                        onClick={() => handleImageRemove(image.id)}
+                        variant={""}
+                        className="image-remove-button"
+                      >
+                        &#10006;
+                      </Button>
+                      <center>
+                        <ModalImage
+                          small={
+                            image.full_image ??
+                            getApiUrlForCurrentWindow() +
+                              "transaction_image/" +
+                              image.id
+                          }
+                          large={
+                            image.full_image ??
+                            getApiUrlForCurrentWindow() +
+                              "transaction_image/" +
+                              image.id
+                          }
+                        />
+                      </center>
+                    </Col>
+                  ))}
+                </div>
+              </Col>
+            </Row>
+          </Container>
+        ) : (
+          <p>No images attached to this transaction</p>
         )}
         <SubmitButton text="Save" />
       </Form>

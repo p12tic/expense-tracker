@@ -215,6 +215,25 @@ class TransactionView(generics.ListCreateAPIView):
                             transaction=transaction, account=accountElement
                         )
                         subtransaction.delete()
+            existing_images_ids = set(
+                models.TransactionImage.objects.filter(transaction=transaction).values_list(
+                    'id', flat=True
+                )
+            )
+            submitted_images_ids = {img['id'] for img in self.request.data['images']}
+            removed_images_ids = existing_images_ids - submitted_images_ids
+            new_images_ids = submitted_images_ids - existing_images_ids
+            new_images = [img for img in self.request.data['images'] if img['id'] in new_images_ids]
+            for remove_id in removed_images_ids:
+                image = models.TransactionImage.objects.get(transaction=transaction, id=remove_id)
+                image.delete()
+            for new_image in new_images:
+                header, image = new_image['full_image'].split(',', 1)
+                base64_image = base64.b64decode(image)
+                transaction_image = models.TransactionImage.objects.create(
+                    transaction=transaction, header=header, image=base64_image
+                )
+                transaction_image.save()
 
             return Response(status=status.HTTP_200_OK)
 
