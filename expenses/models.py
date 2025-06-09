@@ -234,3 +234,13 @@ class AccountSyncEvent(models.Model):
     subtransaction = models.ForeignKey(
         Subtransaction, on_delete=models.CASCADE, related_name='sync_event'
     )
+
+
+class TransactionImage(models.Model):
+    '''Saves images for transactions'''
+
+    image = models.BinaryField()
+    header = models.CharField(max_length=100)
+    transaction = models.ForeignKey(
+        Transaction, on_delete=models.CASCADE, related_name='transaction_images'
+    )

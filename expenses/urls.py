@@ -53,4 +53,6 @@ urlpatterns = [
     path('api/preset_transaction_tags', api_views.PresetTransactionTagView.as_view()),
     path('api/api-token-auth/', views.obtain_auth_token),
     path('api/token', api_views.TokenView.as_view()),
+    path('api/transaction_image/<image_id>', api_views.get_transaction_image),
+    path('api/transaction_image', api_views.TransactionImageView.as_view()),
 ]

@@ -10,9 +10,10 @@ import {
   formatDate,
   formatTimezone,
 } from "../../components/Tools";
-import {AuthAxios} from "../../utils/Network";
+import {AuthAxios, getApiUrlForCurrentWindow} from "../../utils/Network";
 import {Col, Row, Table, Button, Alert, Container} from "react-bootstrap";
 import dayjs, {Dayjs} from "dayjs";
+import ModalImage from "react-modal-image";
 
 interface TransactionElement {
   desc: string;
@@ -21,6 +22,7 @@ interface TransactionElement {
   timezoneOffset: number;
   tags: Tag[];
   subs: Subtransaction[];
+  images: number[];
 }
 interface TransactionTag {
   tag: number;
@@ -55,6 +57,7 @@ export const Transaction = observer(() => {
     timezoneOffset: -dayjs().utcOffset(),
     tags: [],
     subs: [],
+    images: [],
   });
   const {id} = useParams();
   const navigate = useNavigate();
@@ -99,6 +102,14 @@ export const Transaction = observer(() => {
                 sub.accountName = acc.name;
                 return sub;
               }),
+            );
+          });
+          await AuthAxios.get(
+            `transaction_image?transaction=${id}`,
+            auth.getToken(),
+          ).then((res) => {
+            transaction.images = res.data.map(
+              (image: {id: number}) => image.id,
             );
           });
           transaction.dateTime = dayjs(transaction.dateTime);
@@ -180,6 +191,37 @@ export const Transaction = observer(() => {
           )}
         </tbody>
       </Table>
+      <h3>Images</h3>
+      {state.images.length > 0 ? (
+        <Container fluid>
+          <Row>
+            <Col style={{overflowX: "auto"}}>
+              <div className="images-container">
+                {state.images.map((imageId: number) => (
+                  <Col key={imageId} className="image-box" xs="auto">
+                    <center>
+                      <ModalImage
+                        small={
+                          getApiUrlForCurrentWindow() +
+                          "transaction_image/" +
+                          imageId
+                        }
+                        large={
+                          getApiUrlForCurrentWindow() +
+                          "transaction_image/" +
+                          imageId
+                        }
+                      />
+                    </center>
+                  </Col>
+                ))}
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      ) : (
+        <p>No images attached to this transaction</p>
+      )}
     </Container>
   );
 });

@@ -1,4 +1,7 @@
+import base64
+
 from django.contrib.auth.models import User
+from django.http import HttpResponse, Http404
 from django.utils.timezone import make_aware
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
@@ -127,6 +130,13 @@ class TransactionView(generics.ListCreateAPIView):
                         transaction=transaction, tag=tagElement
                     )
                     transactionTag.save()
+            for img in self.request.data['base64Images']:
+                header, image = img.split(',', 1)
+                base64_image = base64.b64decode(image)
+                transaction_image = models.TransactionImage.objects.create(
+                    transaction=transaction, header=header, image=base64_image
+                )
+                transaction_image.save()
             return Response(status=status.HTTP_201_CREATED)
         if self.request.data['action'] == "delete":
             transaction = models.Transaction.objects.get(id=self.request.data['id'])
@@ -205,6 +215,25 @@ class TransactionView(generics.ListCreateAPIView):
                             transaction=transaction, account=accountElement
                         )
                         subtransaction.delete()
+            existing_images_ids = set(
+                models.TransactionImage.objects.filter(transaction=transaction).values_list(
+                    'id', flat=True
+                )
+            )
+            submitted_images_ids = {img['id'] for img in self.request.data['images']}
+            removed_images_ids = existing_images_ids - submitted_images_ids
+            new_images_ids = submitted_images_ids - existing_images_ids
+            new_images = [img for img in self.request.data['images'] if img['id'] in new_images_ids]
+            for remove_id in removed_images_ids:
+                image = models.TransactionImage.objects.get(transaction=transaction, id=remove_id)
+                image.delete()
+            for new_image in new_images:
+                header, image = new_image['full_image'].split(',', 1)
+                base64_image = base64.b64decode(image)
+                transaction_image = models.TransactionImage.objects.create(
+                    transaction=transaction, header=header, image=base64_image
+                )
+                transaction_image.save()
 
             return Response(status=status.HTTP_200_OK)
 
@@ -455,4 +484,24 @@ class TokenView(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = User.objects.all().filter(username=self.request.user)
+        return queryset
+
+
+def get_transaction_image(self, image_id):
+    try:
+        image = models.TransactionImage.objects.get(id=image_id)
+        return HttpResponse(image.image, content_type=image.header)
+    except:
+        return Http404("Image not found")
+
+
+class TransactionImageView(generics.ListAPIView):
+    queryset = models.TransactionImage.objects.all()
+    serializer_class = serializers.TransactionImageSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        transaction = self.request.query_params.get('transaction')
+        if transaction is not None:
+            queryset = models.TransactionImage.objects.filter(transaction=transaction)
         return queryset
