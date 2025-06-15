@@ -1,5 +1,7 @@
 from django.db import models
 from django.conf import settings
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 
 # ------------------------------------------------------------------------------
 # Transactions and accounts
@@ -239,8 +241,13 @@ class AccountSyncEvent(models.Model):
 class TransactionImage(models.Model):
     '''Saves images for transactions'''
 
-    image = models.BinaryField()
-    header = models.CharField(max_length=100)
+    image = models.ImageField(upload_to="transactions")
     transaction = models.ForeignKey(
         Transaction, on_delete=models.CASCADE, related_name='transaction_images'
     )
+
+
+@receiver(post_delete, sender=TransactionImage)
+def delete_transaction_image_file(sender, instance, **kwargs):
+    if instance.image:
+        instance.image.delete(save=False)

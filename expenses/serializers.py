@@ -87,4 +87,4 @@ class TokenSerializer(serializers.ModelSerializer):
 class TransactionImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.TransactionImage
-        fields = ['id']
+        fields = ['id', 'image']
