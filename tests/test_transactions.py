@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.conf import settings
 from expenses.models import *
 from expenses.db_utils import *
-from datetime import datetime, date
+from datetime import datetime, date, timezone, timedelta
 
 
 class TestTransactions(TestCase):
@@ -383,3 +383,14 @@ class TestTransactions(TestCase):
             (70, date(2000, 1, 4)),
         ]
         self.assert_caches(cache_on_date)
+
+    def test_get_aware_from_naive_iso(self):
+        time_string = "2025-06-15T16:49:38"
+        timezone_offset = -120
+        timezone_offset_string = "-120"
+        time1 = get_aware_from_naive_iso(time_string, timezone_offset)
+        expected_timezone = timezone(timedelta(minutes=-timezone_offset))
+        expected_time = datetime(2025, 6, 15, 16, 49, 38, tzinfo=expected_timezone)
+        self.assertEqual(time1, expected_time)
+        time2 = get_aware_from_naive_iso(time_string, timezone_offset_string)
+        self.assertEqual(time1, time2)

@@ -1,4 +1,4 @@
-from datetime import timedelta, timezone, datetime
+import datetime
 from django.utils.timezone import make_aware
 from .models import *
 import re
@@ -382,13 +382,13 @@ def sync_update_date_or_amount(event, date_time, balance):
 
 
 def get_aware_from_naive_iso(dt_string, timezone_offset):
-    tz = timezone(timedelta(minutes=-int(timezone_offset)))
-    dt = datetime.fromisoformat(dt_string)
+    tz = datetime.timezone(datetime.timedelta(minutes=-int(timezone_offset)))
+    dt = datetime.datetime.fromisoformat(dt_string)
     aware_dt = make_aware(dt, timezone=tz)
     return aware_dt
 
 
 def format_return_iso(dt, tz_offset):
-    tz = timezone(timedelta(minutes=-tz_offset))
+    tz = datetime.timezone(datetime.timedelta(minutes=-tz_offset))
     dt_tz = dt.astimezone(tz=tz)
     return re.sub(r'(Z|[+-]\d{1,2}:\d{2})$', '', dt_tz.isoformat())
