@@ -1,10 +1,12 @@
 '''expense_tracker URL Configuration'''
 
+from django.conf import settings
+from django.conf.urls.static import static
 from django.urls import path, re_path
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
-from .views import auth, account, account_sync, json, preset, tag, transaction, api_views
+from .views import auth, account, account_sync, preset, tag, transaction, api_views
 from rest_framework.authtoken import views
 
 urlpatterns = [
@@ -53,6 +55,6 @@ urlpatterns = [
     path('api/preset_transaction_tags', api_views.PresetTransactionTagView.as_view()),
     path('api/api-token-auth/', views.obtain_auth_token),
     path('api/token', api_views.TokenView.as_view()),
-    path('api/transaction_image/<image_id>', api_views.get_transaction_image),
     path('api/transaction_image', api_views.TransactionImageView.as_view()),
 ]
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

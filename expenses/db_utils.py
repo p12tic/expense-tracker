@@ -382,7 +382,7 @@ def sync_update_date_or_amount(event, date_time, balance):
 
 
 def get_aware_from_naive_iso(dt_string, timezone_offset):
-    tz = timezone(timedelta(minutes=-timezone_offset))
+    tz = timezone(timedelta(minutes=-int(timezone_offset)))
     dt = datetime.fromisoformat(dt_string)
     aware_dt = make_aware(dt, timezone=tz)
     return aware_dt

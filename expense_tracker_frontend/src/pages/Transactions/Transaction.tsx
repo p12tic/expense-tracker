@@ -10,7 +10,7 @@ import {
   formatDate,
   formatTimezone,
 } from "../../components/Tools";
-import {AuthAxios, getApiUrlForCurrentWindow} from "../../utils/Network";
+import {AuthAxios} from "../../utils/Network";
 import {Col, Row, Table, Button, Alert, Container} from "react-bootstrap";
 import dayjs, {Dayjs} from "dayjs";
 import ModalImage from "react-modal-image";
@@ -22,7 +22,7 @@ interface TransactionElement {
   timezoneOffset: number;
   tags: Tag[];
   subs: Subtransaction[];
-  images: number[];
+  images: TransactionImage[];
 }
 interface TransactionTag {
   tag: number;
@@ -46,6 +46,10 @@ interface Account {
   user: number;
   name: string;
   desc: string;
+}
+interface TransactionImage {
+  id: number;
+  image: string;
 }
 
 export const Transaction = observer(() => {
@@ -108,9 +112,7 @@ export const Transaction = observer(() => {
             `transaction_image?transaction=${id}`,
             auth.getToken(),
           ).then((res) => {
-            transaction.images = res.data.map(
-              (image: {id: number}) => image.id,
-            );
+            transaction.images = res.data;
           });
           transaction.dateTime = dayjs(transaction.dateTime);
           transaction.subs = Subs;
@@ -197,21 +199,10 @@ export const Transaction = observer(() => {
           <Row>
             <Col style={{overflowX: "auto"}}>
               <div className="images-container">
-                {state.images.map((imageId: number) => (
-                  <Col key={imageId} className="image-box" xs="auto">
+                {state.images.map((image: TransactionImage) => (
+                  <Col key={image.id} className="image-box" xs="auto">
                     <center>
-                      <ModalImage
-                        small={
-                          getApiUrlForCurrentWindow() +
-                          "transaction_image/" +
-                          imageId
-                        }
-                        large={
-                          getApiUrlForCurrentWindow() +
-                          "transaction_image/" +
-                          imageId
-                        }
-                      />
+                      <ModalImage small={image.image} large={image.image} />
                     </center>
                   </Col>
                 ))}

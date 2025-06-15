@@ -17,7 +17,7 @@ import {
   formatDateIso8601,
   formatDateTimeForInput,
 } from "../../components/Tools";
-import {AuthAxios, getApiUrlForCurrentWindow} from "../../utils/Network";
+import {AuthAxios} from "../../utils/Network";
 import {
   Card,
   Col,
@@ -77,7 +77,7 @@ interface PresetTransactionTag {
 }
 interface TransactionImage {
   id: string;
-  full_image: string;
+  image: string | File;
 }
 const defaultPreset: Preset = {
   id: 0,
@@ -264,15 +264,17 @@ export const TransactionEdit = observer(() => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const bodyParams = {
-      action: "edit",
-      id: id,
-      desc: desc,
-      date: formatDateIso8601(date),
-      timezoneOffset: timezoneOffset,
-      preset: presetInUse,
-      images: transactionImages,
-    };
+    const bodyParams = new FormData();
+    bodyParams.append("action", "edit");
+    bodyParams.append("id", id);
+    bodyParams.append("desc", desc);
+    bodyParams.append("date", formatDateIso8601(date));
+    bodyParams.append("preset", JSON.stringify(presetInUse));
+    bodyParams.append("timezoneOffset", timezoneOffset.toString());
+    transactionImages.map((image) => {
+      bodyParams.append("images", image.image);
+      typeof image.image == "string" && bodyParams.append("imageIds", image.id);
+    });
     await AuthAxios.post("transactions", auth.getToken(), bodyParams);
     navigate("/transactions");
   };
@@ -459,25 +461,14 @@ export const TransactionEdit = observer(() => {
     });
   }, []);
   const {getRootProps, getInputProps} = useDropzone({
+    accept: {
+      "image/*": [],
+    },
     onDrop: (acceptedFiles) => {
-      const base64Promises = acceptedFiles.map((file) => {
-        return new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.readAsDataURL(file);
-          reader.onloadend = () => resolve(reader.result as string);
-        });
-      });
-      Promise.all(base64Promises).then((images) => {
-        setTransactionImages((prevImg) => [
-          ...prevImg,
-          ...images
-            .filter((img) => !prevImg.some((item) => item.full_image === img))
-            .map((img) => ({
-              id: uuidv4(),
-              full_image: img,
-            })),
-        ]);
-      });
+      setTransactionImages((prevImg) => [
+        ...prevImg,
+        ...acceptedFiles.map((file) => ({id: uuidv4(), image: file})),
+      ]);
       if (imageInputRef.current) {
         imageInputRef.current.value = "";
       }
@@ -799,16 +790,14 @@ export const TransactionEdit = observer(() => {
                       <center>
                         <ModalImage
                           small={
-                            image.full_image ??
-                            getApiUrlForCurrentWindow() +
-                              "transaction_image/" +
-                              image.id
+                            typeof image.image != "string"
+                              ? URL.createObjectURL(image.image)
+                              : image.image
                           }
                           large={
-                            image.full_image ??
-                            getApiUrlForCurrentWindow() +
-                              "transaction_image/" +
-                              image.id
+                            typeof image.image != "string"
+                              ? URL.createObjectURL(image.image)
+                              : image.image
                           }
                         />
                       </center>

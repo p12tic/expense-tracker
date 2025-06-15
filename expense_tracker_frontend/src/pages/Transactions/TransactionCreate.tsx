@@ -32,6 +32,7 @@ import dayjs, {Dayjs} from "dayjs";
 import {TimezoneSelect} from "../../components/TimezoneSelect";
 import ModalImage from "react-modal-image";
 import {useDropzone} from "react-dropzone";
+import {v4 as uuidv4} from "uuid";
 
 interface Preset {
   id: number;
@@ -72,6 +73,10 @@ interface PresetTransactionTag {
   preset: number;
   tag: number;
 }
+interface TransactionImage {
+  id: string;
+  image: File;
+}
 const defaultPreset: Preset = {
   id: 0,
   name: "",
@@ -100,8 +105,8 @@ export const TransactionCreate = observer(() => {
   const timeoutRef = useRef<number | null>(null);
   const intervalRefPreset = useRef<number | null>(null);
   const timeoutRefPreset = useRef<number | null>(null);
-  const [base64Images, setBase64Images] = useState<string[]>([]);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const [images, setImages] = useState<TransactionImage[]>([]);
 
   useEffect(() => {
     const FetchAccounts = async () => {
@@ -217,14 +222,13 @@ export const TransactionCreate = observer(() => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const bodyParams = {
-      action: "create",
-      desc: desc,
-      date: formatDateIso8601(date),
-      preset: presetInUse,
-      timezoneOffset: timezoneOffset,
-      base64Images: base64Images,
-    };
+    const bodyParams = new FormData();
+    bodyParams.append("action", "create");
+    bodyParams.append("desc", desc);
+    bodyParams.append("date", formatDateIso8601(date));
+    bodyParams.append("preset", JSON.stringify(presetInUse));
+    bodyParams.append("timezoneOffset", timezoneOffset.toString());
+    images.map((image) => bodyParams.append("images", image.image));
     await AuthAxios.post("transactions", auth.getToken(), bodyParams);
     navigate("/transactions");
   };
@@ -390,27 +394,21 @@ export const TransactionCreate = observer(() => {
   }, []);
 
   const {getRootProps, getInputProps} = useDropzone({
+    accept: {
+      "image/*": [],
+    },
     onDrop: (acceptedFiles) => {
-      const base64Promises = acceptedFiles.map((file) => {
-        return new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.readAsDataURL(file);
-          reader.onloadend = () => resolve(reader.result as string);
-        });
-      });
-      Promise.all(base64Promises).then((images) => {
-        setBase64Images((prevImg) => [
-          ...prevImg,
-          ...images.filter((img) => !prevImg.includes(img)),
-        ]);
-      });
+      setImages((prevImg) => [
+        ...prevImg,
+        ...acceptedFiles.map((file) => ({id: uuidv4(), image: file})),
+      ]);
       if (imageInputRef.current) {
         imageInputRef.current.value = "";
       }
     },
   });
   const handleImageRemove = (targetImage: string) => {
-    setBase64Images((image) => image.filter((img) => img !== targetImage));
+    setImages((image) => image.filter((img) => img.id !== targetImage));
   };
 
   const accountsList = (acc: AccountElement) => (
@@ -706,22 +704,25 @@ export const TransactionCreate = observer(() => {
             Drag and drop images here, or click to select images
           </p>
         </div>
-        {base64Images.length > 0 ? (
+        {images.length > 0 ? (
           <Container className="pb-3" fluid>
             <Row>
               <Col style={{overflowX: "auto"}}>
                 <div className="images-container">
-                  {base64Images.map((image: string, idx: number) => (
-                    <Col key={idx} className="image-box" xs="auto">
+                  {images.map((image: TransactionImage) => (
+                    <Col key={image.id} className="image-box" xs="auto">
                       <Button
-                        onClick={() => handleImageRemove(image)}
+                        onClick={() => handleImageRemove(image.id)}
                         variant={""}
                         className="image-remove-button"
                       >
                         &#10006;
                       </Button>
                       <center>
-                        <ModalImage small={image} large={image} />
+                        <ModalImage
+                          small={URL.createObjectURL(image.image)}
+                          large={URL.createObjectURL(image.image)}
+                        />
                       </center>
                     </Col>
                   ))}
