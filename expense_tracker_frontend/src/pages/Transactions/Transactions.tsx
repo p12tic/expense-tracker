@@ -1,12 +1,12 @@
 import {NavbarComponent} from "../../components/Navbar";
 import React, {useEffect, useState} from "react";
-import {Link, useNavigate} from "react-router-dom";
+import {Link, useLocation, useNavigate} from "react-router-dom";
 import {TableButton} from "../../components/TableButton";
 import {formatDate, centsToString} from "../../components/Tools";
 import {observer} from "mobx-react-lite";
 import {useToken} from "../../utils/AuthContext";
 import {AuthAxios} from "../../utils/Network";
-import {Col, Row, Table, Button, Container} from "react-bootstrap";
+import {Col, Row, Table, Button, Container, Alert} from "react-bootstrap";
 import {TimezoneTag} from "../../components/TimezoneTag";
 import dayjs, {Dayjs} from "dayjs";
 
@@ -57,6 +57,7 @@ export const TransactionsList = observer(() => {
   const auth = useToken();
   const [state, setState] = useState<Transaction[]>([]);
   const navigate = useNavigate();
+  const location = useLocation();
   if (auth.getToken() === "") {
     navigate("/login");
   }
@@ -123,9 +124,29 @@ export const TransactionsList = observer(() => {
     fetchTransactions();
   }, []);
 
+  function onClose() {
+    navigate(location.pathname, {state: null});
+  }
+
   return (
     <Container>
       <NavbarComponent />
+      {location.state && (
+        <Alert
+          dismissible
+          variant={"success"}
+          style={{marginTop: "10px", cursor: "pointer"}}
+          onClose={onClose}
+        >
+          <div
+            onClick={() =>
+              navigate(`/transactions/add`, {state: location.state})
+            }
+          >
+            Click to create another transaction like this
+          </div>
+        </Alert>
+      )}
       <Row>
         <Col>
           <h1>Transactions</h1>

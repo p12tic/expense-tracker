@@ -1,7 +1,7 @@
 import {observer} from "mobx-react-lite";
 import {NavbarComponent} from "../../components/Navbar";
 import {useToken} from "../../utils/AuthContext";
-import {useNavigate} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
 import {
   ChangeEvent,
   FormEvent,
@@ -90,13 +90,18 @@ const defaultPreset: Preset = {
 export const TransactionCreate = observer(() => {
   const auth = useToken();
   const navigate = useNavigate();
+  const location = useLocation();
   const [presets, setPresets] = useState<Preset[]>([]);
-  const [presetInUse, setPresetInUse] = useState<Preset>(defaultPreset);
-  const [openPresets, setOpenPresets] = useState(false);
-  const [desc, setDesc] = useState("");
-  const [date, setDate] = useState<Dayjs>(dayjs());
+  const [presetInUse, setPresetInUse] = useState<Preset>(
+    location.state?.presetInUse ?? defaultPreset,
+  );
+  const [openPresets, setOpenPresets] = useState(
+    location.state?.presetInUse.id !== 0,
+  );
+  const [desc, setDesc] = useState(location.state?.desc ?? "");
+  const [date, setDate] = useState<Dayjs>(dayjs(location.state?.date));
   const [timezoneOffset, setTimezoneOffset] = useState<number>(
-    -dayjs().utcOffset(),
+    location.state?.timezoneOffset ?? -dayjs().utcOffset(),
   );
   if (auth.getToken() === "") {
     navigate("/login");
@@ -106,7 +111,9 @@ export const TransactionCreate = observer(() => {
   const intervalRefPreset = useRef<number | null>(null);
   const timeoutRefPreset = useRef<number | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const [images, setImages] = useState<TransactionImage[]>([]);
+  const [images, setImages] = useState<TransactionImage[]>(
+    location.state?.images ?? [],
+  );
 
   useEffect(() => {
     const FetchAccounts = async () => {
@@ -141,7 +148,7 @@ export const TransactionCreate = observer(() => {
           accounts: AccountsData,
           tags: Tags,
         };
-        setPresetInUse(newPreset);
+        location.state?.presetInUse || setPresetInUse(newPreset);
       });
     };
     const FetchPresets = async () => {
@@ -230,7 +237,15 @@ export const TransactionCreate = observer(() => {
     bodyParams.append("timezoneOffset", timezoneOffset.toString());
     images.map((image) => bodyParams.append("images", image.image));
     await AuthAxios.post("transactions", auth.getToken(), bodyParams);
-    navigate("/transactions");
+    navigate("/transactions", {
+      state: {
+        desc,
+        date: formatDateIso8601(date),
+        presetInUse,
+        timezoneOffset,
+        images,
+      },
+    });
   };
   const handleAccountAmountMouseDown = (
     clickedAccUse: AccountElement,
