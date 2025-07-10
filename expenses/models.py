@@ -247,6 +247,21 @@ class TransactionImage(models.Model):
     )
 
 
+class TransactionCreateBatch(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    preset = models.ForeignKey(Preset, on_delete=models.CASCADE, blank=True, null=True)
+    account = models.ForeignKey(Account, on_delete=models.CASCADE, blank=True, null=True)
+    name = models.CharField(max_length=256, verbose_name="description")
+
+
+class TransactionCreateBatchRemainingTransactions(models.Model):
+    batch = models.ForeignKey(TransactionCreateBatch, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to="transaction_batch")
+    data_json = models.JSONField(blank=True, null=True)
+    data_done = models.BooleanField(default=False)
+
+
+@receiver(post_delete, sender=TransactionCreateBatchRemainingTransactions)
 @receiver(post_delete, sender=TransactionImage)
 def delete_transaction_image_file(sender, instance, **kwargs):
     if instance.image:
