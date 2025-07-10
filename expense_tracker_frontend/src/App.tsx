@@ -23,6 +23,7 @@ import {Transaction} from "./pages/Transactions/Transaction";
 import {TransactionDelete} from "./pages/Transactions/TransactionDelete";
 import {TransactionEdit} from "./pages/Transactions/TransactionEdit";
 import {AccountSync} from "./pages/Accounts/AccountSync";
+import {TransactionCreateBatch} from "./pages/Transactions/TransactionCreateBatch";
 
 function App() {
   return (
@@ -52,6 +53,10 @@ function App() {
         <Route
           path="transactions/:id/edit"
           element={<TransactionEdit />}
+        ></Route>
+        <Route
+          path="transactions/batch/create"
+          element={<TransactionCreateBatch />}
         ></Route>
         {/*Preset routes*/}
         <Route path="presets" element={<PresetsList />}></Route>

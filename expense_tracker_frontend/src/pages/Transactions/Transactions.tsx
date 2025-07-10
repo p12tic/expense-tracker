@@ -52,10 +52,17 @@ interface Account {
   desc: string;
   user: string;
 }
+interface Batch {
+  id: number;
+  name: string;
+  count: number;
+  nextID: number;
+}
 
 export const TransactionsList = observer(() => {
   const auth = useToken();
   const [state, setState] = useState<Transaction[]>([]);
+  const [batches, setBatches] = useState<Batch[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
   if (auth.getToken() === "") {
@@ -147,6 +154,46 @@ export const TransactionsList = observer(() => {
           </div>
         </Alert>
       )}
+      <Row>
+        <Col>
+          <h1>Incoming batches</h1>
+        </Col>
+        <Col md="auto" className="d-flex justify-content-end">
+          <TableButton dest={`/transactions/batch/create`} name={"New Batch"} />
+        </Col>
+      </Row>
+      <Table size="sm">
+        <thead>
+          {batches.length > 0 ? (
+            <tr>
+              <th>Name</th>
+              <th>Remaining transactions</th>
+            </tr>
+          ) : (
+            <></>
+          )}
+        </thead>
+        <tbody>
+          {batches.length > 0 ? (
+            batches.map((output) => (
+              <tr key={output.id}>
+                <td>
+                  <Link
+                    to={`/transactions/batch/${output.id}/${output.nextID}`}
+                  >
+                    {output.name}
+                  </Link>
+                </td>
+                <td>{output.count}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td>No incoming batches</td>
+            </tr>
+          )}
+        </tbody>
+      </Table>
       <Row>
         <Col>
           <h1>Transactions</h1>

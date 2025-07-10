@@ -494,3 +494,28 @@ class TransactionImageView(generics.ListAPIView):
         if transaction is not None:
             queryset = models.TransactionImage.objects.filter(transaction=transaction)
         return queryset
+
+
+class TransactionCreateBatchView(generics.ListCreateAPIView):
+    queryset = models.TransactionCreateBatch.objects.all()
+    serializer_class = serializers.TransactionCreateBatchSerializer
+
+    def post(self, request, *args, **kwargs):
+        selection = json.loads(self.request.data['selection'])
+        if 'transaction_desc' in selection:
+            preset = models.Preset.objects.get(id=selection['id'])
+            batch = models.TransactionCreateBatch.objects.create(
+                preset=preset, name=self.request.data['name'], user=self.request.user
+            )
+        else:
+            account = models.Account.objects.get(id=selection['id'])
+            batch = models.TransactionCreateBatch.objects.create(
+                account=account, name=self.request.data['name'], user=self.request.user
+            )
+        batch.save()
+        for img in self.request.FILES.getlist("images"):
+            batch_image = models.TransactionCreateBatchRemainingTransactions.objects.create(
+                batch=batch, image=img, data_done=False
+            )
+            batch_image.save()
+        return Response(status=status.HTTP_201_CREATED)

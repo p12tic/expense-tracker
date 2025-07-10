@@ -56,5 +56,6 @@ urlpatterns = [
     path('api/api-token-auth/', views.obtain_auth_token),
     path('api/token', api_views.TokenView.as_view()),
     path('api/transaction_image', api_views.TransactionImageView.as_view()),
+    path('api/transaction_batch', api_views.TransactionCreateBatchView.as_view()),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
