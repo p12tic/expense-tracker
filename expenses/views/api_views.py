@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from datetime import timedelta, timezone, datetime
 from .. import models, serializers, db_utils
 from rest_framework import generics, authentication, status
+from rest_framework.decorators import api_view
 
 
 class AccountView(generics.ListCreateAPIView):
@@ -500,6 +501,14 @@ class TransactionCreateBatchView(generics.ListCreateAPIView):
     queryset = models.TransactionCreateBatch.objects.all()
     serializer_class = serializers.TransactionCreateBatchSerializer
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.filter(user=self.request.user)
+        id = self.request.query_params.get("id")
+        if id is not None:
+            queryset = queryset.filter(id=id)
+        return queryset
+
     def post(self, request, *args, **kwargs):
         selection = json.loads(self.request.data['selection'])
         if 'transaction_desc' in selection:
@@ -519,3 +528,27 @@ class TransactionCreateBatchView(generics.ListCreateAPIView):
             )
             batch_image.save()
         return Response(status=status.HTTP_201_CREATED)
+
+
+@api_view(["GET"])
+def transaction_batch_item_count(request, batch_id):
+    item_count = models.TransactionCreateBatchRemainingTransactions.objects.filter(
+        batch=batch_id
+    ).count()
+    return Response({'count': item_count}, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+def next_batch_item_id(request, batch_id, current_id):
+    batch = models.TransactionCreateBatch.objects.get(id=batch_id)
+    next_item = models.TransactionCreateBatchRemainingTransactions.objects.filter(
+        batch=batch, id__gt=current_id
+    ).first()
+    if next_item is None:
+        next_item = models.TransactionCreateBatchRemainingTransactions.objects.filter(
+            batch=batch, id__lt=current_id
+        ).first()
+    if next_item is not None:
+        return Response({'id': next_item.id}, status=status.HTTP_200_OK)
+    else:
+        return Response(status=status.HTTP_204_NO_CONTENT)

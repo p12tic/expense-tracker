@@ -128,7 +128,29 @@ export const TransactionsList = observer(() => {
         console.error(err);
       }
     };
+    const fetchBatches = async () => {
+      const res = await AuthAxios.get("transaction_batch", auth.getToken());
+      const data: Batch[] = res.data;
+      setBatches(
+        await Promise.all(
+          data.map(async (batch) => {
+            const batchRes = await AuthAxios.get(
+              `transaction_batch/${batch.id}/count`,
+              auth.getToken(),
+            );
+            batch.count = batchRes.data.count;
+            const nextBatchRes = await AuthAxios.get(
+              `transaction_batch/${batch.id}/0/next`,
+              auth.getToken(),
+            );
+            batch.nextID = nextBatchRes.data.id;
+            return batch;
+          }),
+        ),
+      );
+    };
     fetchTransactions();
+    fetchBatches();
   }, []);
 
   function onClose() {
