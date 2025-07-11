@@ -36,11 +36,16 @@ import {AccountsListItem} from "../../components/AccountsListItem";
 import {PresetSelection} from "../../components/PresetSelection";
 import {ImageField} from "../../components/ImageField";
 
+interface scannedData {
+  amount: string;
+  date: string;
+}
 interface BatchData {
   id: number;
   name: string;
   preset: number;
   account: number;
+  data: scannedData;
 }
 const defaultPreset: Preset = {
   id: 0,
@@ -69,6 +74,7 @@ export const TransactionBatch = observer(() => {
   const [images, setImages] = useState<TransactionImage[]>([]);
   const {batchID, batchItemID} = useParams();
   const [nextItemID, setNextItemID] = useState<number>();
+  const [isProcessed, setIsProcessed] = useState<boolean>(false);
 
   useEffect(() => {
     const fetch = async () => {
@@ -101,9 +107,21 @@ export const TransactionBatch = observer(() => {
         auth.getToken(),
       );
       setImages([batchTransactionRes.data]);
+      setIsProcessed(batchTransactionRes.data.data_done);
+      if (batchTransactionRes.data.data_json) {
+        batchOptions.data = batchTransactionRes.data.data_json;
+      } else {
+        batchOptions.data = {amount: "0", date: dayjs().toISOString()};
+      }
+      setDate(dayjs(batchOptions.data.date));
       if (batchOptions.preset) {
         const preset = presets.find((obj) => obj.id === batchOptions.preset);
         if (preset !== undefined) {
+          preset.amount = batchOptions.data.amount;
+          preset.accounts = preset.accounts.map((acc) => ({
+            ...acc,
+            amount: acc.fraction * parseFloat(preset.amount),
+          }));
           setPresetInUse(preset);
           setDesc(preset.transaction_desc || "");
           setOpenPresets(true);
@@ -121,6 +139,7 @@ export const TransactionBatch = observer(() => {
                 ? {
                     ...acc,
                     isUsed: true,
+                    amount: parseFloat(batchOptions.data.amount),
                   }
                 : acc,
             );
@@ -206,9 +225,16 @@ export const TransactionBatch = observer(() => {
     <Container>
       <NavbarComponent />
       <Form onSubmit={handleSubmit}>
-        <Alert variant={"success"} style={{marginTop: "10px"}}>
+        <Alert
+          variant={isProcessed ? "success" : "danger"}
+          style={{marginTop: "10px"}}
+        >
           <Row>
-            <Col>Is the data filled correctly?</Col>
+            <Col>
+              {isProcessed
+                ? "Data prefilled by AI. Is data filled correctly?"
+                : "Data has not been prefilled by AI yet. Submit it anyways?"}
+            </Col>
             {nextItemID !== undefined && (
               <Col xs={4} sm={2} className="ms-auto">
                 <Button
@@ -226,7 +252,7 @@ export const TransactionBatch = observer(() => {
             )}
             <Col xs={4} sm={2} className="ms-auto">
               <Button
-                variant="outline-success"
+                variant={isProcessed ? "outline-success" : "outline-danger"}
                 type="submit"
                 style={{width: "100%"}}
               >

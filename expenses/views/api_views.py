@@ -533,11 +533,27 @@ class TransactionCreateBatchView(generics.ListCreateAPIView):
                 account=account, name=self.request.data['name'], user=self.request.user
             )
         batch.save()
+        prompt = ("Attached is an image of receipt(possibly in Lithuanian). "
+                  "Extract total amount and date in iso format. "
+                  "No extra text, details or code block, just raw json. "
+                  "Give extracted data in json format {amount: 11.11, date: 2021-04-23T11:16:24}")
         for img in self.request.FILES.getlist("images"):
-            batch_image = models.TransactionCreateBatchRemainingTransactions.objects.create(
-                batch=batch, image=img, data_done=False
-            )
-            batch_image.save()
+            response = db_utils.analyse_image_with_openai(img, prompt)
+            if response.status_code == 200:
+                response_json = response.json()
+                try:
+                    receipt_data_json = json.loads(
+                        response_json["choices"][0]["message"]["content"]
+                    )
+                    batch_image = models.TransactionCreateBatchRemainingTransactions.objects.create(
+                        batch=batch, image=img, data_done=True, data_json=receipt_data_json
+                    )
+                    batch_image.save()
+                except ValueError:
+                    batch_image = models.TransactionCreateBatchRemainingTransactions.objects.create(
+                        batch=batch, image=img, data_done=False
+                    )
+                    batch_image.save()
         return Response(status=status.HTTP_201_CREATED)
 
 
