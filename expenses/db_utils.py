@@ -396,27 +396,3 @@ def format_return_iso(dt, tz_offset):
     dt_tz = dt.astimezone(tz=tz)
     return re.sub(r'(Z|[+-]\d{1,2}:\d{2})$', '', dt_tz.isoformat())
 
-
-def analyse_image_with_openai(image, prompt):
-    base64_image = base64.b64encode(image.read()).decode("utf-8")
-    key = settings.OPENAI_API_KEY
-    url = f"{settings.OPENAI_URL}/chat/completions"
-    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {key}"}
-    data = {
-        "model": "gpt-4o-mini",
-        "messages": [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt},
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
-                    },
-                ],
-            }
-        ],
-        "max_tokens": 300,
-    }
-    response = requests.post(url, headers=headers, json=data)
-    return response
