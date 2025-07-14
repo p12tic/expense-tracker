@@ -88,3 +88,15 @@ class TransactionImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.TransactionImage
         fields = ['id', 'image']
+
+
+class TransactionCreateBatchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.TransactionCreateBatch
+        fields = '__all__'
+
+
+class TransactionCreateBatchRemainingTransactionsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.TransactionCreateBatchRemainingTransactions
+        fields = '__all__'

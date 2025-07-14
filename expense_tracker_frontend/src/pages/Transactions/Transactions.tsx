@@ -1,12 +1,12 @@
 import {NavbarComponent} from "../../components/Navbar";
 import React, {useEffect, useState} from "react";
-import {Link, useNavigate} from "react-router-dom";
+import {Link, useLocation, useNavigate} from "react-router-dom";
 import {TableButton} from "../../components/TableButton";
 import {formatDate, centsToString} from "../../components/Tools";
 import {observer} from "mobx-react-lite";
 import {useToken} from "../../utils/AuthContext";
 import {AuthAxios} from "../../utils/Network";
-import {Col, Row, Table, Button, Container} from "react-bootstrap";
+import {Col, Row, Table, Button, Container, Alert} from "react-bootstrap";
 import {TimezoneTag} from "../../components/TimezoneTag";
 import dayjs, {Dayjs} from "dayjs";
 
@@ -52,11 +52,19 @@ interface Account {
   desc: string;
   user: string;
 }
+interface Batch {
+  id: number;
+  name: string;
+  count: number;
+  nextID: number;
+}
 
 export const TransactionsList = observer(() => {
   const auth = useToken();
   const [state, setState] = useState<Transaction[]>([]);
+  const [batches, setBatches] = useState<Batch[]>([]);
   const navigate = useNavigate();
+  const location = useLocation();
   if (auth.getToken() === "") {
     navigate("/login");
   }
@@ -120,12 +128,94 @@ export const TransactionsList = observer(() => {
         console.error(err);
       }
     };
+    const fetchBatches = async () => {
+      const res = await AuthAxios.get("transaction_batch", auth.getToken());
+      const data: Batch[] = res.data;
+      setBatches(
+        await Promise.all(
+          data.map(async (batch) => {
+            const batchRes = await AuthAxios.get(
+              `transaction_batch/${batch.id}/count`,
+              auth.getToken(),
+            );
+            batch.count = batchRes.data.count;
+            const nextBatchRes = await AuthAxios.get(
+              `transaction_batch/${batch.id}/0/next`,
+              auth.getToken(),
+            );
+            batch.nextID = nextBatchRes.data.id;
+            return batch;
+          }),
+        ),
+      );
+    };
     fetchTransactions();
+    fetchBatches();
   }, []);
+
+  function onClose() {
+    navigate(location.pathname, {state: null});
+  }
 
   return (
     <Container>
       <NavbarComponent />
+      {location.state && (
+        <Alert
+          dismissible
+          variant={"success"}
+          style={{marginTop: "10px", cursor: "pointer"}}
+          onClose={onClose}
+        >
+          <div
+            onClick={() =>
+              navigate(`/transactions/add`, {state: location.state})
+            }
+          >
+            Click to create another transaction like this
+          </div>
+        </Alert>
+      )}
+      <Row>
+        <Col>
+          <h1>Incoming batches</h1>
+        </Col>
+        <Col md="auto" className="d-flex justify-content-end">
+          <TableButton dest={`/transactions/batch/create`} name={"New Batch"} />
+        </Col>
+      </Row>
+      <Table size="sm">
+        <thead>
+          {batches.length > 0 ? (
+            <tr>
+              <th>Name</th>
+              <th>Remaining transactions</th>
+            </tr>
+          ) : (
+            <></>
+          )}
+        </thead>
+        <tbody>
+          {batches.length > 0 ? (
+            batches.map((output) => (
+              <tr key={output.id}>
+                <td>
+                  <Link
+                    to={`/transactions/batch/${output.id}/${output.nextID}`}
+                  >
+                    {output.name}
+                  </Link>
+                </td>
+                <td>{output.count}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td>No incoming batches</td>
+            </tr>
+          )}
+        </tbody>
+      </Table>
       <Row>
         <Col>
           <h1>Transactions</h1>

@@ -1,6 +1,8 @@
 import base64
 import importlib
+import requests
 import json
+from django.core.files.base import ContentFile
 from django.contrib.auth.models import User
 from django.utils.timezone import make_aware
 from rest_framework.authtoken.models import Token
@@ -8,6 +10,7 @@ from rest_framework.response import Response
 from datetime import timedelta, timezone, datetime
 from .. import models, serializers, db_utils
 from rest_framework import generics, authentication, status
+from rest_framework.decorators import api_view
 
 
 class AccountView(generics.ListCreateAPIView):
@@ -136,6 +139,15 @@ class TransactionView(generics.ListCreateAPIView):
                     transaction=transaction, image=img
                 )
                 transaction_image.save()
+            for img in self.request.POST.getlist("images"):
+                if img.split("/")[-2] == "transaction_batch":
+                    img_res = requests.get(img)
+                    if img_res.status_code == 200:
+                        image = ContentFile(img_res.content, name=img.split("/")[-1])
+                        transaction_image = models.TransactionImage.objects.create(
+                            transaction=transaction, image=image
+                        )
+                        transaction_image.save()
             return Response(status=status.HTTP_201_CREATED)
         if self.request.data['action'] == "delete":
             transaction = models.Transaction.objects.get(id=self.request.data['id'])
@@ -494,3 +506,82 @@ class TransactionImageView(generics.ListAPIView):
         if transaction is not None:
             queryset = models.TransactionImage.objects.filter(transaction=transaction)
         return queryset
+
+
+class TransactionCreateBatchView(generics.ListCreateAPIView):
+    queryset = models.TransactionCreateBatch.objects.all()
+    serializer_class = serializers.TransactionCreateBatchSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.filter(user=self.request.user)
+        id = self.request.query_params.get("id")
+        if id is not None:
+            queryset = queryset.filter(id=id)
+        return queryset
+
+    def post(self, request, *args, **kwargs):
+        selection = json.loads(self.request.data['selection'])
+        if 'transaction_desc' in selection:
+            preset = models.Preset.objects.get(id=selection['id'])
+            batch = models.TransactionCreateBatch.objects.create(
+                preset=preset, name=self.request.data['name'], user=self.request.user
+            )
+        else:
+            account = models.Account.objects.get(id=selection['id'])
+            batch = models.TransactionCreateBatch.objects.create(
+                account=account, name=self.request.data['name'], user=self.request.user
+            )
+        batch.save()
+        for img in self.request.FILES.getlist("images"):
+            batch_image = models.TransactionCreateBatchRemainingTransactions.objects.create(
+                batch=batch, image=img, data_done=False
+            )
+            batch_image.save()
+        return Response(status=status.HTTP_201_CREATED)
+
+
+class TransactionCreateBatchRemainingTransactionsView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.TransactionCreateBatchRemainingTransactions.objects.all()
+    serializer_class = serializers.TransactionCreateBatchRemainingTransactionsSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.filter(batch__user=self.request.user)
+        return queryset
+
+    def delete(self, request, *args, **kwargs):
+        batch_transaction = self.get_object()
+        batch = batch_transaction.batch
+        remaining_transaction_count = (
+            models.TransactionCreateBatchRemainingTransactions.objects.filter(batch=batch).count()
+        )
+        if remaining_transaction_count > 1:
+            batch_transaction.delete()
+        else:
+            batch.delete()
+        return Response(status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+def transaction_batch_item_count(request, batch_id):
+    item_count = models.TransactionCreateBatchRemainingTransactions.objects.filter(
+        batch=batch_id
+    ).count()
+    return Response({'count': item_count}, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+def next_batch_item_id(request, batch_id, current_id):
+    batch = models.TransactionCreateBatch.objects.get(id=batch_id)
+    next_item = models.TransactionCreateBatchRemainingTransactions.objects.filter(
+        batch=batch, id__gt=current_id
+    ).first()
+    if next_item is None:
+        next_item = models.TransactionCreateBatchRemainingTransactions.objects.filter(
+            batch=batch, id__lt=current_id
+        ).first()
+    if next_item is not None:
+        return Response({'id': next_item.id}, status=status.HTTP_200_OK)
+    else:
+        return Response(status=status.HTTP_204_NO_CONTENT)

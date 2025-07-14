@@ -1,5 +1,8 @@
+import base64
+import requests
 import datetime
 from django.utils.timezone import make_aware
+from django.conf import settings
 from .models import *
 import re
 
@@ -392,3 +395,4 @@ def format_return_iso(dt, tz_offset):
     tz = datetime.timezone(datetime.timedelta(minutes=-tz_offset))
     dt_tz = dt.astimezone(tz=tz)
     return re.sub(r'(Z|[+-]\d{1,2}:\d{2})$', '', dt_tz.isoformat())
+

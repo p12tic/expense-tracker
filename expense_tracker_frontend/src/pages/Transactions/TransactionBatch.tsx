@@ -1,7 +1,7 @@
 import {observer} from "mobx-react-lite";
 import {NavbarComponent} from "../../components/Navbar";
 import {useToken} from "../../utils/AuthContext";
-import {useLocation, useNavigate} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import React, {
   FormEvent,
   useCallback,
@@ -9,7 +9,6 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import {SubmitButton} from "../../components/SubmitButton";
 import {
   formatDateIso8601,
   formatDateTimeForInput,
@@ -37,6 +36,17 @@ import {AccountsListItem} from "../../components/AccountsListItem";
 import {PresetSelection} from "../../components/PresetSelection";
 import {ImageField} from "../../components/ImageField";
 
+interface scannedData {
+  amount: string;
+  date: string;
+}
+interface BatchData {
+  id: number;
+  name: string;
+  preset: number;
+  account: number;
+  data: scannedData;
+}
 const defaultPreset: Preset = {
   id: 0,
   name: "",
@@ -47,52 +57,108 @@ const defaultPreset: Preset = {
   accounts: [],
   tags: [],
 };
-export const TransactionCreate = observer(() => {
+export const TransactionBatch = observer(() => {
   const auth = useToken();
   const navigate = useNavigate();
-  const location = useLocation();
   const [presets, setPresets] = useState<Preset[]>([]);
-  const [presetInUse, setPresetInUse] = useState<Preset>(
-    location.state?.presetInUse ?? defaultPreset,
-  );
-  const [openPresets, setOpenPresets] = useState(
-    location.state?.presetInUse.id !== 0,
-  );
-  const [desc, setDesc] = useState(location.state?.desc ?? "");
-  const [date, setDate] = useState<Dayjs>(dayjs(location.state?.date));
+  const [presetInUse, setPresetInUse] = useState<Preset>(defaultPreset);
+  const [openPresets, setOpenPresets] = useState(false);
+  const [desc, setDesc] = useState("");
+  const [date, setDate] = useState<Dayjs>(dayjs());
   const [timezoneOffset, setTimezoneOffset] = useState<number>(
-    location.state?.timezoneOffset ?? -dayjs().utcOffset(),
+    -dayjs().utcOffset(),
   );
   if (auth.getToken() === "") {
     navigate("/login");
   }
-  const [images, setImages] = useState<TransactionImage[]>(
-    location.state?.images ?? [],
-  );
+  const [images, setImages] = useState<TransactionImage[]>([]);
+  const {batchID, batchItemID} = useParams();
+  const [nextItemID, setNextItemID] = useState<number>();
+  const [isProcessed, setIsProcessed] = useState<boolean>(false);
 
   useEffect(() => {
     const fetch = async () => {
-      if (location.state && location.state.presetInUse) {
-        const presetsData: Preset[] = await fetchPresets(auth.getToken());
-        setPresets(presetsData);
-      } else {
-        const [accountsData, tagsData, presetsData]: [
-          AccountElement[],
-          TagElement[],
-          Preset[],
-        ] = await Promise.all([
-          fetchAccounts(auth.getToken()),
-          fetchTags(auth.getToken()),
-          fetchPresets(auth.getToken()),
-        ]);
-        setPresetInUse((prevPresetInUse) => {
-          return {...prevPresetInUse, accounts: accountsData, tags: tagsData};
-        });
-        setPresets(presetsData);
-      }
+      const [accountsData, tagsData, presetsData]: [
+        AccountElement[],
+        TagElement[],
+        Preset[],
+      ] = await Promise.all([
+        fetchAccounts(auth.getToken()),
+        fetchTags(auth.getToken()),
+        fetchPresets(auth.getToken()),
+      ]);
+      setPresetInUse((prevPresetInUse) => {
+        return {...prevPresetInUse, accounts: accountsData, tags: tagsData};
+      });
+      setPresets(presetsData);
     };
     fetch();
-  }, []);
+  }, [batchItemID]);
+  useEffect(() => {
+    const fetchBatchData = async () => {
+      const batchOptionsRes = await AuthAxios.get(
+        `transaction_batch?id=${batchID}`,
+        auth.getToken(),
+      );
+      const batchOptions: BatchData = batchOptionsRes.data[0];
+
+      const batchTransactionRes = await AuthAxios.get(
+        `transaction_batch_transactions/${batchItemID}`,
+        auth.getToken(),
+      );
+      setImages([batchTransactionRes.data]);
+      setIsProcessed(batchTransactionRes.data.data_done);
+      if (batchTransactionRes.data.data_json) {
+        batchOptions.data = batchTransactionRes.data.data_json;
+      } else {
+        batchOptions.data = {amount: "0", date: dayjs().toISOString()};
+      }
+      setDate(dayjs(batchOptions.data.date));
+      if (batchOptions.preset) {
+        const preset = presets.find((obj) => obj.id === batchOptions.preset);
+        if (preset !== undefined) {
+          preset.amount = batchOptions.data.amount;
+          preset.accounts = preset.accounts.map((acc) => ({
+            ...acc,
+            amount: acc.fraction * parseFloat(preset.amount),
+          }));
+          setPresetInUse(preset);
+          setDesc(preset.transaction_desc || "");
+          setOpenPresets(true);
+        }
+      } else if (batchOptions.account) {
+        const account = presetInUse.accounts.find(
+          (obj) => obj.id === batchOptions.account,
+        );
+        if (account !== undefined) {
+          setDesc(batchOptions.name);
+          setPresetInUse((prevPresetInUse) => {
+            if (!prevPresetInUse) return prevPresetInUse;
+            const updatedAccounts = prevPresetInUse.accounts.map((acc) =>
+              acc.id === account.id
+                ? {
+                    ...acc,
+                    isUsed: true,
+                    amount: parseFloat(batchOptions.data.amount),
+                  }
+                : acc,
+            );
+            return {...prevPresetInUse, accounts: updatedAccounts};
+          });
+        }
+      }
+      const nextBatchRes = await AuthAxios.get(
+        `transaction_batch/${batchID}/${batchItemID}/next`,
+        auth.getToken(),
+      );
+      if (nextBatchRes.status === 200) {
+        setNextItemID(nextBatchRes.data.id);
+      } else {
+        setNextItemID(undefined);
+      }
+    };
+    fetchBatchData();
+  }, [presets.length, presetInUse.accounts.length, batchItemID]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -103,16 +169,24 @@ export const TransactionCreate = observer(() => {
     bodyParams.append("preset", JSON.stringify(presetInUse));
     bodyParams.append("timezoneOffset", timezoneOffset.toString());
     images.map((image) => bodyParams.append("images", image.image));
-    await AuthAxios.post("transactions", auth.getToken(), bodyParams);
-    navigate("/transactions", {
-      state: {
-        desc,
-        date: formatDateIso8601(date),
-        presetInUse,
-        timezoneOffset,
-        images,
-      },
-    });
+    const createdStatus = await AuthAxios.post(
+      "transactions",
+      auth.getToken(),
+      bodyParams,
+    );
+    if (createdStatus.status === 201) {
+      const deletedStatus = await AuthAxios.delete(
+        `transaction_batch_transactions/${batchItemID}`,
+        auth.getToken(),
+      );
+      if (deletedStatus.status === 200) {
+        if (nextItemID !== undefined) {
+          window.location.href = `/transactions/batch/${batchID}/${nextItemID}`;
+        } else {
+          navigate("/transactions");
+        }
+      }
+    }
   };
 
   const handleTagClick = useCallback((clickedTag: TagElement) => {
@@ -151,6 +225,42 @@ export const TransactionCreate = observer(() => {
     <Container>
       <NavbarComponent />
       <Form onSubmit={handleSubmit}>
+        <Alert
+          variant={isProcessed ? "success" : "danger"}
+          style={{marginTop: "10px"}}
+        >
+          <Row>
+            <Col>
+              {isProcessed
+                ? "Data prefilled by AI. Is data filled correctly?"
+                : "Data has not been prefilled by AI yet. Submit it anyways?"}
+            </Col>
+            {nextItemID !== undefined && (
+              <Col xs={4} sm={2} className="ms-auto">
+                <Button
+                  variant="outline-warning"
+                  onClick={() =>
+                    (window.location.href = `/transactions/batch/${batchID}/${nextItemID}`)
+                  }
+                  style={{width: "100%"}}
+                >
+                  {batchItemID && nextItemID < parseInt(batchItemID)
+                    ? "Skip to first"
+                    : "Skip"}
+                </Button>
+              </Col>
+            )}
+            <Col xs={4} sm={2} className="ms-auto">
+              <Button
+                variant={isProcessed ? "outline-success" : "outline-danger"}
+                type="submit"
+                style={{width: "100%"}}
+              >
+                Yes
+              </Button>
+            </Col>
+          </Row>
+        </Alert>
         <h1>New transaction</h1>
         <PresetSelection
           presets={presets}
@@ -224,7 +334,6 @@ export const TransactionCreate = observer(() => {
           </Alert>
         )}
         <ImageField images={images} setImages={setImages} />
-        <SubmitButton text="Save" />
       </Form>
     </Container>
   );

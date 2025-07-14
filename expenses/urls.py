@@ -56,5 +56,14 @@ urlpatterns = [
     path('api/api-token-auth/', views.obtain_auth_token),
     path('api/token', api_views.TokenView.as_view()),
     path('api/transaction_image', api_views.TransactionImageView.as_view()),
+    path('api/transaction_batch', api_views.TransactionCreateBatchView.as_view()),
+    path(
+        'api/transaction_batch_transactions/<pk>',
+        api_views.TransactionCreateBatchRemainingTransactionsView.as_view(),
+    ),
+    path('api/transaction_batch/<int:batch_id>/count', api_views.transaction_batch_item_count),
+    path(
+        'api/transaction_batch/<int:batch_id>/<int:current_id>/next', api_views.next_batch_item_id
+    ),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
