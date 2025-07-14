@@ -1,6 +1,8 @@
 import base64
 import importlib
+import requests
 import json
+from django.core.files.base import ContentFile
 from django.contrib.auth.models import User
 from django.utils.timezone import make_aware
 from rest_framework.authtoken.models import Token
@@ -137,6 +139,15 @@ class TransactionView(generics.ListCreateAPIView):
                     transaction=transaction, image=img
                 )
                 transaction_image.save()
+            for img in self.request.POST.getlist("images"):
+                if img.split("/")[-2] == "transaction_batch":
+                    img_res = requests.get(img)
+                    if img_res.status_code == 200:
+                        image = ContentFile(img_res.content, name=img.split("/")[-1])
+                        transaction_image = models.TransactionImage.objects.create(
+                            transaction=transaction, image=image
+                        )
+                        transaction_image.save()
             return Response(status=status.HTTP_201_CREATED)
         if self.request.data['action'] == "delete":
             transaction = models.Transaction.objects.get(id=self.request.data['id'])
@@ -528,6 +539,28 @@ class TransactionCreateBatchView(generics.ListCreateAPIView):
             )
             batch_image.save()
         return Response(status=status.HTTP_201_CREATED)
+
+
+class TransactionCreateBatchRemainingTransactionsView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.TransactionCreateBatchRemainingTransactions.objects.all()
+    serializer_class = serializers.TransactionCreateBatchRemainingTransactionsSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.filter(batch__user=self.request.user)
+        return queryset
+
+    def delete(self, request, *args, **kwargs):
+        batch_transaction = self.get_object()
+        batch = batch_transaction.batch
+        remaining_transaction_count = (
+            models.TransactionCreateBatchRemainingTransactions.objects.filter(batch=batch).count()
+        )
+        if remaining_transaction_count > 1:
+            batch_transaction.delete()
+        else:
+            batch.delete()
+        return Response(status=status.HTTP_200_OK)
 
 
 @api_view(["GET"])
