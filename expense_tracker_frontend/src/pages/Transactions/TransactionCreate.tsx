@@ -2,13 +2,11 @@ import {observer} from "mobx-react-lite";
 import {NavbarComponent} from "../../components/Navbar";
 import {useToken} from "../../utils/AuthContext";
 import {useLocation, useNavigate} from "react-router-dom";
-import {
-  ChangeEvent,
+import React, {
   FormEvent,
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import {SubmitButton} from "../../components/SubmitButton";
@@ -18,7 +16,6 @@ import {
 } from "../../components/Tools";
 import {AuthAxios} from "../../utils/Network";
 import {
-  Card,
   Col,
   Form,
   InputGroup,
@@ -26,57 +23,20 @@ import {
   Button,
   Container,
   Alert,
-  Collapse,
 } from "react-bootstrap";
 import dayjs, {Dayjs} from "dayjs";
 import {TimezoneSelect} from "../../components/TimezoneSelect";
-import ModalImage from "react-modal-image";
-import {useDropzone} from "react-dropzone";
-import {v4 as uuidv4} from "uuid";
+import {fetchAccounts, fetchPresets, fetchTags} from "../../utils/APICalls";
+import type {
+  AccountElement,
+  Preset,
+  TagElement,
+  TransactionImage,
+} from "../../utils/Interfaces";
+import {AccountsListItem} from "../../components/AccountsListItem";
+import {PresetSelection} from "../../components/PresetSelection";
+import {ImageField} from "../../components/ImageField";
 
-interface Preset {
-  id: number;
-  name: string;
-  desc: string;
-  transaction_desc: string;
-  user: string;
-  amount: string;
-  accounts: AccountElement[];
-  tags: TagElement[];
-}
-
-interface AccountElement {
-  id: number;
-  name: string;
-  desc: string;
-  user: number;
-  isUsed: boolean;
-  fraction: number;
-  amount: number;
-}
-
-interface PresetSub {
-  id: number;
-  account: number;
-  fraction: number;
-  preset: number;
-}
-interface TagElement {
-  id: number;
-  name: string;
-  desc: string;
-  user: number;
-  isChecked: boolean;
-}
-interface PresetTransactionTag {
-  id: number;
-  preset: number;
-  tag: number;
-}
-interface TransactionImage {
-  id: string;
-  image: File;
-}
 const defaultPreset: Preset = {
   id: 0,
   name: "",
@@ -106,126 +66,33 @@ export const TransactionCreate = observer(() => {
   if (auth.getToken() === "") {
     navigate("/login");
   }
-  const intervalRef = useRef<number | null>(null);
-  const timeoutRef = useRef<number | null>(null);
-  const intervalRefPreset = useRef<number | null>(null);
-  const timeoutRefPreset = useRef<number | null>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
   const [images, setImages] = useState<TransactionImage[]>(
     location.state?.images ?? [],
   );
 
   useEffect(() => {
-    const FetchAccounts = async () => {
-      await AuthAxios.get("accounts", auth.getToken()).then(async (res) => {
-        const AccountsData: AccountElement[] = await Promise.all(
-          res.data.map(async (acc: AccountElement) => {
-            acc.amount = 0;
-            acc.isUsed = false;
-            acc.fraction = 0;
-            return acc;
-          }),
-        );
-        const Tags: TagElement[] = await AuthAxios.get(
-          "tags",
-          auth.getToken(),
-        ).then(async (tagsRes) => {
-          const TagsData: TagElement[] = await Promise.all(
-            tagsRes.data.map(async (tag: TagElement) => {
-              tag.isChecked = false;
-              return tag;
-            }),
-          );
-          return TagsData;
+    const fetch = async () => {
+      if (location.state && location.state.presetInUse) {
+        const presetsData: Preset[] = await fetchPresets(auth.getToken());
+        setPresets(presetsData);
+      } else {
+        const [accountsData, tagsData, presetsData]: [
+          AccountElement[],
+          TagElement[],
+          Preset[],
+        ] = await Promise.all([
+          fetchAccounts(auth.getToken()),
+          fetchTags(auth.getToken()),
+          fetchPresets(auth.getToken()),
+        ]);
+        setPresetInUse((prevPresetInUse) => {
+          return {...prevPresetInUse, accounts: accountsData, tags: tagsData};
         });
-        const newPreset: Preset = {
-          id: 0,
-          name: "",
-          desc: "",
-          transaction_desc: "",
-          user: "",
-          amount: "0",
-          accounts: AccountsData,
-          tags: Tags,
-        };
-        location.state?.presetInUse || setPresetInUse(newPreset);
-      });
+        setPresets(presetsData);
+      }
     };
-    const FetchPresets = async () => {
-      await AuthAxios.get("presets", auth.getToken()).then(
-        async (presetsRes) => {
-          const PresetsData: Preset[] = await Promise.all(
-            presetsRes.data.map(async (preset: Preset) => {
-              let AccountsData: AccountElement[] = [];
-              await AuthAxios.get(
-                `preset_subtransactions?preset=${preset.id}`,
-                auth.getToken(),
-              ).then(async (presetSubsRes) => {
-                await AuthAxios.get("accounts", auth.getToken()).then(
-                  async (res) => {
-                    AccountsData = await Promise.all(
-                      res.data.map(async (acc: AccountElement) => {
-                        await Promise.all(
-                          presetSubsRes.data.map(
-                            async (presetSub: PresetSub) => {
-                              acc.amount = 0;
-                              if (presetSub.account === acc.id) {
-                                acc.fraction = presetSub.fraction;
-                                acc.isUsed = true;
-                              } else acc.isUsed = false;
-                            },
-                          ),
-                        );
-                        return acc;
-                      }),
-                    );
-                  },
-                );
-              });
-              let TagsData: TagElement[] = [];
-              await AuthAxios.get(
-                `preset_transaction_tags?preset=${preset.id}`,
-                auth.getToken(),
-              ).then(async (presetTransactionTags) => {
-                await AuthAxios.get("tags", auth.getToken()).then(
-                  async (tags) => {
-                    TagsData = await Promise.all(
-                      tags.data.map(async (tag: TagElement) => {
-                        await Promise.all(
-                          presetTransactionTags.data.map(
-                            async (
-                              presetTransactionTag: PresetTransactionTag,
-                            ) => {
-                              tag.isChecked =
-                                tag.id === presetTransactionTag.tag;
-                            },
-                          ),
-                        );
-                        return tag;
-                      }),
-                    );
-                  },
-                );
-              });
-              preset.amount = "0";
-              preset.accounts = AccountsData;
-              preset.tags = TagsData;
-              return preset;
-            }),
-          );
-          setPresets(PresetsData);
-        },
-      );
-    };
-
-    FetchAccounts();
-    FetchPresets();
+    fetch();
   }, []);
-
-  const handlePresetSelect = async (selectedPreset: Preset) => {
-    setPresetInUse(selectedPreset);
-    setDesc(selectedPreset.transaction_desc || "");
-  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -247,157 +114,7 @@ export const TransactionCreate = observer(() => {
       },
     });
   };
-  const handleAccountAmountMouseDown = (
-    clickedAccUse: AccountElement,
-    step: number,
-  ) => {
-    const updateAccountAmount = (
-      accounts: AccountElement[],
-      accountId: number,
-      step: number,
-    ) => {
-      return accounts.map((acc) =>
-        acc.id === accountId ? {...acc, amount: acc.amount + step} : acc,
-      );
-    };
 
-    setPresetInUse((prevPresetInUse) => {
-      if (!prevPresetInUse) return prevPresetInUse;
-      const updatedAccounts = updateAccountAmount(
-        prevPresetInUse.accounts,
-        clickedAccUse.id,
-        step,
-      );
-      return {...prevPresetInUse, accounts: updatedAccounts};
-    });
-
-    // Prevent multiple intervals
-    if (intervalRef.current !== null) return;
-
-    // Set a timeout to start the interval
-    timeoutRef.current = window.setTimeout(() => {
-      intervalRef.current = window.setInterval(() => {
-        setPresetInUse((prevPresetInUse) => {
-          if (!prevPresetInUse) return prevPresetInUse;
-          const updatedAccounts = updateAccountAmount(
-            prevPresetInUse.accounts,
-            clickedAccUse.id,
-            step,
-          );
-          return {...prevPresetInUse, accounts: updatedAccounts};
-        });
-      }, 100);
-    }, 1000);
-  };
-  const handlePresetAmountMouseDown = (step: number) => {
-    const updateAccountAmount = (
-      accounts: AccountElement[],
-      amount: string,
-    ) => {
-      return accounts.map((acc) =>
-        acc.fraction
-          ? {...acc, amount: parseFloat(amount) * acc.fraction}
-          : acc,
-      );
-    };
-
-    setPresetInUse((prevPresetInUse) => {
-      if (!prevPresetInUse) return prevPresetInUse;
-      const newAmount = (parseFloat(prevPresetInUse.amount) + step).toFixed(2);
-      const updatedAccounts = updateAccountAmount(
-        prevPresetInUse.accounts,
-        newAmount,
-      );
-      return {
-        ...prevPresetInUse,
-        accounts: updatedAccounts,
-        amount: newAmount,
-      };
-    });
-
-    // Prevent multiple intervals
-    if (intervalRefPreset.current !== null) return;
-
-    // Set a timeout to start the interval
-    timeoutRefPreset.current = window.setTimeout(() => {
-      intervalRefPreset.current = window.setInterval(() => {
-        setPresetInUse((prevPresetInUse) => {
-          if (!prevPresetInUse) return prevPresetInUse;
-          const newAmount = (parseFloat(prevPresetInUse.amount) + step).toFixed(
-            2,
-          );
-          const updatedAccounts = updateAccountAmount(
-            prevPresetInUse.accounts,
-            newAmount,
-          );
-          return {
-            ...prevPresetInUse,
-            accounts: updatedAccounts,
-            amount: newAmount,
-          };
-        });
-      }, 100);
-    }, 1000);
-  };
-
-  const handleAccountAmountMouseUp = () => {
-    if (intervalRef.current !== null) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    if (timeoutRef.current !== null) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-  };
-  const handlePresetAmountMouseUp = () => {
-    if (intervalRefPreset.current !== null) {
-      clearInterval(intervalRefPreset.current);
-      intervalRefPreset.current = null;
-    }
-    if (timeoutRefPreset.current !== null) {
-      clearTimeout(timeoutRefPreset.current);
-      timeoutRefPreset.current = null;
-    }
-  };
-
-  const handleAccountAmountChange = (
-    e: ChangeEvent<HTMLInputElement>,
-    accMulti: AccountElement,
-  ) => {
-    const newAmount = parseFloat(e.target.value);
-    setPresetInUse((prevPresetInUse) => {
-      if (!prevPresetInUse) return prevPresetInUse;
-      const updatedAccounts = prevPresetInUse.accounts.map((acc) =>
-        acc.id === accMulti.id ? {...acc, amount: newAmount} : acc,
-      );
-      return {...prevPresetInUse, accounts: updatedAccounts};
-    });
-  };
-  const handlePresetAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const newAmount = parseFloat(e.target.value);
-    setPresetInUse((prevPresetInUse) => {
-      if (!prevPresetInUse) return prevPresetInUse;
-      const updatedAccounts = prevPresetInUse.accounts.map((acc) =>
-        acc.fraction ? {...acc, amount: newAmount * acc.fraction} : acc,
-      );
-      return {
-        ...prevPresetInUse,
-        accounts: updatedAccounts,
-        amount: newAmount.toString(),
-      };
-    });
-  };
-
-  const handleAccUseClick = useCallback((clickedAccUse: AccountElement) => {
-    setPresetInUse((prevPresetInUse) => {
-      if (!prevPresetInUse) return prevPresetInUse;
-      const updatedAccounts = prevPresetInUse.accounts.map((acc) =>
-        acc.id === clickedAccUse.id ? {...acc, isUsed: !acc.isUsed} : acc,
-      );
-      return {...prevPresetInUse, accounts: updatedAccounts};
-    });
-  }, []);
   const handleTagClick = useCallback((clickedTag: TagElement) => {
     setPresetInUse((prevPresetInUse) => {
       if (!prevPresetInUse) return prevPresetInUse;
@@ -408,119 +125,14 @@ export const TransactionCreate = observer(() => {
     });
   }, []);
 
-  const {getRootProps, getInputProps} = useDropzone({
-    accept: {
-      "image/*": [],
-    },
-    onDrop: (acceptedFiles) => {
-      setImages((prevImg) => [
-        ...prevImg,
-        ...acceptedFiles.map((file) => ({id: uuidv4(), image: file})),
-      ]);
-      if (imageInputRef.current) {
-        imageInputRef.current.value = "";
-      }
-    },
-  });
-  const handleImageRemove = (targetImage: string) => {
-    setImages((image) => image.filter((img) => img.id !== targetImage));
-  };
-
-  const accountsList = (acc: AccountElement) => (
-    <Form.Group key={acc.id} className="align-items-center">
-      <Row className="mb-3">
-        <Col xs={2} sm={1} className="align-content-center">
-          <Form.Label className="mb-0">Name</Form.Label>
-        </Col>
-        <Col xs={4} sm={2} className="align-content-center">
-          <Form.Text className="tmp-account-name">{acc.name}</Form.Text>
-        </Col>
-        {acc.isUsed ? (
-          <>
-            <Col xs={12} sm={1} className="align-content-center">
-              <Form.Label className="tmp-account-amount-label mb-0">
-                Amount
-              </Form.Label>
-            </Col>
-            <Col xs={12} sm={4} className="tmp-account-amount-box">
-              <InputGroup className="bootstrap-touchspin">
-                <Button
-                  variant="default"
-                  className="bootstrap-touchspin-down"
-                  type="button"
-                  onMouseDown={() => handleAccountAmountMouseDown(acc, -1)}
-                  onMouseUp={() => handleAccountAmountMouseUp()}
-                  onMouseLeave={() => handleAccountAmountMouseUp()}
-                >
-                  -
-                </Button>
-                <span
-                  className="input-group-addon bootstrap-touchspin-prefix"
-                  style={{display: "none"}}
-                ></span>
-                <Form.Control
-                  type="number"
-                  name="accounts-0-amount"
-                  value={acc.amount || ""}
-                  step="0.1"
-                  className="form-control tmp-account-amount"
-                  placeholder="Amount"
-                  id="id_accounts-0-amount"
-                  style={{display: "block"}}
-                  onChange={(e) =>
-                    handleAccountAmountChange(
-                      e as ChangeEvent<HTMLInputElement>,
-                      acc,
-                    )
-                  }
-                />
-                <span
-                  className="input-group-addon bootstrap-touchspin-postfix"
-                  style={{display: "none"}}
-                ></span>
-                <Button
-                  variant="default"
-                  className="bootstrap-touchspin-up"
-                  type="button"
-                  onMouseDown={() => handleAccountAmountMouseDown(acc, 1)}
-                  onMouseUp={() => handleAccountAmountMouseUp()}
-                  onMouseLeave={() => handleAccountAmountMouseUp()}
-                >
-                  +
-                </Button>
-              </InputGroup>
-            </Col>
-          </>
-        ) : null}
-        <Col xs={4} sm={2} className="ms-auto tmp-account-buttons">
-          {!acc.isUsed ? (
-            <Button
-              variant="default"
-              className="tmp-account-enable"
-              style={{width: "100%"}}
-              type="button"
-              onClick={() => handleAccUseClick(acc)}
-            >
-              Use
-            </Button>
-          ) : (
-            <Button
-              variant="default"
-              className="tmp-account-disable"
-              style={{width: "100%"}}
-              type="button"
-              onClick={() => handleAccUseClick(acc)}
-            >
-              Don't use
-            </Button>
-          )}
-        </Col>
-      </Row>
-    </Form.Group>
-  );
-
   const renderAccounts = useMemo(() => {
-    return <>{presetInUse?.accounts.map((acc) => accountsList(acc))}</>;
+    return (
+      <>
+        {presetInUse?.accounts.map((acc) => (
+          <AccountsListItem account={acc} setPresetInUse={setPresetInUse} />
+        ))}
+      </>
+    );
   }, [presetInUse]);
   const renderTags = useMemo(() => {
     return presetInUse?.tags.map((tag, id) => (
@@ -540,112 +152,14 @@ export const TransactionCreate = observer(() => {
       <NavbarComponent />
       <Form onSubmit={handleSubmit}>
         <h1>New transaction</h1>
-        {presets.length > 0 ? (
-          <Card id="tmp-presets">
-            <Card.Body>
-              <Button
-                variant="default"
-                aria-controls="presets-collapse"
-                aria-expanded={openPresets}
-                onClick={() => setOpenPresets(!openPresets)}
-              >
-                <b>Import preset</b>
-              </Button>
-              <Collapse in={openPresets}>
-                <div id="presets-collapse">
-                  <div style={{margin: "1em"}}></div>
-                  <Form.Group>
-                    <Form.Label>Select preset</Form.Label>
-                    <br></br>
-                    {presets.map((preset, id) =>
-                      presetInUse?.id === preset.id ? (
-                        <Button
-                          variant="info"
-                          className="tmp-preset-button"
-                          style={{marginBottom: "0.2em"}}
-                          data-id={`${preset.id}`}
-                          key={id}
-                        >
-                          {preset.name}
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="default"
-                          className="tmp-preset-button"
-                          onClick={() => handlePresetSelect(preset)}
-                          style={{marginBottom: "0.2em"}}
-                          data-id={`${preset.id}`}
-                          key={id}
-                        >
-                          {preset.name}
-                        </Button>
-                      ),
-                    )}
-                  </Form.Group>
-                  {presetInUse && presetInUse.id !== 0 ? (
-                    <Form.Group className="tmp-preset-amount-line">
-                      <Row>
-                        <Col xs={12} sm={2} className="align-content-center">
-                          <Form.Label className="mb-0">Amount</Form.Label>
-                        </Col>
-                        <Col xs={12} sm={10} className="align-content-center">
-                          <InputGroup className="bootstrap-touchspin">
-                            <Button
-                              variant="default"
-                              className="bootstrap-touchspin-down"
-                              type="button"
-                              onMouseDown={() =>
-                                handlePresetAmountMouseDown(-1)
-                              }
-                              onMouseUp={() => handlePresetAmountMouseUp()}
-                              onMouseLeave={() => handlePresetAmountMouseUp()}
-                            >
-                              -
-                            </Button>
-                            <span
-                              className="input-group-addon bootstrap-touchspin-prefix"
-                              style={{display: "none"}}
-                            ></span>
-                            <Form.Control
-                              className="tmp-preset-amount"
-                              placeholder="Amount"
-                              step="0.01"
-                              type="number"
-                              value={presetInUse.amount}
-                              onChange={(e) =>
-                                handlePresetAmountChange(
-                                  e as ChangeEvent<HTMLInputElement>,
-                                )
-                              }
-                            />
-                            <span
-                              className="input-group-addon bootstrap-touchspin-postfix"
-                              style={{display: "none"}}
-                            ></span>
-                            <Button
-                              variant="default"
-                              className="bootstrap-touchspin-up"
-                              type="button"
-                              onMouseDown={() => handlePresetAmountMouseDown(1)}
-                              onMouseUp={() => handlePresetAmountMouseUp()}
-                              onMouseLeave={() => handlePresetAmountMouseUp()}
-                            >
-                              +
-                            </Button>
-                          </InputGroup>
-                        </Col>
-                      </Row>
-                    </Form.Group>
-                  ) : null}
-                </div>
-              </Collapse>
-            </Card.Body>
-          </Card>
-        ) : (
-          <Alert variant="info" transition={false}>
-            No presets have been created
-          </Alert>
-        )}
+        <PresetSelection
+          presets={presets}
+          presetInUse={presetInUse}
+          openPresets={openPresets}
+          setOpenPresets={setOpenPresets}
+          setPresetInUse={setPresetInUse}
+          setDesc={setDesc}
+        />
         <Form.Group>
           <Row className="mt-4">
             <Col xs={4} sm={2} className="align-content-center text-end">
@@ -709,45 +223,7 @@ export const TransactionCreate = observer(() => {
             No tags have been created
           </Alert>
         )}
-        <h4 className="pt-2">Images</h4>
-        <div
-          {...getRootProps({className: "dropzone"})}
-          style={{cursor: "pointer"}}
-        >
-          <input {...getInputProps()} />
-          <p className="image-dropbox">
-            Drag and drop images here, or click to select images
-          </p>
-        </div>
-        {images.length > 0 ? (
-          <Container className="pb-3" fluid>
-            <Row>
-              <Col style={{overflowX: "auto"}}>
-                <div className="images-container">
-                  {images.map((image: TransactionImage) => (
-                    <Col key={image.id} className="image-box" xs="auto">
-                      <Button
-                        onClick={() => handleImageRemove(image.id)}
-                        variant={""}
-                        className="image-remove-button"
-                      >
-                        &#10006;
-                      </Button>
-                      <center>
-                        <ModalImage
-                          small={URL.createObjectURL(image.image)}
-                          large={URL.createObjectURL(image.image)}
-                        />
-                      </center>
-                    </Col>
-                  ))}
-                </div>
-              </Col>
-            </Row>
-          </Container>
-        ) : (
-          <p>No images attached to this transaction</p>
-        )}
+        <ImageField images={images} setImages={setImages} />
         <SubmitButton text="Save" />
       </Form>
     </Container>
