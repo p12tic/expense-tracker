@@ -551,10 +551,10 @@ class PresetTransactionTagView(generics.ListAPIView):
         queryset = queryset.filter(preset__user=self.request.user)
         preset = self.request.query_params.get('preset')
         if preset is not None:
-            queryset = queryset.filter(preset=preset)
+            queryset = queryset.filter(preset=require_int(preset, 'preset'))
         tag = self.request.query_params.get('tag')
         if tag is not None:
-            queryset = queryset.filter(tag=tag)
+            queryset = queryset.filter(tag=require_int(tag, 'tag'))
         return queryset
 
 
