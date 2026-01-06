@@ -1,4 +1,5 @@
 import json
+from typing import Any
 
 import requests
 from django.contrib.auth.models import User
@@ -7,11 +8,19 @@ from rest_framework import authentication
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.decorators import api_view
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from .. import db_utils
 from .. import models
 from .. import serializers
+
+
+def require_int(param: Any, name: str) -> int:
+    try:
+        return int(param)
+    except (TypeError, ValueError) as e:
+        raise ValidationError({name: 'Must be an integer.'}) from e
 
 
 class AccountView(generics.ListCreateAPIView):
@@ -373,12 +382,13 @@ class TransactionTagsView(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        transaction = self.request.query_params.get('transaction')
-        if transaction is not None:
-            queryset = queryset.filter(transaction=transaction)
-        tag = self.request.query_params.get('tag')
-        if tag is not None:
-            queryset = queryset.filter(tag=tag)
+        transaction_id = self.request.query_params.get('transaction')
+        if transaction_id is not None:
+            queryset = queryset.filter(transaction=require_int(transaction_id, 'transaction'))
+        tag_id = self.request.query_params.get('tag')
+        if tag_id is not None:
+            queryset = queryset.filter(tag=require_int(tag_id, 'tag'))
+
         return queryset
 
 
