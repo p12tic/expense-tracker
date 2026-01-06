@@ -540,9 +540,15 @@ class PresetSubtransactionView(generics.ListAPIView):
 class PresetTransactionTagView(generics.ListAPIView):
     queryset = models.PresetTransactionTag.objects.all()
     serializer_class = serializers.PresetTransactionTagSerializer
+    authentication_classes = (
+        authentication.TokenAuthentication,
+        authentication.SessionAuthentication,
+    )
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        queryset = queryset.filter(preset__user=self.request.user)
         preset = self.request.query_params.get('preset')
         if preset is not None:
             queryset = queryset.filter(preset=preset)
