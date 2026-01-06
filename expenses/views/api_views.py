@@ -1,3 +1,4 @@
+import datetime
 import json
 from typing import Any
 
@@ -22,6 +23,13 @@ def require_int(param: Any, name: str) -> int:
         return int(param)
     except (TypeError, ValueError) as e:
         raise ValidationError({name: 'Must be an integer.'}) from e
+
+
+def require_dt(param: Any, name: str) -> datetime.datetime:
+    try:
+        return datetime.datetime.fromisoformat(param)
+    except (TypeError, ValueError) as e:
+        raise ValidationError({name: 'Must be a datetime.'}) from e
 
 
 class AccountView(generics.ListCreateAPIView):
@@ -407,18 +415,18 @@ class SubtransactionView(generics.ListAPIView):
     def get_queryset(self):
         queryset = super().get_queryset()
         queryset = queryset.order_by('-transaction__date_time', '-id')
-        transaction = self.request.query_params.get('transaction')
-        if transaction is not None:
-            queryset = queryset.filter(transaction=transaction)
-        account = self.request.query_params.get('account')
-        if account is not None:
-            queryset = queryset.filter(account=account)
+        transaction_id = self.request.query_params.get('transaction')
+        if transaction_id is not None:
+            queryset = queryset.filter(transaction=require_int(transaction_id, 'transaction'))
+        account_id = self.request.query_params.get('account')
+        if account_id is not None:
+            queryset = queryset.filter(account=require_int(account_id, 'account'))
         date_lte = self.request.query_params.get('date_lte')
         if date_lte is not None:
-            queryset = queryset.filter(transaction__date_time__lte=date_lte)
+            queryset = queryset.filter(transaction__date_time__lte=require_dt(date_lte, 'date_lte'))
         date_gte = self.request.query_params.get('date_gte')
         if date_gte is not None:
-            queryset = queryset.filter(transaction__date_time__gte=date_gte)
+            queryset = queryset.filter(transaction__date_time__gte=require_dt(date_gte, 'date_gte'))
         return queryset
 
 
