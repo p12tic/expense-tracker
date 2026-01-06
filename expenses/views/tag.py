@@ -1,9 +1,14 @@
 from django.core.exceptions import PermissionDenied
+from django.views.generic.edit import CreateView
+from django.views.generic.edit import DeleteView
+from django.views.generic.edit import UpdateView
 from django.views.generic.list import ListView
-from django.views.generic.edit import CreateView, UpdateView, DeleteView
-from .auth import AppLoginRequiredMixin, VerifyOwnerMixin
-from ..models import *
-from ..db_utils import *
+
+from ..db_utils import get_transactions_actions_and_tags
+from ..models import Tag
+from ..models import Transaction
+from .auth import AppLoginRequiredMixin
+from .auth import VerifyOwnerMixin
 
 
 class TagListView(AppLoginRequiredMixin, ListView):

@@ -1,9 +1,16 @@
-from django.views.generic.list import ListView
-from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.core.exceptions import PermissionDenied
-from .auth import AppLoginRequiredMixin, VerifyOwnerMixin
-from ..models import *
-from ..db_utils import *
+from django.views.generic.edit import CreateView
+from django.views.generic.edit import DeleteView
+from django.views.generic.edit import UpdateView
+from django.views.generic.list import ListView
+
+from ..db_utils import get_account_balances_for_accounts
+from ..db_utils import get_account_balances_for_subtransactions_range
+from ..models import Account
+from ..models import ChainedAccount
+from ..models import Subtransaction
+from .auth import AppLoginRequiredMixin
+from .auth import VerifyOwnerMixin
 
 
 class ChainedAccountListView(AppLoginRequiredMixin, ListView):
@@ -60,7 +67,3 @@ class AccountSubtransactionsListView(AppLoginRequiredMixin, ListView):
         if account.user != self.request.user:
             raise PermissionDenied()
         return Subtransaction.objects.filter(account=account).order_by('transaction__date_time')
-
-
-class ChainedAccountListView(AppLoginRequiredMixin, ListView):
-    model = ChainedAccount

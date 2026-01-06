@@ -1,0 +1,50 @@
+name: Run static checks
+run-name: Run static checks
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  run-checks:
+    name: Run static checks
+    runs-on: ubuntu-latest
+    container:
+      image: debian:trixie
+    steps:
+      - name: Install dependencies
+        run: |
+          apt-get update && apt-get install -y git
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: UV sync
+        run: |
+          uv sync
+
+      - name: Formatting checks
+        run: |
+          uv run ruff format --check
+
+      - name: Lint checks
+        run: |
+          uv run ruff check
+
+      - name: Don't allow trailing spaces
+        run: |
+          set -e
+          find * -type f -iname "*.py"  -print0 | xargs -0 perl -pi -e 's/ +$//'
+          if [ -n "$(git status --porcelain -uno)" ]; then
+            echo "Repository has new trailing spaces"
+          fi

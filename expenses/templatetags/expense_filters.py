@@ -7,7 +7,7 @@ register = template.Library()
 def cents_to_string(value):
     try:
         value = int(value)
-    except:
+    except ValueError:
         return ''
     # don't use floating-point numbers here due to potential rounding
     if value % 100 == 0:
@@ -20,6 +20,6 @@ def cents_to_string(value):
     value = value // 100
 
     if negative:
-        return '-{0}.{1:02}'.format(value, cents)
+        return f'-{value}.{cents:02}'
     else:
-        return '{0}.{1:02}'.format(value, cents)
+        return f'{value}.{cents:02}'

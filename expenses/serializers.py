@@ -1,14 +1,8 @@
-import base64
-
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from rest_framework.authtoken.models import Token
-import math
-from datetime import timedelta, timezone, datetime
-import re
-from .db_utils import format_return_iso
 
 from . import models
+from .db_utils import format_return_iso
 
 
 class AccountSerializer(serializers.ModelSerializer):

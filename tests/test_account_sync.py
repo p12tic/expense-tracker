@@ -1,9 +1,19 @@
+from datetime import date
+from datetime import datetime
+
 from django.contrib.auth.models import User
 from django.test import TestCase
-from django.conf import settings
-from expenses.models import *
-from expenses.db_utils import *
-from datetime import datetime, date
+
+from expenses.db_utils import get_account_balance
+from expenses.db_utils import get_account_balances_for_subtransactions_range
+from expenses.db_utils import sync_create
+from expenses.db_utils import sync_delete
+from expenses.db_utils import sync_update_date_or_amount
+from expenses.db_utils import transaction_update_date_or_amount
+from expenses.models import Account
+from expenses.models import AccountBalanceCache
+from expenses.models import Subtransaction
+from expenses.models import Transaction
 
 
 class TestAccountSync(TestCase):
@@ -16,17 +26,17 @@ class TestAccountSync(TestCase):
             self.assertEqual(
                 balance,
                 get_account_balance(self.account, date_time),
-                msg='On {0}'.format(date_time),
+                msg=f'On {date_time}',
             )
 
     def assert_caches(self, cache_on_date):
         caches = AccountBalanceCache.objects.filter(account=self.account)
         self.assertEqual(len(cache_on_date), len(caches))
 
-        for balance, date in cache_on_date:
-            caches = AccountBalanceCache.objects.filter(account=self.account, date=date)
-            self.assertEqual(1, len(caches), msg='On {0}'.format(date))
-            self.assertEqual(balance, caches[0].balance, msg='On {0}'.format(date))
+        for balance, dt in cache_on_date:
+            caches = AccountBalanceCache.objects.filter(account=self.account, date=dt)
+            self.assertEqual(1, len(caches), msg=f'On {dt}')
+            self.assertEqual(balance, caches[0].balance, msg=f'On {dt}')
 
     def create_transaction(self, date_time, amount):
         tr = Transaction.objects.create(desc='test', user=self.user, date_time=date_time)
@@ -203,7 +213,7 @@ class TestAccountSync(TestCase):
         self.create_transaction(datetime(2000, 1, 2, 14, 0, 1), 20)
 
         sync_create(self.account, datetime(2000, 1, 2, 12, 0, 1), 70)
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValueError):
             sync_create(self.account, datetime(2000, 1, 2, 12, 0, 1), 110)
 
     def verify_account_sync_delete(self):

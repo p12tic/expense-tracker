@@ -1,14 +1,28 @@
-from django.core.exceptions import PermissionDenied
-from django.views.generic.list import ListView
-from django.views.generic.edit import FormView, UpdateView, DeleteView
-from django import forms
-from django.http import HttpResponseRedirect
-from .auth import AppLoginRequiredMixin, VerifyOwnerMixin
-from .formsets import *
-from ..models import *
-from ..db_utils import *
-from datetime import datetime
 import json
+from datetime import datetime
+
+from django import forms
+from django.core.exceptions import PermissionDenied
+from django.http import HttpResponseRedirect
+from django.views.generic.edit import DeleteView
+from django.views.generic.edit import FormView
+from django.views.generic.list import ListView
+
+from ..db_utils import get_preset_accounts_and_tags
+from ..db_utils import get_transactions_actions_and_tags
+from ..db_utils import transaction_delete
+from ..db_utils import transaction_update_date_or_amount
+from ..db_utils import update_transaction_tags
+from ..models import Account
+from ..models import FloatAccountFormSet
+from ..models import Preset
+from ..models import Subtransaction
+from ..models import Tag
+from ..models import TagFormSet
+from ..models import Transaction
+from ..models import TransactionTag
+from .auth import AppLoginRequiredMixin
+from .auth import VerifyOwnerMixin
 
 
 class TransactionListView(AppLoginRequiredMixin, ListView):
@@ -134,12 +148,10 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
         new_date_time = form.cleaned_data['date_time']
 
         if 'pk' in self.kwargs:
-            existing = True
             transaction = Transaction.objects.get(id=self.kwargs['pk'])
             if transaction.user != self.request.user:
                 raise PermissionDenied()
         else:
-            existing = False
             transaction = Transaction(user=self.request.user)
             transaction.date_time = new_date_time
 
@@ -147,9 +159,9 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
         # transaction will be saved in transaction_update_date_or_amount
 
         account_amounts = {}
-        for form in accounts_form.forms:
-            account_id = form.cleaned_data['account_id']
-            amount = form.cleaned_data['amount']
+        for form_ in accounts_form.forms:
+            account_id = form_.cleaned_data['account_id']
+            amount = form_.cleaned_data['amount']
             if amount is not None:
                 amount = int(amount * 100)
             account_amounts[account_id] = amount
@@ -157,9 +169,9 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
         transaction_update_date_or_amount(transaction, new_date_time, account_amounts)
 
         checked_tags = {}
-        for form in tags_form.forms:
-            tag_id = form.cleaned_data['tag_id']
-            checked_tags[tag_id] = form.cleaned_data['checked']
+        for form_ in tags_form.forms:
+            tag_id = form_.cleaned_data['tag_id']
+            checked_tags[tag_id] = form_.cleaned_data['checked']
         update_transaction_tags(transaction, checked_tags)
 
         return HttpResponseRedirect(self.get_success_url())
