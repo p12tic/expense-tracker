@@ -121,9 +121,9 @@ class PresetBaseFormView(AppLoginRequiredMixin, FormView):
         else:
             subs = PresetSubtransaction.objects.none()
 
-        for form in accounts_form.forms:
-            account = user_accounts.get(pk=form.cleaned_data['account_id'])
-            fraction = form.cleaned_data['amount']
+        for form_ in accounts_form.forms:
+            account = user_accounts.get(pk=form_.cleaned_data['account_id'])
+            fraction = form_.cleaned_data['amount']
             if fraction is not None and fraction != 0:
                 PresetSubtransaction.objects.update_or_create(
                     preset=preset, account=account, defaults={'fraction': fraction}
@@ -138,9 +138,9 @@ class PresetBaseFormView(AppLoginRequiredMixin, FormView):
         else:
             tags = PresetTransactionTag.objects.none()
 
-        for form in tags_form.forms:
-            checked = form.cleaned_data['checked']
-            tag = user_tags.get(pk=form.cleaned_data['tag_id'])
+        for form_ in tags_form.forms:
+            checked = form_.cleaned_data['checked']
+            tag = user_tags.get(pk=form_.cleaned_data['tag_id'])
 
             if not checked:
                 if tag is not None:

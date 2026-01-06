@@ -41,14 +41,14 @@ class TestTransactions(TestCase):
         caches = AccountBalanceCache.objects.filter(account=self.account2)
         self.assertEqual(len(cache_on_date), len(caches))
 
-        for balance, date in cache_on_date:
-            caches = AccountBalanceCache.objects.filter(account=self.account1, date=date)
-            self.assertEqual(1, len(caches), msg='On {0}'.format(date))
-            self.assertEqual(balance, caches[0].balance, msg='On {0}'.format(date))
+        for balance, dt in cache_on_date:
+            caches = AccountBalanceCache.objects.filter(account=self.account1, date=dt)
+            self.assertEqual(1, len(caches), msg=f'On {dt}')
+            self.assertEqual(balance, caches[0].balance, msg=f'On {dt}')
 
-            caches = AccountBalanceCache.objects.filter(account=self.account2, date=date)
-            self.assertEqual(1, len(caches), msg='On {0}'.format(date))
-            self.assertEqual(balance * 2, caches[0].balance, msg='On {0}'.format(date))
+            caches = AccountBalanceCache.objects.filter(account=self.account2, date=dt)
+            self.assertEqual(1, len(caches), msg=f'On {dt}')
+            self.assertEqual(balance * 2, caches[0].balance, msg=f'On {dt}')
 
     def get_account_amounts(self, amount):
         if amount is None:

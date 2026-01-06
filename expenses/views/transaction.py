@@ -161,9 +161,9 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
         # transaction will be saved in transaction_update_date_or_amount
 
         account_amounts = {}
-        for form in accounts_form.forms:
-            account_id = form.cleaned_data['account_id']
-            amount = form.cleaned_data['amount']
+        for form_ in accounts_form.forms:
+            account_id = form_.cleaned_data['account_id']
+            amount = form_.cleaned_data['amount']
             if amount is not None:
                 amount = int(amount * 100)
             account_amounts[account_id] = amount
@@ -171,9 +171,9 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
         transaction_update_date_or_amount(transaction, new_date_time, account_amounts)
 
         checked_tags = {}
-        for form in tags_form.forms:
-            tag_id = form.cleaned_data['tag_id']
-            checked_tags[tag_id] = form.cleaned_data['checked']
+        for form_ in tags_form.forms:
+            tag_id = form_.cleaned_data['tag_id']
+            checked_tags[tag_id] = form_.cleaned_data['checked']
         update_transaction_tags(transaction, checked_tags)
 
         return HttpResponseRedirect(self.get_success_url())

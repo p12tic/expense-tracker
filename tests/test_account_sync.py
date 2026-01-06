@@ -33,10 +33,10 @@ class TestAccountSync(TestCase):
         caches = AccountBalanceCache.objects.filter(account=self.account)
         self.assertEqual(len(cache_on_date), len(caches))
 
-        for balance, date in cache_on_date:
-            caches = AccountBalanceCache.objects.filter(account=self.account, date=date)
-            self.assertEqual(1, len(caches), msg='On {0}'.format(date))
-            self.assertEqual(balance, caches[0].balance, msg='On {0}'.format(date))
+        for balance, dt in cache_on_date:
+            caches = AccountBalanceCache.objects.filter(account=self.account, date=dt)
+            self.assertEqual(1, len(caches), msg=f'On {dt}')
+            self.assertEqual(balance, caches[0].balance, msg=f'On {dt}')
 
     def create_transaction(self, date_time, amount):
         tr = Transaction.objects.create(desc='test', user=self.user, date_time=date_time)
