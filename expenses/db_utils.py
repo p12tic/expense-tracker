@@ -23,7 +23,8 @@ from .models import TransactionTag
 def get_account_balance(account, date_time):
     # find the last account balances cache before date_time
     account_cache = (
-        AccountBalanceCache.objects.filter(account=account, date__lte=date_time.date())
+        AccountBalanceCache.objects
+        .filter(account=account, date__lte=date_time.date())
         .order_by('date')
         .last()
     )
@@ -84,7 +85,8 @@ def get_account_balances_for_accounts(accounts_queryset):
 
 def get_transactions_actions_and_tags(transactions_qs):
     qs = (
-        transactions_qs.prefetch_related('subtransactions')
+        transactions_qs
+        .prefetch_related('subtransactions')
         .prefetch_related('subtransactions__account')
         .prefetch_related('subtransactions__sync_event')
         .prefetch_related('transaction_tags')
@@ -398,4 +400,3 @@ def format_return_iso(dt, tz_offset):
     tz = datetime.timezone(datetime.timedelta(minutes=-tz_offset))
     dt_tz = dt.astimezone(tz=tz)
     return re.sub(r'(Z|[+-]\d{1,2}:\d{2})$', '', dt_tz.isoformat())
-

@@ -67,4 +67,3 @@ class AccountSubtransactionsListView(AppLoginRequiredMixin, ListView):
         if account.user != self.request.user:
             raise PermissionDenied()
         return Subtransaction.objects.filter(account=account).order_by('transaction__date_time')
-
