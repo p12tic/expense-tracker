@@ -11,10 +11,6 @@ import {SubmitButton} from "../../components/SubmitButton";
 export const Login = () => {
   const auth = useToken();
 
-  let bodyParameters = {
-    username: "",
-    password: "",
-  };
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -23,11 +19,9 @@ export const Login = () => {
   }
   const submitHandler = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    bodyParameters.username = username;
-    bodyParameters.password = password;
 
     axios
-      .post(`${getApiUrlForCurrentWindow()}api-token-auth/`, bodyParameters)
+      .post(`${getApiUrlForCurrentWindow()}api-token-auth/`, {username: username, password: password})
       .then((response) => {
         auth.setToken(response.data.token);
         navigate("/transactions");
