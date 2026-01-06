@@ -151,10 +151,15 @@ class TransactionView(generics.ListCreateAPIView):
             return Response(status=status.HTTP_201_CREATED)
         if self.request.data['action'] == "delete":
             transaction = models.Transaction.objects.get(id=self.request.data['id'])
+            if transaction.user != self.request.user:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
             transaction.delete()
             return Response(status=status.HTTP_200_OK)
         if self.request.data['action'] == "edit":
             transaction = models.Transaction.objects.get(id=self.request.data['id'])
+            if transaction.user != self.request.user:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+
             transaction.desc = self.request.data['desc']
             aware_dt = db_utils.get_aware_from_naive_iso(
                 self.request.data['date'], self.request.data['timezoneOffset']
