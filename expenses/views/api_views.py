@@ -294,10 +294,18 @@ class PresetView(generics.ListCreateAPIView):
             return Response(status=status.HTTP_201_CREATED)
         elif self.request.data['action'] == "delete":
             preset = models.Preset.objects.get(id=self.request.data['id'])
+
+            if preset.user != self.request.user:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+
             preset.delete()
             return Response(status=status.HTTP_200_OK)
         elif self.request.data['action'] == "edit":
             preset = models.Preset.objects.get(id=self.request.data['id'])
+
+            if preset.user != self.request.user:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+
             preset.name = self.request.data['name']
             preset.desc = self.request.data['desc']
             preset.transaction_desc = self.request.data['transDesc']
