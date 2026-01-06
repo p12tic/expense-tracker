@@ -581,7 +581,7 @@ class TransactionImageView(generics.ListAPIView):
 
         transaction = self.request.query_params.get('transaction')
         if transaction is not None:
-            queryset = models.TransactionImage.objects.filter(transaction=transaction)
+            queryset = queryset.filter(transaction=require_int(transaction, 'transaction'))
         return queryset
 
 
