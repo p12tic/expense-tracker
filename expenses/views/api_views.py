@@ -493,9 +493,16 @@ class AccountSyncEventView(generics.ListCreateAPIView):
 class AccountBalanceCacheView(generics.ListAPIView):
     queryset = models.AccountBalanceCache.objects.all()
     serializer_class = serializers.AccountBalanceCacheSerializer
+    authentication_classes = (
+        authentication.TokenAuthentication,
+        authentication.SessionAuthentication,
+    )
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        queryset = queryset.filter(account__user=self.request.user)
+
         account = self.request.query_params.get('account')
         if account is not None:
             queryset = queryset.filter(account=account)
