@@ -66,7 +66,6 @@ class TagView(generics.ListCreateAPIView):
 
     def post(self, request, *args, **kwargs):
         if self.request.data['action'] == "create":
-            self.request.data['user'] = self.request.user.id
             tag = models.Tag.objects.create(
                 name=self.request.data['Name'],
                 desc=self.request.data['Description'],
