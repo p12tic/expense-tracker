@@ -1,5 +1,5 @@
 import axios from "axios";
-import {FormEvent, useState} from "react";
+import {FormEvent, useState, useEffect} from "react";
 import {useNavigate} from "react-router-dom";
 import {NavbarEmpty} from "../../components/NavbarEmpty";
 import {observer} from "mobx-react-lite";
@@ -8,20 +8,39 @@ import {getApiUrlForCurrentWindow} from "../../utils/Network";
 import {Col, Form, Row, Container} from "react-bootstrap";
 import {SubmitButton} from "../../components/SubmitButton";
 
-export const Login = () => {
+export const Login = observer(() => {
   const auth = useToken();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isValidating, setIsValidating] = useState(true);
   const navigate = useNavigate();
-  if (auth.getToken() !== "") {
-    navigate("/transactions");
-  }
+
+  useEffect(() => {
+    const validateToken = async () => {
+      if (auth.getToken()) {
+        const isValid = await auth.validateToken();
+        if (isValid) {
+          navigate("/transactions");
+        } else {
+          // Token is invalid, clear it
+          auth.clearToken();
+        }
+      }
+      setIsValidating(false);
+    };
+
+    validateToken();
+  }, [auth, navigate]);
+
   const submitHandler = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     axios
-      .post(`${getApiUrlForCurrentWindow()}api-token-auth/`, {username: username, password: password})
+      .post(`${getApiUrlForCurrentWindow()}api-token-auth/`, {
+        username: username,
+        password: password,
+      })
       .then((response) => {
         auth.setToken(response.data.token);
         navigate("/transactions");
@@ -30,6 +49,18 @@ export const Login = () => {
         console.error(err);
       });
   };
+
+  if (isValidating) {
+    return (
+      <Container>
+        <NavbarEmpty />
+        <div className="text-center mt-5">
+          <p>Logging in...</p>
+        </div>
+      </Container>
+    );
+  }
+
   return (
     <Container>
       <NavbarEmpty />
@@ -68,4 +99,4 @@ export const Login = () => {
       </Form>
     </Container>
   );
-};
+});
