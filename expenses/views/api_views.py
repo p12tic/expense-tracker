@@ -530,10 +530,10 @@ class PresetSubtransactionView(generics.ListAPIView):
         queryset = queryset.filter(preset__user=self.request.user)
         preset = self.request.query_params.get('preset')
         if preset is not None:
-            queryset = queryset.filter(preset=preset)
+            queryset = queryset.filter(preset=require_int(preset, 'preset'))
         account = self.request.query_params.get('account')
         if account is not None:
-            queryset = queryset.filter(account=account)
+            queryset = queryset.filter(account=require_int(account, 'account'))
         return queryset
 
 
