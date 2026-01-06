@@ -2,7 +2,6 @@ import {observer} from "mobx-react-lite";
 import {StaticField} from "../../components/StaticField";
 import {useToken} from "../../utils/AuthContext";
 import {Link, useNavigate, useParams} from "react-router-dom";
-import axios from "axios";
 import React, {useEffect, useState} from "react";
 import {NavbarComponent} from "../../components/Navbar";
 import {TableButton} from "../../components/TableButton";
