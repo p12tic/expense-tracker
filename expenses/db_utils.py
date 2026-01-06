@@ -347,7 +347,7 @@ def has_sync_event_on_time(account, date_time):
 
 def sync_create(account, date_time, balance):
     if has_sync_event_on_time(account, date_time):
-        raise Exception('Trying to create sync event on top of existing event')
+        raise ValueError('Trying to create sync event on top of existing event')
 
     balance_curr = get_account_balance(account, date_time)
     balance_diff = balance - balance_curr

@@ -213,7 +213,7 @@ class TestAccountSync(TestCase):
         self.create_transaction(datetime(2000, 1, 2, 14, 0, 1), 20)
 
         sync_create(self.account, datetime(2000, 1, 2, 12, 0, 1), 70)
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValueError):
             sync_create(self.account, datetime(2000, 1, 2, 12, 0, 1), 110)
 
     def verify_account_sync_delete(self):

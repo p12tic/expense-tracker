@@ -7,7 +7,7 @@ register = template.Library()
 def cents_to_string(value):
     try:
         value = int(value)
-    except:
+    except ValueError:
         return ''
     # don't use floating-point numbers here due to potential rounding
     if value % 100 == 0:
