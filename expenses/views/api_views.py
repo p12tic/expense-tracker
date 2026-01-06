@@ -683,6 +683,11 @@ class TransactionCreateBatchView(generics.ListCreateAPIView):
 class TransactionCreateBatchRemainingTransactionsView(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.TransactionCreateBatchRemainingTransactions.objects.all()
     serializer_class = serializers.TransactionCreateBatchRemainingTransactionsSerializer
+    authentication_classes = (
+        authentication.TokenAuthentication,
+        authentication.SessionAuthentication,
+    )
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         queryset = super().get_queryset()
