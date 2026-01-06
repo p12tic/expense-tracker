@@ -435,7 +435,7 @@ class AccountSyncEventView(generics.ListCreateAPIView):
         subtransaction = models.Subtransaction.objects.create(
             transaction=transaction, account=account, amount=sumDif
         )
-        acc_sync = models.AccountSyncEvent.objects.create(
+        models.AccountSyncEvent.objects.create(
             account=account, balance=self.request.data['balance'], subtransaction=subtransaction
         )
         return Response(status=status.HTTP_201_CREATED)

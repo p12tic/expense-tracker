@@ -365,7 +365,6 @@ def sync_create(account, date_time, balance):
 
 
 def sync_delete(event):
-    account = event.account
     transaction = event.subtransaction.transaction
     event.delete()
 

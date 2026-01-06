@@ -148,12 +148,10 @@ class TransactionBaseFormView(AppLoginRequiredMixin, FormView):
         new_date_time = form.cleaned_data['date_time']
 
         if 'pk' in self.kwargs:
-            existing = True
             transaction = Transaction.objects.get(id=self.kwargs['pk'])
             if transaction.user != self.request.user:
                 raise PermissionDenied()
         else:
-            existing = False
             transaction = Transaction(user=self.request.user)
             transaction.date_time = new_date_time
 
