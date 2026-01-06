@@ -588,6 +588,11 @@ class TransactionImageView(generics.ListAPIView):
 class TransactionCreateBatchView(generics.ListCreateAPIView):
     queryset = models.TransactionCreateBatch.objects.all()
     serializer_class = serializers.TransactionCreateBatchSerializer
+    authentication_classes = (
+        authentication.TokenAuthentication,
+        authentication.SessionAuthentication,
+    )
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -601,11 +606,15 @@ class TransactionCreateBatchView(generics.ListCreateAPIView):
         selection = json.loads(self.request.data['selection'])
         if 'transaction_desc' in selection:
             preset = models.Preset.objects.get(id=selection['id'])
+            if preset.user != self.request.user:
+                return Response(status=status.HTTP_403_FORBIDDEN)
             batch = models.TransactionCreateBatch.objects.create(
                 preset=preset, name=self.request.data['name'], user=self.request.user
             )
         else:
             account = models.Account.objects.get(id=selection['id'])
+            if account.user != self.request.user:
+                return Response(status=status.HTTP_403_FORBIDDEN)
             batch = models.TransactionCreateBatch.objects.create(
                 account=account, name=self.request.data['name'], user=self.request.user
             )
