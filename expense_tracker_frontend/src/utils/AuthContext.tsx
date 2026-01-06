@@ -1,5 +1,6 @@
 import React from "react";
-import {authData, AuthData} from "./AuthData";
+
+import {AuthData, authData} from "./AuthData";
 
 const AuthContext = React.createContext<AuthData>(authData);
 

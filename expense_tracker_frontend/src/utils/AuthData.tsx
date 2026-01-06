@@ -1,5 +1,6 @@
-import {makeAutoObservable} from "mobx";
 import axios from "axios";
+import {makeAutoObservable} from "mobx";
+
 import {getApiUrlForCurrentWindow} from "./Network";
 
 export class AuthData {

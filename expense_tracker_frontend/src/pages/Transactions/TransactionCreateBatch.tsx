@@ -1,13 +1,14 @@
 import {observer} from "mobx-react-lite";
-import {useToken} from "../../utils/AuthContext";
-import {useNavigate} from "react-router-dom";
 import {FormEvent, useEffect, useRef, useState} from "react";
-import {AuthAxios} from "../../utils/Network";
 import {Button, Card, Col, Container, Form, Row} from "react-bootstrap";
-import {NavbarComponent} from "../../components/Navbar";
-import ModalImage from "react-modal-image";
 import {useDropzone} from "react-dropzone";
+import ModalImage from "react-modal-image";
+import {useNavigate} from "react-router-dom";
 import {v4 as uuidv4} from "uuid";
+
+import {NavbarComponent} from "../../components/Navbar";
+import {useToken} from "../../utils/AuthContext";
+import {AuthAxios} from "../../utils/Network";
 
 interface Preset {
   id: number;

@@ -1,12 +1,13 @@
 import axios from "axios";
-import {FormEvent, useState, useEffect} from "react";
-import {useNavigate} from "react-router-dom";
-import {NavbarEmpty} from "../../components/NavbarEmpty";
 import {observer} from "mobx-react-lite";
+import {FormEvent, useEffect, useState} from "react";
+import {Col, Container, Form, Row} from "react-bootstrap";
+import {useNavigate} from "react-router-dom";
+
+import {NavbarEmpty} from "../../components/NavbarEmpty";
+import {SubmitButton} from "../../components/SubmitButton";
 import {useToken} from "../../utils/AuthContext";
 import {getApiUrlForCurrentWindow} from "../../utils/Network";
-import {Col, Form, Row, Container} from "react-bootstrap";
-import {SubmitButton} from "../../components/SubmitButton";
 
 export const Login = observer(() => {
   const auth = useToken();

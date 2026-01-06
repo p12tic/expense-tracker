@@ -1,7 +1,5 @@
+import dayjs, {Dayjs} from "dayjs";
 import {observer} from "mobx-react-lite";
-import {NavbarComponent} from "../../components/Navbar";
-import {useToken} from "../../utils/AuthContext";
-import {useNavigate, useParams} from "react-router-dom";
 import React, {
   FormEvent,
   useCallback,
@@ -10,31 +8,34 @@ import React, {
   useState,
 } from "react";
 import {
-  formatDateIso8601,
-  formatDateTimeForInput,
-} from "../../components/Tools";
-import {AuthAxios} from "../../utils/Network";
-import {
+  Alert,
+  Button,
   Col,
+  Container,
   Form,
   InputGroup,
   Row,
-  Button,
-  Container,
-  Alert,
 } from "react-bootstrap";
-import dayjs, {Dayjs} from "dayjs";
+import {useNavigate, useParams} from "react-router-dom";
+
+import {AccountsListItem} from "../../components/AccountsListItem";
+import {ImageField} from "../../components/ImageField";
+import {NavbarComponent} from "../../components/Navbar";
+import {PresetSelection} from "../../components/PresetSelection";
 import {TimezoneSelect} from "../../components/TimezoneSelect";
+import {
+  formatDateIso8601,
+  formatDateTimeForInput,
+} from "../../components/Tools";
 import {fetchAccounts, fetchPresets, fetchTags} from "../../utils/APICalls";
+import {useToken} from "../../utils/AuthContext";
 import type {
   AccountElement,
   Preset,
   TagElement,
   TransactionImage,
 } from "../../utils/Interfaces";
-import {AccountsListItem} from "../../components/AccountsListItem";
-import {PresetSelection} from "../../components/PresetSelection";
-import {ImageField} from "../../components/ImageField";
+import {AuthAxios} from "../../utils/Network";
 
 interface scannedData {
   amount: string;

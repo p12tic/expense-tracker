@@ -1,9 +1,10 @@
-import {Button, Col, Container, Row} from "react-bootstrap";
-import type {TransactionImage} from "../utils/Interfaces";
-import ModalImage from "react-modal-image";
 import React, {Dispatch, SetStateAction, useRef} from "react";
+import {Button, Col, Container, Row} from "react-bootstrap";
 import {useDropzone} from "react-dropzone";
+import ModalImage from "react-modal-image";
 import {v4 as uuidv4} from "uuid";
+
+import type {TransactionImage} from "../utils/Interfaces";
 
 interface ImageFieldProps {
   images: TransactionImage[];

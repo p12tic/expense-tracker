@@ -1,30 +1,32 @@
-import {BrowserRouter, Routes, Route, Navigate} from "react-router-dom";
-import {Accounts} from "./pages/Accounts/Accounts";
-import {Tags} from "./pages/Tags/Tags";
 import "./components/common.scss";
-import {TransactionsList} from "./pages/Transactions/Transactions";
-import {PresetsList} from "./pages/Presets/Presets";
-import {Login} from "./pages/Auth/Login";
-import {UserEdit} from "./pages/Auth/UserEdit";
-import {TagCreate} from "./pages/Tags/TagCreate";
-import {AccountCreate} from "./pages/Accounts/AccountCreate";
-import {Tag} from "./pages/Tags/Tag";
-import {TagDelete} from "./pages/Tags/TagDelete";
-import {TagEdit} from "./pages/Tags/TagEdit";
+
+import {BrowserRouter, Navigate, Route, Routes} from "react-router-dom";
+
 import {Account} from "./pages/Accounts/Account";
+import {AccountCreate} from "./pages/Accounts/AccountCreate";
 import {AccountDelete} from "./pages/Accounts/AccountDelete";
 import {AccountEdit} from "./pages/Accounts/AccountEdit";
-import {PresetCreate} from "./pages/Presets/PresetCreate";
+import {Accounts} from "./pages/Accounts/Accounts";
+import {AccountSync} from "./pages/Accounts/AccountSync";
+import {Login} from "./pages/Auth/Login";
+import {UserEdit} from "./pages/Auth/UserEdit";
 import {Preset} from "./pages/Presets/Preset";
+import {PresetCreate} from "./pages/Presets/PresetCreate";
 import {PresetDelete} from "./pages/Presets/PresetDelete";
 import {PresetEdit} from "./pages/Presets/PresetEdit";
-import {TransactionCreate} from "./pages/Transactions/TransactionCreate";
+import {PresetsList} from "./pages/Presets/Presets";
+import {Tag} from "./pages/Tags/Tag";
+import {TagCreate} from "./pages/Tags/TagCreate";
+import {TagDelete} from "./pages/Tags/TagDelete";
+import {TagEdit} from "./pages/Tags/TagEdit";
+import {Tags} from "./pages/Tags/Tags";
 import {Transaction} from "./pages/Transactions/Transaction";
+import {TransactionBatch} from "./pages/Transactions/TransactionBatch";
+import {TransactionCreate} from "./pages/Transactions/TransactionCreate";
+import {TransactionCreateBatch} from "./pages/Transactions/TransactionCreateBatch";
 import {TransactionDelete} from "./pages/Transactions/TransactionDelete";
 import {TransactionEdit} from "./pages/Transactions/TransactionEdit";
-import {AccountSync} from "./pages/Accounts/AccountSync";
-import {TransactionCreateBatch} from "./pages/Transactions/TransactionCreateBatch";
-import {TransactionBatch} from "./pages/Transactions/TransactionBatch";
+import {TransactionsList} from "./pages/Transactions/Transactions";
 
 function App() {
   return (

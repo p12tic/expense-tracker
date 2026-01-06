@@ -1,5 +1,5 @@
-import {Form} from "react-bootstrap";
 import {Dispatch, SetStateAction} from "react";
+import {Form} from "react-bootstrap";
 
 type TimezoneSelectProps = {
   offset: number;

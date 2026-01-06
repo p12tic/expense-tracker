@@ -1,7 +1,8 @@
-import {pad} from "./Tools";
-import {Button} from "react-bootstrap";
-import React from "react";
 import dayjs from "dayjs";
+import React from "react";
+import {Button} from "react-bootstrap";
+
+import {pad} from "./Tools";
 
 type TimezoneTagProps = {
   offset: number;

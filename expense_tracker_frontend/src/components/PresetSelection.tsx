@@ -1,5 +1,6 @@
-import {Alert, Button, Card, Col, Collapse, Form, Row} from "react-bootstrap";
 import React, {ChangeEvent, Dispatch, SetStateAction, useRef} from "react";
+import {Alert, Button, Card, Col, Collapse, Form, Row} from "react-bootstrap";
+
 import {type AccountElement, Preset} from "../utils/Interfaces";
 import {TouchSpin} from "./TouchSpin";
 
