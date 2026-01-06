@@ -5,11 +5,7 @@ interface TableButtonProps {
   name: string;
   type?: string;
 }
-export const TableButton = ({
-  dest,
-  name,
-  type,
-}: TableButtonProps) => {
+export const TableButton = ({dest, name, type}: TableButtonProps) => {
   return (
     <Button
       style={{marginLeft: 10}}
