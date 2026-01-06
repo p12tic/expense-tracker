@@ -433,9 +433,15 @@ class SubtransactionView(generics.ListAPIView):
 class AccountSyncEventView(generics.ListCreateAPIView):
     queryset = models.AccountSyncEvent.objects.all()
     serializer_class = serializers.AccountSyncEventSerializer
+    authentication_classes = (
+        authentication.TokenAuthentication,
+        authentication.SessionAuthentication,
+    )
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        queryset = queryset.filter(account__user=self.request.user)
         subtransaction = self.request.query_params.get('subtransaction')
         if subtransaction is not None:
             queryset = queryset.filter(subtransaction=subtransaction)
@@ -443,6 +449,10 @@ class AccountSyncEventView(generics.ListCreateAPIView):
 
     def post(self, request, *args, **kwargs):
         account = models.Account.objects.get(id=self.request.data['id'])
+
+        if account.user != self.request.user:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
         aware_dt = db_utils.get_aware_from_naive_iso(
             self.request.data['date'], self.request.data['timezoneOffset']
         )
