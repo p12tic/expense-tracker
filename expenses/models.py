@@ -248,6 +248,7 @@ class TransactionImage(models.Model):
 
 
 class TransactionCreateBatch(models.Model):
+    # Represents a batch of to-be-created transactions. Either preset or account will be defined.
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     preset = models.ForeignKey(Preset, on_delete=models.CASCADE, blank=True, null=True)
     account = models.ForeignKey(Account, on_delete=models.CASCADE, blank=True, null=True)
