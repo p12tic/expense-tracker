@@ -1,5 +1,5 @@
-import {Button, Form, InputGroup} from "react-bootstrap";
 import React, {ChangeEvent} from "react";
+import {Button, Form, InputGroup} from "react-bootstrap";
 
 interface TouchSpinProps {
   value: number | string;

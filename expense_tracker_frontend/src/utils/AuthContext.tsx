@@ -1,5 +1,6 @@
 import React from "react";
-import {authData, AuthData} from "./AuthData";
+
+import {AuthData, authData} from "./AuthData";
 
 const AuthContext = React.createContext<AuthData>(authData);
 
@@ -9,6 +10,7 @@ export function AuthProvider({children}: {children: React.ReactNode}) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useToken() {
   return React.useContext(AuthContext);
 }

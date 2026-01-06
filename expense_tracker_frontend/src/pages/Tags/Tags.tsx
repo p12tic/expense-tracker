@@ -1,11 +1,12 @@
+import {observer} from "mobx-react-lite";
 import React, {useEffect, useState} from "react";
+import {Col, Container, Row, Table} from "react-bootstrap";
 import {Link, useNavigate} from "react-router-dom";
+
 import {NavbarComponent} from "../../components/Navbar";
 import {TableButton} from "../../components/TableButton";
 import {useToken} from "../../utils/AuthContext";
-import {observer} from "mobx-react-lite";
 import {AuthAxios} from "../../utils/Network";
-import {Col, Row, Container, Table} from "react-bootstrap";
 
 interface Tag {
   id: number;

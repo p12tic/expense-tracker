@@ -1,8 +1,4 @@
 import {observer} from "mobx-react-lite";
-import {SubmitButton} from "../../components/SubmitButton";
-import {NavbarComponent} from "../../components/Navbar";
-import {useToken} from "../../utils/AuthContext";
-import {useNavigate} from "react-router-dom";
 import {
   ChangeEvent,
   FormEvent,
@@ -12,16 +8,21 @@ import {
   useRef,
   useState,
 } from "react";
-import {AuthAxios} from "../../utils/Network";
 import {
+  Alert,
+  Button,
   Col,
+  Container,
   Form,
   InputGroup,
   Row,
-  Button,
-  Container,
-  Alert,
 } from "react-bootstrap";
+import {useNavigate} from "react-router-dom";
+
+import {NavbarComponent} from "../../components/Navbar";
+import {SubmitButton} from "../../components/SubmitButton";
+import {useToken} from "../../utils/AuthContext";
+import {AuthAxios} from "../../utils/Network";
 
 interface AccountElement {
   id: number;

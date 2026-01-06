@@ -1,7 +1,5 @@
+import dayjs, {Dayjs} from "dayjs";
 import {observer} from "mobx-react-lite";
-import {NavbarComponent} from "../../components/Navbar";
-import {useToken} from "../../utils/AuthContext";
-import {useNavigate, useParams} from "react-router-dom";
 import {
   ChangeEvent,
   FormEvent,
@@ -11,29 +9,32 @@ import {
   useRef,
   useState,
 } from "react";
+import {
+  Alert,
+  Button,
+  Card,
+  Col,
+  Collapse,
+  Container,
+  Form,
+  InputGroup,
+  Row,
+} from "react-bootstrap";
+import {useDropzone} from "react-dropzone";
+import ModalImage from "react-modal-image";
+import {useNavigate, useParams} from "react-router-dom";
+import {v4 as uuidv4} from "uuid";
+
+import {NavbarComponent} from "../../components/Navbar";
 import {SubmitButton} from "../../components/SubmitButton";
+import {TimezoneSelect} from "../../components/TimezoneSelect";
 import {
   centsToString,
   formatDateIso8601,
   formatDateTimeForInput,
 } from "../../components/Tools";
+import {useToken} from "../../utils/AuthContext";
 import {AuthAxios} from "../../utils/Network";
-import {
-  Card,
-  Col,
-  Form,
-  InputGroup,
-  Row,
-  Button,
-  Container,
-  Alert,
-  Collapse,
-} from "react-bootstrap";
-import dayjs, {Dayjs} from "dayjs";
-import {TimezoneSelect} from "../../components/TimezoneSelect";
-import ModalImage from "react-modal-image";
-import {useDropzone} from "react-dropzone";
-import {v4 as uuidv4} from "uuid";
 
 interface Preset {
   id: number;

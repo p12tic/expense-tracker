@@ -1,9 +1,10 @@
 import {observer} from "mobx-react-lite";
+import {Container} from "react-bootstrap";
+import {useNavigate, useParams} from "react-router-dom";
+
 import {DefaultDelete} from "../../components/DefaultDelete";
 import {NavbarComponent} from "../../components/Navbar";
-import {useNavigate, useParams} from "react-router-dom";
 import {useToken} from "../../utils/AuthContext";
-import {Container} from "react-bootstrap";
 
 export const PresetDelete = observer(() => {
   const auth = useToken();

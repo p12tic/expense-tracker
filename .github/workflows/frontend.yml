@@ -1,0 +1,77 @@
+name: Run frontend checks
+run-name: Run frontend checks
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  frontend-lint-format:
+    name: Frontend lint and format checks
+    runs-on: ubuntu-latest
+    container:
+      image: debian:trixie
+    steps:
+      - name: Install dependencies
+        run: |
+          apt-get update && apt-get install -y git curl
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: expense_tracker_frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: expense_tracker_frontend
+        run: npm ci
+
+      - name: Format checks
+        working-directory: expense_tracker_frontend
+        run: npm run format
+
+      - name: Lint checks
+        working-directory: expense_tracker_frontend
+        run: npm run lint
+
+      - name: Check for uncommitted changes
+        run: |
+          if [ -n "$(git status --porcelain -uno)" ]; then
+            echo "Repository has uncommitted changes after frontend lint/format checks"
+            git status --porcelain -uno
+            exit 1
+          fi
+
+  frontend-build:
+    name: Frontend build check
+    runs-on: ubuntu-latest
+    container:
+      image: debian:trixie
+    steps:
+      - name: Install dependencies
+        run: |
+          apt-get update && apt-get install -y git curl
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: expense_tracker_frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: expense_tracker_frontend
+        run: npm ci
+
+      - name: Build checks
+        working-directory: expense_tracker_frontend
+        run: npm run build

@@ -1,11 +1,12 @@
 import {observer} from "mobx-react-lite";
 import {FormEvent, useEffect, useState} from "react";
-import {useToken} from "../../utils/AuthContext";
-import {NavbarComponent} from "../../components/Navbar";
+import {Col, Container, Form, Row} from "react-bootstrap";
 import {useNavigate, useParams} from "react-router-dom";
-import {AuthAxios} from "../../utils/Network";
-import {Col, Form, Row, Container} from "react-bootstrap";
+
+import {NavbarComponent} from "../../components/Navbar";
 import {SubmitButton} from "../../components/SubmitButton";
+import {useToken} from "../../utils/AuthContext";
+import {AuthAxios} from "../../utils/Network";
 
 interface Account {
   id: number;
@@ -36,7 +37,7 @@ export const AccountEdit = observer(() => {
     navigate("/accounts");
     return;
   }
-  let bodyParameters = {
+  const bodyParameters = {
     id: id,
     Name: ``,
     Description: ``,

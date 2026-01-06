@@ -1,4 +1,4 @@
-import {Col, Row, Button} from "react-bootstrap";
+import {Button, Col, Row} from "react-bootstrap";
 
 type SubmitButtonProps = {
   text: string;

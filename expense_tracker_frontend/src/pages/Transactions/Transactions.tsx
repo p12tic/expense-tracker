@@ -1,14 +1,15 @@
-import {NavbarComponent} from "../../components/Navbar";
-import React, {useEffect, useState} from "react";
-import {Link, useLocation, useNavigate} from "react-router-dom";
-import {TableButton} from "../../components/TableButton";
-import {formatDate, centsToString} from "../../components/Tools";
+import dayjs, {Dayjs} from "dayjs";
 import {observer} from "mobx-react-lite";
+import React, {useEffect, useState} from "react";
+import {Alert, Button, Col, Container, Row, Table} from "react-bootstrap";
+import {Link, useLocation, useNavigate} from "react-router-dom";
+
+import {NavbarComponent} from "../../components/Navbar";
+import {TableButton} from "../../components/TableButton";
+import {TimezoneTag} from "../../components/TimezoneTag";
+import {centsToString, formatDate} from "../../components/Tools";
 import {useToken} from "../../utils/AuthContext";
 import {AuthAxios} from "../../utils/Network";
-import {Col, Row, Table, Button, Container, Alert} from "react-bootstrap";
-import {TimezoneTag} from "../../components/TimezoneTag";
-import dayjs, {Dayjs} from "dayjs";
 
 interface Transaction {
   id: number;
@@ -72,7 +73,7 @@ export const TransactionsList = observer(() => {
     const fetchTransactions = async () => {
       try {
         const res = await AuthAxios.get("transactions", auth.getToken());
-        let data: Transaction[] = res.data;
+        const data: Transaction[] = res.data;
         const transactionWithTags = await Promise.all(
           data.map(async (transaction) => {
             transaction.date_time = dayjs(transaction.date_time);
@@ -112,7 +113,7 @@ export const TransactionsList = observer(() => {
                 `account_sync_event?subtransaction=${subtransactionRes.data[0].id}`,
                 auth.getToken(),
               );
-              let syncEvents = syncEventRes.data[0];
+              const syncEvents = syncEventRes.data[0];
               const syncEventAccRes = await AuthAxios.get(
                 `accounts?id=${syncEvents.account}`,
                 auth.getToken(),

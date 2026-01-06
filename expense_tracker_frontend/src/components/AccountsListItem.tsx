@@ -1,5 +1,3 @@
-import type {AccountElement, Preset} from "../utils/Interfaces";
-import {Button, Col, Form, Row} from "react-bootstrap";
 import React, {
   ChangeEvent,
   Dispatch,
@@ -7,6 +5,9 @@ import React, {
   useCallback,
   useRef,
 } from "react";
+import {Button, Col, Form, Row} from "react-bootstrap";
+
+import type {AccountElement, Preset} from "../utils/Interfaces";
 import {TouchSpin} from "./TouchSpin";
 
 interface AccountsListItemProps {

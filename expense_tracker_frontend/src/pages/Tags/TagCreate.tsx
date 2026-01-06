@@ -1,12 +1,12 @@
-import {NavbarEmpty} from "../../components/NavbarEmpty";
 import {observer} from "mobx-react-lite";
 import {FormEvent, useState} from "react";
-import {useToken} from "../../utils/AuthContext";
-import {NavbarComponent} from "../../components/Navbar";
+import {Col, Container, Form, Row} from "react-bootstrap";
 import {useNavigate} from "react-router-dom";
-import {AuthAxios} from "../../utils/Network";
-import {Col, Form, Row, Container} from "react-bootstrap";
+
+import {NavbarComponent} from "../../components/Navbar";
 import {SubmitButton} from "../../components/SubmitButton";
+import {useToken} from "../../utils/AuthContext";
+import {AuthAxios} from "../../utils/Network";
 
 export const TagCreate = observer(() => {
   const auth = useToken();
@@ -16,7 +16,7 @@ export const TagCreate = observer(() => {
   if (auth.getToken() === "") {
     navigate("/login");
   }
-  let bodyParameters = {
+  const bodyParameters = {
     Name: ``,
     Description: ``,
     action: "create",

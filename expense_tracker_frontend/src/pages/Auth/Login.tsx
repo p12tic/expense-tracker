@@ -1,33 +1,47 @@
 import axios from "axios";
-import {FormEvent, useState} from "react";
-import {useNavigate} from "react-router-dom";
-import {NavbarEmpty} from "../../components/NavbarEmpty";
 import {observer} from "mobx-react-lite";
+import {FormEvent, useEffect, useState} from "react";
+import {Col, Container, Form, Row} from "react-bootstrap";
+import {useNavigate} from "react-router-dom";
+
+import {NavbarEmpty} from "../../components/NavbarEmpty";
+import {SubmitButton} from "../../components/SubmitButton";
 import {useToken} from "../../utils/AuthContext";
 import {getApiUrlForCurrentWindow} from "../../utils/Network";
-import {Col, Form, Row, Container} from "react-bootstrap";
-import {SubmitButton} from "../../components/SubmitButton";
 
-export const Login = () => {
+export const Login = observer(() => {
   const auth = useToken();
 
-  let bodyParameters = {
-    username: "",
-    password: "",
-  };
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isValidating, setIsValidating] = useState(true);
   const navigate = useNavigate();
-  if (auth.getToken() !== "") {
-    navigate("/transactions");
-  }
+
+  useEffect(() => {
+    const validateToken = async () => {
+      if (auth.getToken()) {
+        const isValid = await auth.validateToken();
+        if (isValid) {
+          navigate("/transactions");
+        } else {
+          // Token is invalid, clear it
+          auth.clearToken();
+        }
+      }
+      setIsValidating(false);
+    };
+
+    validateToken();
+  }, [auth, navigate]);
+
   const submitHandler = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    bodyParameters.username = username;
-    bodyParameters.password = password;
 
     axios
-      .post(`${getApiUrlForCurrentWindow()}api-token-auth/`, bodyParameters)
+      .post(`${getApiUrlForCurrentWindow()}api-token-auth/`, {
+        username: username,
+        password: password,
+      })
       .then((response) => {
         auth.setToken(response.data.token);
         navigate("/transactions");
@@ -36,6 +50,18 @@ export const Login = () => {
         console.error(err);
       });
   };
+
+  if (isValidating) {
+    return (
+      <Container>
+        <NavbarEmpty />
+        <div className="text-center mt-5">
+          <p>Logging in...</p>
+        </div>
+      </Container>
+    );
+  }
+
   return (
     <Container>
       <NavbarEmpty />
@@ -74,4 +100,4 @@ export const Login = () => {
       </Form>
     </Container>
   );
-};
+});

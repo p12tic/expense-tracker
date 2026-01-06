@@ -1,4 +1,3 @@
-import {AuthAxios} from "./Network";
 import type {
   AccountElement,
   Preset,
@@ -6,6 +5,7 @@ import type {
   PresetTransactionTag,
   TagElement,
 } from "./Interfaces";
+import {AuthAxios} from "./Network";
 
 export const fetchAccounts = async (authToken: string) => {
   return await AuthAxios.get("accounts", authToken).then(async (res) => {
