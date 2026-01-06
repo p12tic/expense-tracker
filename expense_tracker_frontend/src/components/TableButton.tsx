@@ -1,4 +1,3 @@
-import "../../../expenses/static/expenses/common.css";
 import {Button} from "react-bootstrap";
 
 interface TableButtonProps {
