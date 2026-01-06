@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 import json
 from typing import Any
@@ -30,6 +32,28 @@ def require_dt(param: Any, name: str) -> datetime.datetime:
         return datetime.datetime.fromisoformat(param)
     except (TypeError, ValueError) as e:
         raise ValidationError({name: 'Must be a datetime.'}) from e
+
+
+def require_dict_str(data: dict[str, Any], key: str, max_len: int | None = None) -> str:
+    if key not in data:
+        raise ValidationError({key: 'Must exist.'})
+    value = data[key]
+    if not isinstance(value, str):
+        raise ValidationError({key: 'Is not str.'})
+    if max_len is not None and len(value) > max_len:
+        raise ValidationError({key: 'Too long.'})
+    if len(value) == 0:
+        raise ValidationError({key: 'Cannot be empty.'})
+    return value
+
+
+def require_dict_int(data: dict[str, Any], key: str) -> str:
+    if key not in data:
+        raise ValidationError({key: 'Must exist.'})
+    value = data[key]
+    if not isinstance(value, int):
+        raise ValidationError({key: 'Is not int.'})
+    return value
 
 
 class AccountView(generics.ListCreateAPIView):
@@ -603,21 +627,50 @@ class TransactionCreateBatchView(generics.ListCreateAPIView):
         return queryset
 
     def post(self, request, *args, **kwargs):
-        selection = json.loads(self.request.data['selection'])
-        if 'transaction_desc' in selection:
-            preset = models.Preset.objects.get(id=selection['id'])
+        if 'action' not in self.request.data:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        action = self.request.data['action']
+
+        if 'selection' not in self.request.data:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            selection = json.loads(self.request.data['selection'])
+        except (json.JSONDecodeError, TypeError):
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        if action == 'create_by_preset':
+            try:
+                preset = models.Preset.objects.get(id=require_dict_int(selection, 'id'))
+            except models.Preset.DoesNotExist:
+                return Response(status=status.HTTP_403_FORBIDDEN)
+
             if preset.user != self.request.user:
                 return Response(status=status.HTTP_403_FORBIDDEN)
+
             batch = models.TransactionCreateBatch.objects.create(
-                preset=preset, name=self.request.data['name'], user=self.request.user
+                preset=preset,
+                name=require_dict_str(self.request.data, 'name', max_len=256),
+                user=self.request.user,
             )
-        else:
-            account = models.Account.objects.get(id=selection['id'])
+        elif action == 'create_by_account':
+            try:
+                account = models.Account.objects.get(id=require_dict_int(selection, 'id'))
+            except models.Account.DoesNotExist:
+                return Response(status=status.HTTP_403_FORBIDDEN)
+
             if account.user != self.request.user:
                 return Response(status=status.HTTP_403_FORBIDDEN)
+
             batch = models.TransactionCreateBatch.objects.create(
-                account=account, name=self.request.data['name'], user=self.request.user
+                account=account,
+                name=require_dict_str(self.request.data, 'name', max_len=256),
+                user=self.request.user,
             )
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
         batch.save()
         for img in self.request.FILES.getlist("images"):
             batch_image = models.TransactionCreateBatchRemainingTransactions.objects.create(
