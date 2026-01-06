@@ -1,18 +1,17 @@
 import base64
 import json
+
 import requests
-
-from django.conf import settings
-
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
+from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.utils import timezone
+from django_apscheduler import util
 from django_apscheduler.jobstores import DjangoJobStore
 from django_apscheduler.models import DjangoJobExecution
-from django_apscheduler import util
-from expenses.models import TransactionCreateBatchRemainingTransactions
-from django.utils import timezone
 
+from expenses.models import TransactionCreateBatchRemainingTransactions
 
 prompt = (
     "Attached is an image of receipt(possibly in Lithuanian). "

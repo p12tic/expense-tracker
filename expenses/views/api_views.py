@@ -1,16 +1,17 @@
-import base64
-import importlib
-import requests
 import json
-from django.core.files.base import ContentFile
+
+import requests
 from django.contrib.auth.models import User
-from django.utils.timezone import make_aware
-from rest_framework.authtoken.models import Token
-from rest_framework.response import Response
-from datetime import timedelta, timezone, datetime
-from .. import models, serializers, db_utils
-from rest_framework import generics, authentication, status
+from django.core.files.base import ContentFile
+from rest_framework import authentication
+from rest_framework import generics
+from rest_framework import status
 from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+from .. import db_utils
+from .. import models
+from .. import serializers
 
 
 class AccountView(generics.ListCreateAPIView):

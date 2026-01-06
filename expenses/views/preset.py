@@ -1,12 +1,20 @@
-from django.views.generic.list import ListView
-from django.views.generic.edit import FormView, UpdateView, DeleteView
-from django.core.exceptions import PermissionDenied
 from django import forms
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect
-from .auth import AppLoginRequiredMixin, VerifyOwnerMixin
-from .formsets import *
-from ..models import *
-from ..db_utils import *
+from django.views.generic.edit import DeleteView
+from django.views.generic.edit import FormView
+from django.views.generic.list import ListView
+
+from ..db_utils import get_preset_accounts_and_tags
+from ..models import Account
+from ..models import FloatAccountFormSet
+from ..models import Preset
+from ..models import PresetSubtransaction
+from ..models import PresetTransactionTag
+from ..models import Tag
+from ..models import TagFormSet
+from .auth import AppLoginRequiredMixin
+from .auth import VerifyOwnerMixin
 
 
 class PresetListView(AppLoginRequiredMixin, ListView):

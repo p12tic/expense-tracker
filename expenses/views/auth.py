@@ -1,9 +1,9 @@
 from django.contrib import auth
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import LoginView
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from django.contrib.auth.views import LoginView
 
 
 def logged_in(request):

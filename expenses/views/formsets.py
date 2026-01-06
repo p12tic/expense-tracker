@@ -1,5 +1,7 @@
 from django import forms
-from ..models import *
+
+from ..models import Account
+from ..models import Tag
 
 # accounts formset
 

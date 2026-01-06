@@ -1,10 +1,16 @@
-import base64
-import requests
 import datetime
-from django.utils.timezone import make_aware
-from django.conf import settings
-from .models import *
 import re
+
+from django.utils.timezone import make_aware
+
+from .models import Account
+from .models import AccountBalanceCache
+from .models import AccountSyncEvent
+from .models import PresetTransactionTag
+from .models import Subtransaction
+from .models import Tag
+from .models import Transaction
+from .models import TransactionTag
 
 # NOTE: the subtransaction filtering MUST be done using half-open intervals to
 # ensure that when several transactions are made on the same date/time the
