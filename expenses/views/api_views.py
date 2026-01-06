@@ -518,9 +518,16 @@ class AccountBalanceCacheView(generics.ListAPIView):
 class PresetSubtransactionView(generics.ListAPIView):
     queryset = models.PresetSubtransaction.objects.all()
     serializer_class = serializers.PresetSubtransactionSerializer
+    authentication_classes = (
+        authentication.TokenAuthentication,
+        authentication.SessionAuthentication,
+    )
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        # Ensure users can only access their own preset subtransactions
+        queryset = queryset.filter(preset__user=self.request.user)
         preset = self.request.query_params.get('preset')
         if preset is not None:
             queryset = queryset.filter(preset=preset)
