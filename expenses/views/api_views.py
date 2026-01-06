@@ -569,9 +569,16 @@ class TokenView(generics.ListAPIView):
 class TransactionImageView(generics.ListAPIView):
     queryset = models.TransactionImage.objects.all()
     serializer_class = serializers.TransactionImageSerializer
+    authentication_classes = (
+        authentication.TokenAuthentication,
+        authentication.SessionAuthentication,
+    )
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        queryset = queryset.filter(transaction__user=self.request.user)
+
         transaction = self.request.query_params.get('transaction')
         if transaction is not None:
             queryset = models.TransactionImage.objects.filter(transaction=transaction)
