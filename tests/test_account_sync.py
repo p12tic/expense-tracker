@@ -1,5 +1,6 @@
 from datetime import date
 from datetime import datetime
+from datetime import timezone
 
 from django.contrib.auth.models import User
 from django.test import TestCase
@@ -305,11 +306,11 @@ class TestAccountSync(TestCase):
         self.verify_account_sync_delete_at_end()
 
     def test_account_sync_change_amount(self):
-        self.create_transaction(datetime(2000, 1, 2, 10, 0, 1), 100)
-        self.create_transaction(datetime(2000, 1, 2, 12, 0, 1), 50)
+        self.create_transaction(datetime(2000, 1, 2, 10, 0, 1, tzinfo=timezone.utc), 100)
+        self.create_transaction(datetime(2000, 1, 2, 12, 0, 1, tzinfo=timezone.utc), 50)
 
-        event = sync_create(self.account, datetime(2000, 1, 2, 11, 0, 1), 70)
-        sync_update_date_or_amount(event, datetime(2000, 1, 2, 11, 0, 1), 60)
+        event = sync_create(self.account, datetime(2000, 1, 2, 11, 0, 1, tzinfo=timezone.utc), 70)
+        sync_update_date_or_amount(event, datetime(2000, 1, 2, 11, 0, 1, tzinfo=timezone.utc), 60)
         balance_on_date_time = [
             (0, datetime(2000, 1, 1)),
             (0, datetime(2000, 1, 2, 10, 0, 0)),
