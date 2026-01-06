@@ -9,6 +9,7 @@ from rest_framework import generics
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .. import db_utils
@@ -379,9 +380,16 @@ class PresetView(generics.ListCreateAPIView):
 class TransactionTagsView(generics.ListAPIView):
     queryset = models.TransactionTag.objects.all()
     serializer_class = serializers.TransactionTagsSerializer
+    authentication_classes = (
+        authentication.TokenAuthentication,
+        authentication.SessionAuthentication,
+    )
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        queryset = queryset.filter(transaction__user=self.request.user)
+
         transaction_id = self.request.query_params.get('transaction')
         if transaction_id is not None:
             queryset = queryset.filter(transaction=require_int(transaction_id, 'transaction'))
