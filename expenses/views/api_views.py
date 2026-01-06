@@ -503,15 +503,15 @@ class AccountBalanceCacheView(generics.ListAPIView):
         queryset = super().get_queryset()
         queryset = queryset.filter(account__user=self.request.user)
 
-        account = self.request.query_params.get('account')
-        if account is not None:
-            queryset = queryset.filter(account=account)
+        account_id = self.request.query_params.get('account')
+        if account_id is not None:
+            queryset = queryset.filter(account=require_int(account_id, 'account'))
         date_lte = self.request.query_params.get('date_lte')
         if date_lte is not None:
-            queryset = queryset.filter(date__lte=date_lte)
+            queryset = queryset.filter(date__lte=require_dt(date_lte, 'date_lte'))
         date_gte = self.request.query_params.get('date_gte')
         if date_gte is not None:
-            queryset = queryset.filter(date__gte=date_gte)
+            queryset = queryset.filter(date__gte=require_dt(date_gte, 'date_gte'))
         return queryset
 
 
