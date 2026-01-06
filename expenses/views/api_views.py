@@ -265,7 +265,7 @@ class PresetView(generics.ListCreateAPIView):
             queryset = queryset.filter(id=id)
         tag = self.request.query_params.get('tag')
         if tag is not None:
-            queryset = queryset.filter(tag=tag)
+            queryset = queryset.filter(preset_tags__tag=tag)
         return queryset
 
     def post(self, request, *args, **kwargs):
