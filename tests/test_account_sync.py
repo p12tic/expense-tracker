@@ -26,7 +26,7 @@ class TestAccountSync(TestCase):
             self.assertEqual(
                 balance,
                 get_account_balance(self.account, date_time),
-                msg='On {0}'.format(date_time),
+                msg=f'On {date_time}',
             )
 
     def assert_caches(self, cache_on_date):

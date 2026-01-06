@@ -110,7 +110,7 @@ def get_transactions_actions_and_tags(transactions_qs):
             subtransactions_data.append((
                 sub.account.id,
                 accounts_descs[sub.account.id],
-                '{0:+d}'.format(sub.amount),
+                f'{sub.amount:+d}',
             ))
 
         tag_names = []
@@ -214,9 +214,7 @@ def add_cache_if_needed(account, date_time):
     caches = AccountBalanceCache.objects.filter(account=account, date=next_date)
     if len(caches) > 1:
         raise Exception(
-            "The number of caches for account {0} is more than 1 on date {1}".format(
-                account.id, next_date
-            )
+            f"The number of caches for account {account.id} is more than 1 on date {next_date}"
         )
     if len(caches) == 0:
         balance_date_time = datetime.datetime.combine(date_time.date(), datetime.time.max)
