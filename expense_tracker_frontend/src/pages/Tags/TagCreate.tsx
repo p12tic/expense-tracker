@@ -16,7 +16,7 @@ export const TagCreate = observer(() => {
   if (auth.getToken() === "") {
     navigate("/login");
   }
-  let bodyParameters = {
+  const bodyParameters = {
     Name: ``,
     Description: ``,
     action: "create",

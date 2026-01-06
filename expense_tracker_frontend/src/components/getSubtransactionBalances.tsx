@@ -25,7 +25,7 @@ export function getSubtransactionBalances(
   subtransactionBalancesProps: Subtransaction[],
 ) {
   let sum = 0;
-  let subs = subtransactionBalancesProps;
+  const subs = subtransactionBalancesProps;
   subs.reverse();
   const sums = subs.map((sub) => {
     sum = sum + sub.amount;

@@ -72,7 +72,7 @@ export const TransactionsList = observer(() => {
     const fetchTransactions = async () => {
       try {
         const res = await AuthAxios.get("transactions", auth.getToken());
-        let data: Transaction[] = res.data;
+        const data: Transaction[] = res.data;
         const transactionWithTags = await Promise.all(
           data.map(async (transaction) => {
             transaction.date_time = dayjs(transaction.date_time);
@@ -112,7 +112,7 @@ export const TransactionsList = observer(() => {
                 `account_sync_event?subtransaction=${subtransactionRes.data[0].id}`,
                 auth.getToken(),
               );
-              let syncEvents = syncEventRes.data[0];
+              const syncEvents = syncEventRes.data[0];
               const syncEventAccRes = await AuthAxios.get(
                 `accounts?id=${syncEvents.account}`,
                 auth.getToken(),

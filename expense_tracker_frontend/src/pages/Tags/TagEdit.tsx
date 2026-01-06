@@ -37,7 +37,7 @@ export const TagEdit = observer(() => {
     return;
   }
 
-  let bodyParameters = {
+  const bodyParameters = {
     id: id,
     Name: ``,
     Description: ``,

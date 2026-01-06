@@ -21,7 +21,7 @@ export function DefaultDelete({
   const navigate = useNavigate();
   const submitHandle = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    let bodyParameters = {
+    const bodyParameters = {
       id: id,
       action: `delete`,
     };

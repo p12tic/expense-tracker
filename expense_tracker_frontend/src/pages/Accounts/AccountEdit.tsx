@@ -36,7 +36,7 @@ export const AccountEdit = observer(() => {
     navigate("/accounts");
     return;
   }
-  let bodyParameters = {
+  const bodyParameters = {
     id: id,
     Name: ``,
     Description: ``,
