@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - DEBUG=False
+      - DATABASE_URL=sqlite:///app/db/db.sqlite
+      - ALLOWED_HOSTS=localhost,127.0.0.1,backend
+    volumes:
+      - ./media:/app/media
+      - ./db:/app/db
+      - ./static_volume:/app/static
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "
+        python manage.py migrate &&
+        python manage.py collectstatic --noinput &&
+        gunicorn --bind 0.0.0.0:8000 --workers 3 expense_tracker.wsgi:application
+      "
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: expense_tracker_scheduler
+    restart: unless-stopped
+    environment:
+      - DEBUG=False
+      - DATABASE_URL=sqlite:///app/db/db.sqlite
+      - BASE_URL=http://backend:8000
+    volumes:
+      - ./media:/app/media
+      - ./db:/app/db
+    depends_on:
+      backend:
+        condition: service_healthy
+    command: python manage.py run_scheduler
+    profiles:
+      - scheduler
+
+networks:
+  default:
+    driver: bridge

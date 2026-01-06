@@ -27,7 +27,7 @@ export const Login = () => {
     bodyParameters.password = password;
 
     axios
-      .post(`${getApiUrlForCurrentWindow()}/api-token-auth/`, bodyParameters)
+      .post(`${getApiUrlForCurrentWindow()}api-token-auth/`, bodyParameters)
       .then((response) => {
         auth.setToken(response.data.token);
         navigate("/transactions");
