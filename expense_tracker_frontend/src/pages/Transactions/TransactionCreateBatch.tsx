@@ -22,6 +22,10 @@ interface Image {
   id: string;
   image: File;
 }
+interface SelectedItem {
+  index: number;
+  type: "account" | "preset";
+}
 
 export const TransactionCreateBatch = observer(() => {
   const auth = useToken();
@@ -31,7 +35,7 @@ export const TransactionCreateBatch = observer(() => {
   }
   const [presets, setPresets] = useState<Preset[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
-  const [selection, setSelection] = useState<Preset | Account>();
+  const [selection, setSelection] = useState<SelectedItem>();
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [images, setImages] = useState<Image[]>([]);
   const [name, setName] = useState<string>("");
@@ -47,9 +51,6 @@ export const TransactionCreateBatch = observer(() => {
     fetchPresets();
     fetchAccounts();
   }, []);
-  function handleSelect(selectedItem: Preset | Account) {
-    setSelection(selectedItem);
-  }
   const {getRootProps, getInputProps} = useDropzone({
     accept: {
       "image/*": [],
@@ -74,7 +75,18 @@ export const TransactionCreateBatch = observer(() => {
     }
     const bodyParams = new FormData();
     bodyParams.append("name", name);
-    bodyParams.append("selection", JSON.stringify(selection));
+    bodyParams.append(
+      "action",
+      selection.type === "account" ? "create_by_account" : "create_by_preset",
+    );
+    bodyParams.append(
+      "selection",
+      JSON.stringify(
+        selection.type === "account"
+          ? accounts[selection.index]
+          : presets[selection.index],
+      ),
+    );
     images.map((image) => bodyParams.append("images", image.image));
     await AuthAxios.post("transaction_batch", auth.getToken(), bodyParams);
     navigate("/transactions");
@@ -93,14 +105,14 @@ export const TransactionCreateBatch = observer(() => {
               <Col style={{borderRight: "solid #dee2e6 1px"}}>
                 <h4>Presets</h4>
                 <br />
-                {presets.map((preset, id) =>
-                  selection === preset ? (
+                {presets.map((preset, index) =>
+                  selection?.type === "preset" && selection?.index === index ? (
                     <Button
                       variant="info"
                       className="tmp-preset-button"
                       style={{marginBottom: "0.2em", marginRight: "0.3em"}}
                       data-id={`${preset.id}`}
-                      key={id}
+                      key={index}
                     >
                       {preset.name}
                     </Button>
@@ -108,10 +120,12 @@ export const TransactionCreateBatch = observer(() => {
                     <Button
                       variant="default"
                       className="tmp-preset-button"
-                      onClick={() => handleSelect(preset)}
+                      onClick={() =>
+                        setSelection({type: "preset", index: index})
+                      }
                       style={{marginBottom: "0.2em", marginRight: "0.3em"}}
                       data-id={`${preset.id}`}
-                      key={id}
+                      key={index}
                     >
                       {preset.name}
                     </Button>
@@ -121,14 +135,15 @@ export const TransactionCreateBatch = observer(() => {
               <Col>
                 <h4>Accounts</h4>
                 <br />
-                {accounts.map((account, id) =>
-                  selection === account ? (
+                {accounts.map((account, index) =>
+                  selection?.type === "account" &&
+                  selection?.index === index ? (
                     <Button
                       variant="info"
                       className="tmp-preset-button"
                       style={{marginBottom: "0.2em", marginRight: "0.3em"}}
                       data-id={`${account.id}`}
-                      key={id}
+                      key={index}
                     >
                       {account.name}
                     </Button>
@@ -136,10 +151,12 @@ export const TransactionCreateBatch = observer(() => {
                     <Button
                       variant="default"
                       className="tmp-preset-button"
-                      onClick={() => handleSelect(account)}
+                      onClick={() =>
+                        setSelection({type: "account", index: index})
+                      }
                       style={{marginBottom: "0.2em", marginRight: "0.3em"}}
                       data-id={`${account.id}`}
-                      key={id}
+                      key={index}
                     >
                       {account.name}
                     </Button>

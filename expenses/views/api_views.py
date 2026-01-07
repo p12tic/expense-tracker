@@ -1,4 +1,8 @@
+from __future__ import annotations
+
+import datetime
 import json
+from typing import Any
 
 import requests
 from django.contrib.auth.models import User
@@ -7,11 +11,49 @@ from rest_framework import authentication
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.decorators import api_view
+from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .. import db_utils
 from .. import models
 from .. import serializers
+
+
+def require_int(param: Any, name: str) -> int:
+    try:
+        return int(param)
+    except (TypeError, ValueError) as e:
+        raise ValidationError({name: 'Must be an integer.'}) from e
+
+
+def require_dt(param: Any, name: str) -> datetime.datetime:
+    try:
+        return datetime.datetime.fromisoformat(param)
+    except (TypeError, ValueError) as e:
+        raise ValidationError({name: 'Must be a datetime.'}) from e
+
+
+def require_dict_str(data: dict[str, Any], key: str, max_len: int | None = None) -> str:
+    if key not in data:
+        raise ValidationError({key: 'Must exist.'})
+    value = data[key]
+    if not isinstance(value, str):
+        raise ValidationError({key: 'Is not str.'})
+    if max_len is not None and len(value) > max_len:
+        raise ValidationError({key: 'Too long.'})
+    if len(value) == 0:
+        raise ValidationError({key: 'Cannot be empty.'})
+    return value
+
+
+def require_dict_int(data: dict[str, Any], key: str) -> str:
+    if key not in data:
+        raise ValidationError({key: 'Must exist.'})
+    value = data[key]
+    if not isinstance(value, int):
+        raise ValidationError({key: 'Is not int.'})
+    return value
 
 
 class AccountView(generics.ListCreateAPIView):
@@ -66,7 +108,6 @@ class TagView(generics.ListCreateAPIView):
 
     def post(self, request, *args, **kwargs):
         if self.request.data['action'] == "create":
-            self.request.data['user'] = self.request.user.id
             tag = models.Tag.objects.create(
                 name=self.request.data['Name'],
                 desc=self.request.data['Description'],
@@ -152,10 +193,15 @@ class TransactionView(generics.ListCreateAPIView):
             return Response(status=status.HTTP_201_CREATED)
         if self.request.data['action'] == "delete":
             transaction = models.Transaction.objects.get(id=self.request.data['id'])
+            if transaction.user != self.request.user:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
             transaction.delete()
             return Response(status=status.HTTP_200_OK)
         if self.request.data['action'] == "edit":
             transaction = models.Transaction.objects.get(id=self.request.data['id'])
+            if transaction.user != self.request.user:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+
             transaction.desc = self.request.data['desc']
             aware_dt = db_utils.get_aware_from_naive_iso(
                 self.request.data['date'], self.request.data['timezoneOffset']
@@ -261,7 +307,7 @@ class PresetView(generics.ListCreateAPIView):
             queryset = queryset.filter(id=id)
         tag = self.request.query_params.get('tag')
         if tag is not None:
-            queryset = queryset.filter(tag=tag)
+            queryset = queryset.filter(preset_tags__tag=tag)
         return queryset
 
     def post(self, request, *args, **kwargs):
@@ -290,10 +336,18 @@ class PresetView(generics.ListCreateAPIView):
             return Response(status=status.HTTP_201_CREATED)
         elif self.request.data['action'] == "delete":
             preset = models.Preset.objects.get(id=self.request.data['id'])
+
+            if preset.user != self.request.user:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+
             preset.delete()
             return Response(status=status.HTTP_200_OK)
         elif self.request.data['action'] == "edit":
             preset = models.Preset.objects.get(id=self.request.data['id'])
+
+            if preset.user != self.request.user:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+
             preset.name = self.request.data['name']
             preset.desc = self.request.data['desc']
             preset.transaction_desc = self.request.data['transDesc']
@@ -358,15 +412,23 @@ class PresetView(generics.ListCreateAPIView):
 class TransactionTagsView(generics.ListAPIView):
     queryset = models.TransactionTag.objects.all()
     serializer_class = serializers.TransactionTagsSerializer
+    authentication_classes = (
+        authentication.TokenAuthentication,
+        authentication.SessionAuthentication,
+    )
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        transaction = self.request.query_params.get('transaction')
-        if transaction is not None:
-            queryset = queryset.filter(transaction=transaction)
-        tag = self.request.query_params.get('tag')
-        if tag is not None:
-            queryset = queryset.filter(tag=tag)
+        queryset = queryset.filter(transaction__user=self.request.user)
+
+        transaction_id = self.request.query_params.get('transaction')
+        if transaction_id is not None:
+            queryset = queryset.filter(transaction=require_int(transaction_id, 'transaction'))
+        tag_id = self.request.query_params.get('tag')
+        if tag_id is not None:
+            queryset = queryset.filter(tag=require_int(tag_id, 'tag'))
+
         return queryset
 
 
@@ -377,27 +439,33 @@ class SubtransactionView(generics.ListAPIView):
     def get_queryset(self):
         queryset = super().get_queryset()
         queryset = queryset.order_by('-transaction__date_time', '-id')
-        transaction = self.request.query_params.get('transaction')
-        if transaction is not None:
-            queryset = queryset.filter(transaction=transaction)
-        account = self.request.query_params.get('account')
-        if account is not None:
-            queryset = queryset.filter(account=account)
+        transaction_id = self.request.query_params.get('transaction')
+        if transaction_id is not None:
+            queryset = queryset.filter(transaction=require_int(transaction_id, 'transaction'))
+        account_id = self.request.query_params.get('account')
+        if account_id is not None:
+            queryset = queryset.filter(account=require_int(account_id, 'account'))
         date_lte = self.request.query_params.get('date_lte')
         if date_lte is not None:
-            queryset = queryset.filter(transaction__date_time__lte=date_lte)
+            queryset = queryset.filter(transaction__date_time__lte=require_dt(date_lte, 'date_lte'))
         date_gte = self.request.query_params.get('date_gte')
         if date_gte is not None:
-            queryset = queryset.filter(transaction__date_time__gte=date_gte)
+            queryset = queryset.filter(transaction__date_time__gte=require_dt(date_gte, 'date_gte'))
         return queryset
 
 
 class AccountSyncEventView(generics.ListCreateAPIView):
     queryset = models.AccountSyncEvent.objects.all()
     serializer_class = serializers.AccountSyncEventSerializer
+    authentication_classes = (
+        authentication.TokenAuthentication,
+        authentication.SessionAuthentication,
+    )
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        queryset = queryset.filter(account__user=self.request.user)
         subtransaction = self.request.query_params.get('subtransaction')
         if subtransaction is not None:
             queryset = queryset.filter(subtransaction=subtransaction)
@@ -405,6 +473,10 @@ class AccountSyncEventView(generics.ListCreateAPIView):
 
     def post(self, request, *args, **kwargs):
         account = models.Account.objects.get(id=self.request.data['id'])
+
+        if account.user != self.request.user:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
         aware_dt = db_utils.get_aware_from_naive_iso(
             self.request.data['date'], self.request.data['timezoneOffset']
         )
@@ -431,12 +503,13 @@ class AccountSyncEventView(generics.ListCreateAPIView):
             )
         for sub in subs_queryset:
             sum = sum + sub.amount
-        sumDif = self.request.data['balance'] - sum
+        balance = require_int(self.request.data['balance'], 'balance')
+        sumDif = balance - sum
         subtransaction = models.Subtransaction.objects.create(
             transaction=transaction, account=account, amount=sumDif
         )
         models.AccountSyncEvent.objects.create(
-            account=account, balance=self.request.data['balance'], subtransaction=subtransaction
+            account=account, balance=balance, subtransaction=subtransaction
         )
         return Response(status=status.HTTP_201_CREATED)
 
@@ -444,48 +517,68 @@ class AccountSyncEventView(generics.ListCreateAPIView):
 class AccountBalanceCacheView(generics.ListAPIView):
     queryset = models.AccountBalanceCache.objects.all()
     serializer_class = serializers.AccountBalanceCacheSerializer
+    authentication_classes = (
+        authentication.TokenAuthentication,
+        authentication.SessionAuthentication,
+    )
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        account = self.request.query_params.get('account')
-        if account is not None:
-            queryset = queryset.filter(account=account)
+        queryset = queryset.filter(account__user=self.request.user)
+
+        account_id = self.request.query_params.get('account')
+        if account_id is not None:
+            queryset = queryset.filter(account=require_int(account_id, 'account'))
         date_lte = self.request.query_params.get('date_lte')
         if date_lte is not None:
-            queryset = queryset.filter(date__lte=date_lte)
+            queryset = queryset.filter(date__lte=require_dt(date_lte, 'date_lte'))
         date_gte = self.request.query_params.get('date_gte')
         if date_gte is not None:
-            queryset = queryset.filter(date__gte=date_gte)
+            queryset = queryset.filter(date__gte=require_dt(date_gte, 'date_gte'))
         return queryset
 
 
 class PresetSubtransactionView(generics.ListAPIView):
     queryset = models.PresetSubtransaction.objects.all()
     serializer_class = serializers.PresetSubtransactionSerializer
+    authentication_classes = (
+        authentication.TokenAuthentication,
+        authentication.SessionAuthentication,
+    )
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        # Ensure users can only access their own preset subtransactions
+        queryset = queryset.filter(preset__user=self.request.user)
         preset = self.request.query_params.get('preset')
         if preset is not None:
-            queryset = queryset.filter(preset=preset)
+            queryset = queryset.filter(preset=require_int(preset, 'preset'))
         account = self.request.query_params.get('account')
         if account is not None:
-            queryset = queryset.filter(account=account)
+            queryset = queryset.filter(account=require_int(account, 'account'))
         return queryset
 
 
 class PresetTransactionTagView(generics.ListAPIView):
     queryset = models.PresetTransactionTag.objects.all()
     serializer_class = serializers.PresetTransactionTagSerializer
+    authentication_classes = (
+        authentication.TokenAuthentication,
+        authentication.SessionAuthentication,
+    )
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        queryset = queryset.filter(preset__user=self.request.user)
         preset = self.request.query_params.get('preset')
         if preset is not None:
-            queryset = queryset.filter(preset=preset)
+            queryset = queryset.filter(preset=require_int(preset, 'preset'))
         tag = self.request.query_params.get('tag')
         if tag is not None:
-            queryset = queryset.filter(tag=tag)
+            queryset = queryset.filter(tag=require_int(tag, 'tag'))
         return queryset
 
 
@@ -500,18 +593,30 @@ class TokenView(generics.ListAPIView):
 class TransactionImageView(generics.ListAPIView):
     queryset = models.TransactionImage.objects.all()
     serializer_class = serializers.TransactionImageSerializer
+    authentication_classes = (
+        authentication.TokenAuthentication,
+        authentication.SessionAuthentication,
+    )
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        queryset = queryset.filter(transaction__user=self.request.user)
+
         transaction = self.request.query_params.get('transaction')
         if transaction is not None:
-            queryset = models.TransactionImage.objects.filter(transaction=transaction)
+            queryset = queryset.filter(transaction=require_int(transaction, 'transaction'))
         return queryset
 
 
 class TransactionCreateBatchView(generics.ListCreateAPIView):
     queryset = models.TransactionCreateBatch.objects.all()
     serializer_class = serializers.TransactionCreateBatchSerializer
+    authentication_classes = (
+        authentication.TokenAuthentication,
+        authentication.SessionAuthentication,
+    )
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -522,17 +627,50 @@ class TransactionCreateBatchView(generics.ListCreateAPIView):
         return queryset
 
     def post(self, request, *args, **kwargs):
-        selection = json.loads(self.request.data['selection'])
-        if 'transaction_desc' in selection:
-            preset = models.Preset.objects.get(id=selection['id'])
+        if 'action' not in self.request.data:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        action = self.request.data['action']
+
+        if 'selection' not in self.request.data:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            selection = json.loads(self.request.data['selection'])
+        except (json.JSONDecodeError, TypeError):
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        if action == 'create_by_preset':
+            try:
+                preset = models.Preset.objects.get(id=require_dict_int(selection, 'id'))
+            except models.Preset.DoesNotExist:
+                return Response(status=status.HTTP_403_FORBIDDEN)
+
+            if preset.user != self.request.user:
+                return Response(status=status.HTTP_403_FORBIDDEN)
+
             batch = models.TransactionCreateBatch.objects.create(
-                preset=preset, name=self.request.data['name'], user=self.request.user
+                preset=preset,
+                name=require_dict_str(self.request.data, 'name', max_len=256),
+                user=self.request.user,
+            )
+        elif action == 'create_by_account':
+            try:
+                account = models.Account.objects.get(id=require_dict_int(selection, 'id'))
+            except models.Account.DoesNotExist:
+                return Response(status=status.HTTP_403_FORBIDDEN)
+
+            if account.user != self.request.user:
+                return Response(status=status.HTTP_403_FORBIDDEN)
+
+            batch = models.TransactionCreateBatch.objects.create(
+                account=account,
+                name=require_dict_str(self.request.data, 'name', max_len=256),
+                user=self.request.user,
             )
         else:
-            account = models.Account.objects.get(id=selection['id'])
-            batch = models.TransactionCreateBatch.objects.create(
-                account=account, name=self.request.data['name'], user=self.request.user
-            )
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
         batch.save()
         for img in self.request.FILES.getlist("images"):
             batch_image = models.TransactionCreateBatchRemainingTransactions.objects.create(
@@ -545,6 +683,11 @@ class TransactionCreateBatchView(generics.ListCreateAPIView):
 class TransactionCreateBatchRemainingTransactionsView(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.TransactionCreateBatchRemainingTransactions.objects.all()
     serializer_class = serializers.TransactionCreateBatchRemainingTransactionsSerializer
+    authentication_classes = (
+        authentication.TokenAuthentication,
+        authentication.SessionAuthentication,
+    )
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         queryset = super().get_queryset()
