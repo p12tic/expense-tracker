@@ -5,6 +5,9 @@ from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 
+from expenses.models import Account
+
+
 class Command(BaseCommand):
     help = "Generates synthetic data for testing with the expense-tracker"
 
@@ -30,7 +33,7 @@ class Command(BaseCommand):
 
     # ------------------------------------------------------------------------------
     # Utils
-    
+
     def random_string(self, length) -> str:
         return ''.join(random.choice(string.ascii_letters) for _ in range(length))
 
@@ -56,3 +59,19 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(f"New user has been created:\nUsername: {username}\nPassword: {self.raw_password }\n"))
 
         return user
+
+    def generate_accounts(self, amount_of_accounts: int, user: User) -> list[Account]:
+        account_list = []
+        for i in range(amount_of_accounts):
+            current_account: User = Account.objects.create(
+                user=user,
+                name=f'Account_{self.random_string(8)}',
+                desc=f"Test description of this account"
+            )
+
+            account_list.append(current_account)
+
+            if self.verbose:
+                self.stdout.write(self.style.SUCCESS(f"New account has been created with name: {current_account.name}"))
+        
+        return account_list
