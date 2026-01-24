@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 
+from expenses.models import Tag
 from expenses.models import Account
 
 
@@ -75,3 +76,19 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(f"New account has been created with name: {current_account.name}"))
         
         return account_list
+
+    def generate_tags(self, amount_of_tags: int, user: User) -> list[tag]:
+        tag_list = []
+        for i in range(amount_of_tags):
+            current_tag: User = Tag.objects.create(
+                user=user,
+                name=f"Tag_{self.random_string(8)}",
+                desc="Test description of this tag"
+            )
+
+            tag_list.append(current_tag)
+
+            if self.verbose:
+                self.stdout.write(self.style.SUCCESS(f"New tag has been created with name: {current_tag.name}"))
+        
+        return tag_list
