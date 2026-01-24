@@ -21,3 +21,10 @@ To run apscheduler, go to project's root directory and run the following command
 ```commandline
 python manage.py run_scheduler
 ```
+
+## Syntetic data
+
+to get syntetic data for testing you can use syntetic_data_generator and it's flags.
+```commandline
+python manage.py syntetic_data_generator
+```
