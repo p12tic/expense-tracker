@@ -1,6 +1,9 @@
 import random
+import string
 
 from django.core.management.base import BaseCommand, CommandError
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
 
 class Command(BaseCommand):
     help = "Generates synthetic data for testing with the expense-tracker"
@@ -17,3 +20,39 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         seed = options['seed'] or random.randint(0, 2**32 - 1)
         random.seed(seed)
+
+        self.verbose: bool = options['log']
+
+        user = self.get_user(
+            username=options['username'],
+            password=options['password'],
+        )
+
+    # ------------------------------------------------------------------------------
+    # Utils
+    
+    def random_string(self, length) -> str:
+        return ''.join(random.choice(string.ascii_letters) for _ in range(length))
+
+    def random_amount(self) -> int:
+        return random.randint(-10000, 10000)
+
+    # ------------------------------------------------------------------------------
+    # Generators
+
+    def get_user(self, username: str | None, password: str | None) -> User:        
+        if not username:
+            username = f"user_{self.random_string(5)}"
+        if not password:
+            password = self.random_string(5)
+
+        self.raw_password = password # we need to store the raw_password as different variable because Django only stores a hash of the password
+
+        user = authenticate(username=username, password=password)
+        if user is None:
+            user = User.objects.create_user(username=username, password=password)
+
+            if self.verbose:
+                self.stdout.write(self.style.SUCCESS(f"New user has been created:\nUsername: {username}\nPassword: {self.raw_password }\n"))
+
+        return user
