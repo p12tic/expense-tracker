@@ -30,6 +30,13 @@ class Command(BaseCommand):
         seed = options['seed'] or random.randint(0, 2**32 - 1)
         random.seed(seed)
 
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Seed={seed} | DataPoints={options['dataPoints']} | "
+                f"Accounts={options['accounts']} | Tags={options['tags']}"
+            )
+        )
+
         self.verbose: bool = options['log']
 
         user = self.get_user(
@@ -50,9 +57,11 @@ class Command(BaseCommand):
             )
         )
 
+        self.stdout.write(self.style.SUCCESS(f"Synthetic data for user ({user.username}, {self.raw_password}) was created successfully"))
+
     # ------------------------------------------------------------------------------
     # Utils
-
+    
     def random_string(self, length) -> str:
         return ''.join(random.choice(string.ascii_letters) for _ in range(length))
 
