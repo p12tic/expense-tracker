@@ -334,6 +334,15 @@ class PresetView(generics.ListCreateAPIView):
         tag = self.request.query_params.get('tag')
         if tag is not None:
             queryset = queryset.filter(preset_tags__tag=tag)
+
+        limit = self.request.query_params.get("limit")
+        offset = self.request.query_params.get("offset")
+
+        if limit is not None and offset is not None:
+            limit = int(limit)
+            offset = int(offset)
+            queryset = queryset[offset : offset + limit]
+
         return queryset
 
     def post(self, request, *args, **kwargs):
