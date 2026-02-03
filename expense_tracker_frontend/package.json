@@ -11,6 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@types/react-virtualized": "^9.22.3",
     "axios": "^1.7.2",
     "bootstrap": "^5.3.3",
     "dayjs": "^1.11.13",
@@ -23,6 +24,7 @@
     "react-dropzone": "^14.3.8",
     "react-modal-image": "^2.6.0",
     "react-router-dom": "^6.24.1",
+    "react-virtualized": "^9.22.6",
     "uuid": "^10.0.0",
     "vite-plugin-checker": "^0.9.1"
   },
