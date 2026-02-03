@@ -1,14 +1,15 @@
 import "../../components/common.scss";
 
-import dayjs, {Dayjs} from "dayjs";
+import {Dayjs} from "dayjs";
 import {observer} from "mobx-react-lite";
-import React, {useEffect, useState} from "react";
-import {Button, Col, Container, Row, Table} from "react-bootstrap";
-import {Link, useNavigate} from "react-router-dom";
+import React, {useCallback, useEffect, useRef, useState} from "react";
+import {Button, Col, Container, Row} from "react-bootstrap";
+import {useNavigate} from "react-router-dom";
+import {AutoSizer, Column, Table} from "react-virtualized";
 
+import {getAccountBalance} from "../../components/getSubtransactionBalances";
 import {NavbarComponent} from "../../components/Navbar";
 import {TableButton} from "../../components/TableButton";
-import {formatDate} from "../../components/Tools";
 import {useToken} from "../../utils/AuthContext";
 import {AuthAxios} from "../../utils/Network";
 
@@ -21,12 +22,7 @@ interface Account {
   lastCacheDate: Dayjs;
   balance: number;
 }
-interface Subtransaction {
-  id: number;
-  amount: number;
-  transaction: string;
-  account: string;
-}
+
 export const Accounts = observer(() => {
   const auth = useToken();
   const navigate = useNavigate();
@@ -35,57 +31,92 @@ export const Accounts = observer(() => {
   }
   const [state, setState] = useState<Account[]>([]);
 
-  useEffect(() => {
-    const fetchAccounts = async () => {
-      try {
-        const data = await AuthAxios.get("accounts", auth.getToken()).then(
-          (res) => {
-            const data: Account[] = res.data;
-            return data;
-          },
-        );
-        const cache = await Promise.all(
-          data.map(async (account) => {
-            const balanceRes = await AuthAxios.get(
-              `account_balance_cache?account=${account.id}`,
-              auth.getToken(),
-            );
-            let sum: number;
-            if (balanceRes.data.length > 0) {
-              account.lastCacheBalance =
-                balanceRes.data[balanceRes.data.length - 1].balance;
-              account.lastCacheDate = dayjs(
-                balanceRes.data[balanceRes.data.length - 1].date,
-              );
-              sum = account.lastCacheBalance;
-            } else {
-              account.lastCacheBalance = 0;
-              account.lastCacheDate = dayjs(99999999);
-              sum = 0;
-            }
-            const subRes = await AuthAxios.get(
-              `subtransactions?account=${account.id}
-                                            &date_gte=${formatDate(account.lastCacheDate)}`,
-              auth.getToken(),
-            );
-            const subs: Subtransaction[] = subRes.data;
-            await Promise.all(
-              subs.map(async (sub) => {
-                sum = sum + sub.amount;
-              }),
-            );
-            account.balance = sum;
-            return account;
-          }),
-        );
+  const limit = 30;
+  const [offset, setOffset] = useState(0);
+  const loadingRef = useRef(false);
+  const [finished, setFinished] = useState(false);
 
-        setState(cache);
-      } catch (err) {
-        console.error(err);
+  const fetchAccounts = useCallback(async () => {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
+
+    try {
+      const data = (
+        await AuthAxios.get("accounts", auth.getToken(), {
+          params: {
+            limit: limit,
+            offset: offset,
+          },
+        })
+      ).data;
+
+      if (data.length <= 0) {
+        setFinished(true);
+        loadingRef.current = false;
+        return;
       }
-    };
+
+      const cache = await Promise.all(
+        data.map(async (account: Account) => {
+          account.balance = await getAccountBalance(account.id, auth);
+          return account;
+        }),
+      );
+
+      setState(cache);
+      setOffset(cache.length);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      loadingRef.current = false;
+    }
+  }, [auth, offset]);
+
+  useEffect(() => {
     fetchAccounts();
   }, []);
+
+  function rowRenderer({index}: {index: number}) {
+    const Account = state[index];
+
+    if (!Account) {
+      if (finished || state.length < limit) {
+        return {
+          Name: "",
+          Description: "",
+          Balance: "",
+          Button: "",
+        };
+      } else {
+        return {
+          Name: "loading...",
+          Description: "loading...",
+          Balance: "loading...",
+          Button: "",
+        };
+      }
+    }
+
+    return {
+      Name: <a href={`/accounts/${Account.id}`}>{Account.name}</a>,
+
+      Description: Account.desc,
+
+      Balance: Account.balance / 100,
+
+      Button: (
+        <Button
+          href={`/accounts/${Account.id}/sync`}
+          variant="default"
+          className="btn-xs pull-right"
+          role="button"
+        >
+          Sync
+        </Button>
+      ),
+    };
+  }
+
   return (
     <Container>
       <NavbarComponent />
@@ -97,47 +128,62 @@ export const Accounts = observer(() => {
           <TableButton dest={`/accounts/add`} name={"New"} />
         </Col>
       </Row>
-      <Table size="sm">
-        <thead>
-          {state.length > 0 ? (
-            <tr>
-              <th>Name</th>
-              <th>Description</th>
-              <th>Balance</th>
-              <th></th>
-            </tr>
-          ) : (
-            <></>
+      <div style={{height: "70vh", width: "100%"}}>
+        <AutoSizer>
+          {({height, width}) => (
+            <Table
+              width={width}
+              height={height}
+              headerHeight={20}
+              rowHeight={33}
+              rowCount={state.length > 0 ? state.length + 1 : 0}
+              rowGetter={({index}: {index: number}) => rowRenderer({index})}
+              rowStyle={() => ({
+                borderBottom: "1px solid #DEE2E6",
+              })}
+              noRowsRenderer={() => (
+                <div style={{padding: 16, textAlign: "center"}}>
+                  {loadingRef.current ? "loading..." : "No accounts"}
+                </div>
+              )}
+              onScroll={({clientHeight, scrollHeight, scrollTop}) => {
+                if (
+                  scrollTop + clientHeight >= scrollHeight - 5 &&
+                  !loadingRef.current &&
+                  state.length > 25
+                ) {
+                  fetchAccounts();
+                }
+              }}
+            >
+              <Column
+                label="Name"
+                dataKey="Name"
+                width={width / 2}
+                cellRenderer={({cellData}) => cellData}
+              />
+              <Column
+                label="Description"
+                dataKey="Description"
+                width={width / 2}
+                cellRenderer={({cellData}) => cellData}
+              />
+              <Column
+                label="Balance"
+                dataKey="Balance"
+                width={width / 2}
+                cellRenderer={({cellData}) => cellData}
+              />
+              <Column
+                label=""
+                dataKey="Button"
+                width={width / 10}
+                cellRenderer={({cellData}) => cellData}
+              />
+            </Table>
           )}
-        </thead>
-        <tbody>
-          {state.length > 0 ? (
-            state.map((output, id) => (
-              <tr key={id}>
-                <td>
-                  <Link to={`/accounts/${output.id}`}>{output.name}</Link>
-                </td>
-                <td>{output.desc}</td>
-                <td>{output.balance / 100}</td>
-                <td className="text-end">
-                  <Button
-                    href={`/accounts/${output.id}/sync`}
-                    variant="default"
-                    className="btn-xs pull-right"
-                    role="button"
-                  >
-                    Sync
-                  </Button>
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td>No accounts yet</td>
-            </tr>
-          )}
-        </tbody>
-      </Table>
+        </AutoSizer>
+      </div>
     </Container>
   );
 });
