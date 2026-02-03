@@ -1,8 +1,11 @@
+import "react-virtualized/styles.css";
+
 import dayjs, {Dayjs} from "dayjs";
 import {observer} from "mobx-react-lite";
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 import {Alert, Button, Col, Container, Row, Table} from "react-bootstrap";
 import {Link, useLocation, useNavigate} from "react-router-dom";
+import {AutoSizer, Column, Table as VirtTable} from "react-virtualized";
 
 import {NavbarComponent} from "../../components/Navbar";
 import {TableButton} from "../../components/TableButton";
@@ -69,66 +72,97 @@ export const TransactionsList = observer(() => {
   if (auth.getToken() === "") {
     navigate("/login");
   }
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        const res = await AuthAxios.get("transactions", auth.getToken());
-        const data: Transaction[] = res.data;
-        const transactionWithTags = await Promise.all(
-          data.map(async (transaction) => {
-            transaction.date_time = dayjs(transaction.date_time);
-            const transactionTagRes = await AuthAxios.get(
-              `transaction_tags?transaction=${transaction.id}`,
-              auth.getToken(),
-            );
-            transaction.transactionTag = transactionTagRes.data;
-            const tagOfTransaction = await Promise.all(
-              transaction.transactionTag.map(async (transTag) => {
-                const tagRes = await AuthAxios.get(
-                  `tags?id=${transTag.tag}`,
-                  auth.getToken(),
-                );
-                transTag.tagElement = tagRes.data[0];
-                return transTag;
-              }),
-            );
-            const subtransactionRes = await AuthAxios.get(
-              `subtransactions?transaction=${transaction.id}`,
-              auth.getToken(),
-            );
 
-            transaction.subtransaction = subtransactionRes.data;
-            await Promise.all(
-              transaction.subtransaction.map(async (sub) => {
-                const subAccRes = await AuthAxios.get(
-                  `accounts?id=${sub.account}`,
-                  auth.getToken(),
-                );
-                sub.accountElement = subAccRes.data[0];
-              }),
-            );
-            transaction.transactionTag = tagOfTransaction;
-            if (!transaction.desc) {
-              const syncEventRes = await AuthAxios.get(
-                `account_sync_event?subtransaction=${subtransactionRes.data[0].id}`,
-                auth.getToken(),
-              );
-              const syncEvents = syncEventRes.data[0];
-              const syncEventAccRes = await AuthAxios.get(
-                `accounts?id=${syncEvents.account}`,
-                auth.getToken(),
-              );
-              syncEvents.accountElement = syncEventAccRes.data[0];
-              transaction.syncEvent = syncEvents;
-            }
-            return transaction;
-          }),
-        );
-        setState(transactionWithTags);
-      } catch (err) {
-        console.error(err);
+  const limit = 30;
+  const [offset, setOffset] = useState(0);
+  const loadingRef = useRef(false);
+  const [finished, setFinished] = useState(false);
+
+  const fetchTransactions = useCallback(async () => {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
+
+    try {
+      const data: Transaction[] = (
+        await AuthAxios.get("transactions", auth.getToken(), {
+          params: {
+            limit: limit,
+            offset: offset,
+          },
+        })
+      ).data;
+
+      if (data.length <= 0) {
+        setFinished(true);
+        loadingRef.current = false;
+        return;
       }
-    };
+
+      const transactionWithTags = await Promise.all(
+        data.map(async (transaction) => {
+          transaction.date_time = dayjs(transaction.date_time);
+          const transactionTagRes = await AuthAxios.get(
+            `transaction_tags?transaction=${transaction.id}`,
+            auth.getToken(),
+          );
+          transaction.transactionTag = transactionTagRes.data;
+          const tagOfTransaction = await Promise.all(
+            transaction.transactionTag.map(async (transTag) => {
+              const tagRes = await AuthAxios.get(
+                `tags?id=${transTag.tag}`,
+                auth.getToken(),
+              );
+              transTag.tagElement = tagRes.data[0];
+              return transTag;
+            }),
+          );
+          const subtransactionRes = await AuthAxios.get(
+            `subtransactions?transaction=${transaction.id}`,
+            auth.getToken(),
+          );
+
+          transaction.subtransaction = subtransactionRes.data;
+          await Promise.all(
+            transaction.subtransaction.map(async (sub) => {
+              const subAccRes = await AuthAxios.get(
+                `accounts?id=${sub.account}`,
+                auth.getToken(),
+              );
+              sub.accountElement = subAccRes.data[0];
+            }),
+          );
+          transaction.transactionTag = tagOfTransaction;
+          if (!transaction.desc) {
+            const syncEventRes = await AuthAxios.get(
+              `account_sync_event?subtransaction=${subtransactionRes.data[0].id}`,
+              auth.getToken(),
+            );
+            const syncEvents = syncEventRes.data[0];
+            const syncEventAccRes = await AuthAxios.get(
+              `accounts?id=${syncEvents.account}`,
+              auth.getToken(),
+            );
+            syncEvents.accountElement = syncEventAccRes.data[0];
+            transaction.syncEvent = syncEvents;
+          }
+          return transaction;
+        }),
+      );
+
+      setState((prev) => {
+        const mergedSubs = [...prev.slice(0, offset), ...transactionWithTags];
+
+        setOffset(mergedSubs.length);
+        return mergedSubs;
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      loadingRef.current = false;
+    }
+  }, [auth, offset]);
+
+  useEffect(() => {
     const fetchBatches = async () => {
       const res = await AuthAxios.get("transaction_batch", auth.getToken());
       const data: Batch[] = res.data;
@@ -156,6 +190,80 @@ export const TransactionsList = observer(() => {
 
   function onClose() {
     navigate(location.pathname, {state: null});
+  }
+
+  function rowRenderer({index}: {index: number}) {
+    const transaction = state[index];
+
+    if (!transaction) {
+      if (finished || state.length < limit) {
+        return {
+          Description: "",
+          Date: "",
+          Actions: "",
+          Tags: "",
+          Dropdown: "",
+        };
+      } else {
+        return {
+          Description: "loading...",
+          Date: "loading...",
+          Actions: "loading...",
+          Tags: "loading...",
+          Dropdown: "",
+        };
+      }
+    }
+
+    return {
+      Description: transaction.desc ? (
+        <Link to={`/transactions/${transaction.id}`}>{transaction.desc}</Link>
+      ) : (
+        <>
+          <Link to={`/sync/${transaction.syncEvent?.id}`}>Sync event</Link>
+          <a href={`/accounts/${transaction.syncEvent?.accountElement?.id}`}>
+            <Button
+              variant="secondary"
+              className="btn-xs"
+              style={{marginLeft: 5}}
+            >
+              {transaction.syncEvent?.accountElement?.name}
+            </Button>
+          </a>
+        </>
+      ),
+
+      Date: (
+        <>
+          {formatDate(transaction.date_time)}
+          <TimezoneTag offset={transaction.timezone_offset} />
+        </>
+      ),
+
+      Actions: transaction.subtransaction?.map((sub, id) => (
+        <a key={id} href={`/accounts/${sub.accountElement?.id}`}>
+          <Button
+            variant="secondary"
+            className="btn-xs"
+            style={{marginLeft: 5}}
+          >
+            {sub.accountElement?.name} {centsToString(sub.amount)}
+          </Button>
+        </a>
+      )),
+
+      Tags: transaction.transactionTag?.map((tag: TransactionTag, id) => (
+        <a key={id} href={`/tags/${tag.tagElement?.id}`}>
+          <Button
+            variant="secondary"
+            className="btn-xs"
+            style={{marginLeft: 5}}
+          >
+            {tag.tagElement?.name}
+          </Button>
+        </a>
+      )),
+    };
   }
 
   return (
@@ -225,89 +333,62 @@ export const TransactionsList = observer(() => {
           <TableButton dest={`/transactions/add`} name={"New"} />
         </Col>
       </Row>
-
-      <Table size="sm">
-        <thead>
-          {state.length > 0 ? (
-            <tr>
-              <th>Description</th>
-              <th>Date/time</th>
-              <th>Actions</th>
-              <th>Tags</th>
-            </tr>
-          ) : (
-            <></>
+      <div style={{height: "70vh", width: "100%"}}>
+        <AutoSizer>
+          {({height, width}) => (
+            <VirtTable
+              width={width}
+              height={height}
+              headerHeight={20}
+              rowHeight={33}
+              rowCount={state.length > 0 ? state.length + 1 : 0}
+              rowGetter={({index}: {index: number}) => rowRenderer({index})}
+              rowStyle={() => ({
+                borderBottom: "1px solid #DEE2E6",
+              })}
+              noRowsRenderer={() => (
+                <div style={{padding: 16, textAlign: "center"}}>
+                  {loadingRef.current ? "loading..." : "No transactions"}
+                </div>
+              )}
+              onScroll={({clientHeight, scrollHeight, scrollTop}) => {
+                if (
+                  scrollTop + clientHeight >= scrollHeight - 5 &&
+                  !loadingRef.current &&
+                  state.length > 25
+                ) {
+                  fetchTransactions();
+                }
+              }}
+            >
+              <Column
+                label="Description"
+                dataKey="Description"
+                width={width / 4}
+                cellRenderer={({cellData}) => cellData}
+              />
+              <Column
+                label="Date/Time"
+                dataKey="Date"
+                width={width / 4}
+                cellRenderer={({cellData}) => cellData}
+              />
+              <Column
+                label="Actions"
+                dataKey="Actions"
+                width={width / 4}
+                cellRenderer={({cellData}) => cellData}
+              />
+              <Column
+                label="Tags"
+                dataKey="Tags"
+                width={width / 4}
+                cellRenderer={({cellData}) => cellData}
+              />
+            </VirtTable>
           )}
-        </thead>
-        <tbody>
-          {state.length > 0 ? (
-            state.map((output, id) => (
-              <tr key={id}>
-                {output.desc ? (
-                  <td>
-                    <Link to={`/transactions/${output.id}`}>{output.desc}</Link>
-                  </td>
-                ) : (
-                  <td>
-                    <Link to={`/sync/${output.syncEvent.id}`}>Sync event</Link>
-                    <Button
-                      variant="secondary"
-                      className="btn-xs"
-                      style={{marginLeft: 5}}
-                      key={id}
-                    >
-                      {output.syncEvent.accountElement.name}&nbsp;
-                      {output.syncEvent.balance / 100}
-                    </Button>
-                  </td>
-                )}
-
-                <td>
-                  {formatDate(output.date_time)}
-                  <TimezoneTag offset={output.timezone_offset} />
-                </td>
-                <td>
-                  {output.subtransaction ? (
-                    output.subtransaction.map((sub: Subtransaction, id) => (
-                      <Button
-                        variant="secondary"
-                        className="btn-xs"
-                        style={{marginLeft: 5}}
-                        key={id}
-                      >
-                        {sub.accountElement.name}&nbsp;
-                        {centsToString(sub.amount)}
-                      </Button>
-                    ))
-                  ) : (
-                    <></>
-                  )}
-                </td>
-                <td>
-                  {output.transactionTag ? (
-                    output.transactionTag.map((tags: TransactionTag, id) => (
-                      <Button
-                        variant="secondary"
-                        className="btn-xs"
-                        style={{marginLeft: 5}}
-                        key={id}
-                      >
-                        {tags.tagElement.name}
-                      </Button>
-                    ))
-                  ) : (
-                    <></>
-                  )}
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td>No transactions yet</td>
-            </tr>
-          )}
-        </tbody>
-      </Table>
+        </AutoSizer>
+      </div>
     </Container>
   );
 });
