@@ -112,6 +112,15 @@ class TagView(generics.ListCreateAPIView):
         id = self.request.query_params.get('id')
         if id is not None:
             queryset = queryset.filter(id=id)
+            return queryset
+
+        limit = self.request.query_params.get("limit")
+        offset = self.request.query_params.get("offset")
+        if limit is not None and offset is not None:
+            limit = int(limit)
+            offset = int(offset)
+            queryset = queryset[offset : offset + limit]
+
         return queryset
 
     def post(self, request, *args, **kwargs):
