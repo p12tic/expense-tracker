@@ -448,9 +448,11 @@ class SubtransactionView(generics.ListAPIView):
     def get_queryset(self):
         queryset = super().get_queryset()
         queryset = queryset.order_by('-transaction__date_time', '-id')
+
         transaction_id = self.request.query_params.get('transaction')
         if transaction_id is not None:
             queryset = queryset.filter(transaction=require_int(transaction_id, 'transaction'))
+
         account_id = self.request.query_params.get('account')
         if account_id is not None:
             queryset = queryset.filter(account=require_int(account_id, 'account'))
@@ -460,6 +462,14 @@ class SubtransactionView(generics.ListAPIView):
         date_gte = self.request.query_params.get('date_gte')
         if date_gte is not None:
             queryset = queryset.filter(transaction__date_time__gte=require_dt(date_gte, 'date_gte'))
+
+        limit = self.request.query_params.get("limit")
+        offset = self.request.query_params.get("offset")
+        if limit is not None and offset is not None:
+            limit = int(limit)
+            offset = int(offset)
+            queryset = queryset[offset : offset + limit]
+
         return queryset
 
 
