@@ -438,6 +438,7 @@ class TransactionTagsView(generics.ListAPIView):
     def get_queryset(self):
         queryset = super().get_queryset()
         queryset = queryset.filter(transaction__user=self.request.user)
+        queryset = queryset.order_by('-transaction__date_time')
 
         transaction_id = self.request.query_params.get('transaction')
         if transaction_id is not None:
@@ -445,6 +446,13 @@ class TransactionTagsView(generics.ListAPIView):
         tag_id = self.request.query_params.get('tag')
         if tag_id is not None:
             queryset = queryset.filter(tag=require_int(tag_id, 'tag'))
+
+        limit = self.request.query_params.get("limit")
+        offset = self.request.query_params.get("offset")
+        if limit is not None and offset is not None:
+            limit = int(limit)
+            offset = int(offset)
+            queryset = queryset[offset : offset + limit]
 
         return queryset
 
