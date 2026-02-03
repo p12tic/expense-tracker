@@ -29,16 +29,14 @@ interface AuthToken {
 }
 
 export function getSubtransactionBalances(
-  subtransactionBalancesProps: Subtransaction[],
+  subtransactions: Subtransaction[],
+  fullBalance: number,
 ) {
-  let sum = 0;
-  const subs = subtransactionBalancesProps;
-  subs.reverse();
-  const sums = subs.map((sub) => {
-    sum = sum + sub.amount;
-    return sum;
+  let sum = fullBalance;
+  subtransactions.forEach((subtransaction) => {
+    sum -= subtransaction.amount;
   });
-  return sums;
+  return sum;
 }
 
 export async function getAccountBalance(accountid: number, auth: AuthToken) {
