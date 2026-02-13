@@ -1,10 +1,16 @@
+import "react-virtualized/styles.css";
+
 import dayjs, {Dayjs} from "dayjs";
 import {observer} from "mobx-react-lite";
-import React, {useEffect, useState} from "react";
-import {Col, Container, Dropdown, Row, Table} from "react-bootstrap";
+import React, {useCallback, useEffect, useRef, useState} from "react";
+import {Col, Container, Dropdown, Row} from "react-bootstrap";
 import {Link, useNavigate, useParams} from "react-router-dom";
+import {AutoSizer, Column, Table} from "react-virtualized";
 
-import {getSubtransactionBalances} from "../../components/getSubtransactionBalances";
+import {
+  getAccountBalance,
+  getSubtransactionBalances,
+} from "../../components/getSubtransactionBalances";
 import {NavbarComponent} from "../../components/Navbar";
 import {StaticField} from "../../components/StaticField";
 import {TableButton} from "../../components/TableButton";
@@ -20,6 +26,7 @@ interface AccountElement {
   user: number;
   subtransactions: Subtransaction[];
   balances: number[];
+  balance: number;
 }
 interface Subtransaction {
   id: number;
@@ -51,25 +58,53 @@ export const Account = observer(() => {
     user: 0,
     subtransactions: [],
     balances: [],
+    balance: 0,
   });
   const {id} = useParams();
   const navigate = useNavigate();
   if (auth.getToken() === "") {
     navigate("/login");
   }
-  useEffect(() => {
-    const fetchTag = async () => {
-      const accountRes = await AuthAxios.get(
-        `accounts?id=${id}`,
-        auth.getToken(),
-      );
-      const account: AccountElement = accountRes.data[0];
-      const accountSubRes = await AuthAxios.get(
-        `subtransactions?account=${id}`,
-        auth.getToken(),
-      );
-      const accountSubs: Subtransaction[] = accountSubRes.data;
-      account.subtransactions = await Promise.all(
+
+  const limit = 30;
+  const [offset, setOffset] = useState(0);
+  const loadingRef = useRef(false);
+  const [finished, setFinished] = useState(false);
+
+  const fetchAccount = useCallback(async () => {
+    if (loadingRef.current) {
+      return;
+    }
+    loadingRef.current = true;
+
+    try {
+      const account: AccountElement = (
+        await AuthAxios.get(`accounts?id=${id}`, auth.getToken())
+      ).data[0];
+      const accountSubs: Subtransaction[] = (
+        await AuthAxios.get(`subtransactions?account=${id}`, auth.getToken(), {
+          params: {
+            limit: limit,
+            offset: offset,
+          },
+        })
+      ).data;
+      if (accountSubs.length <= 0) {
+        setState((prev) => ({
+          id: account.id,
+          name: account.name,
+          desc: account.desc,
+          user: account.user,
+          subtransactions: prev.subtransactions,
+          balances: prev.balances,
+          balance: prev.balance,
+        }));
+        setFinished(true);
+        loadingRef.current = false;
+        return;
+      }
+
+      const subtransactions = await Promise.all(
         accountSubs.map(async (sub) => {
           const transactionRes = await AuthAxios.get(
             `transactions?id=${sub.transaction}`,
@@ -82,46 +117,131 @@ export const Account = observer(() => {
               `account_sync_event?subtransaction=${sub.id}`,
               auth.getToken(),
             );
-            transaction.syncEvent = syncRes.data[0];
+
+            if (!syncRes) {
+              console.error(
+                `syncRes was not found, but it should be there, transaction id=${transaction.id}`,
+              );
+            } else {
+              transaction.syncEvent = syncRes.data[0];
+            }
           }
-          sub.transactionElement = transaction;
-          const cacheRes = await AuthAxios.get(
-            `account_balance_cache?subtransaction=${sub.id}&date_lte=1970-01-01`,
-            auth.getToken(),
-          );
-          let cacheDate: Dayjs;
-          let sum = 0;
-          if (cacheRes.data.length > 0) {
-            cacheDate = cacheRes.data[cacheRes.data.length - 1].date;
-            sum = cacheRes.data[cacheRes.data.length - 1].balance;
-          } else {
-            cacheDate = dayjs(0);
-            sum = 0;
-          }
-          const cacheSubsRes = await AuthAxios.get(
-            `subtransactions?account=${id}&date_gte=${formatDate(dayjs(cacheDate))}&date_lte=${formatDate(dayjs(sub.transactionElement.date_time))}`,
-            auth.getToken(),
-          );
-          const cacheSubs: Subtransaction[] = cacheSubsRes.data;
-          await Promise.all(
-            cacheSubs.map(async (cacheSub) => {
-              sum = sum + cacheSub.amount;
-            }),
-          );
           sub.transactionElement = transaction;
           return sub;
         }),
       );
-      account.balances = getSubtransactionBalances(account.subtransactions);
-      account.subtransactions.reverse();
-      setState(account);
-    };
+      const balance = await getAccountBalance(account.id, auth);
 
-    fetchTag();
+      setState((prev) => {
+        const mergedSubs = [
+          ...prev.subtransactions.slice(0, offset),
+          ...subtransactions,
+        ];
+
+        setOffset(mergedSubs.length);
+        return {
+          id: account.id,
+          name: account.name,
+          desc: account.desc,
+          user: account.user,
+          subtransactions: mergedSubs,
+          balances: [],
+          balance: balance,
+        };
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      loadingRef.current = false;
+    }
+  }, [auth, id, offset]);
+
+  //initial load
+  useEffect(() => {
+    fetchAccount();
   }, []);
+
   if (id === undefined) {
     navigate("/accounts");
     return;
+  }
+
+  function rowRenderer({index}: {index: number}) {
+    const sub = state.subtransactions[index];
+    if (!sub) {
+      if (finished || state.subtransactions.length < limit) {
+        return {
+          Description: "",
+          Date: "",
+          Amount: "",
+          Balance: "",
+          Dropdown: "",
+        };
+      } else {
+        return {
+          Description: "loading...",
+          Date: "loading...",
+          Amount: "loading...",
+          Balance: "loading...",
+          Dropdown: "",
+        };
+      }
+    }
+
+    return {
+      Description: sub.transactionElement.desc ? (
+        <Link to={`/transactions/${sub.transactionElement.id}`}>
+          {sub.transactionElement.desc}
+        </Link>
+      ) : sub.transactionElement.syncEvent ? (
+        <Link to={`/sync/${sub.transactionElement.syncEvent.id}`}>
+          Sync event
+        </Link>
+      ) : (
+        <>{`ERROR no syncEvent was found for transaction id=${sub.transactionElement.id}`}</>
+      ),
+
+      Date: (
+        <>
+          {formatDate(sub.transactionElement.date_time)}
+          <TimezoneTag offset={sub.transactionElement.timezone_offset} />
+        </>
+      ),
+
+      Amount: centsToString(sub.amount),
+
+      Balance: centsToString(
+        getSubtransactionBalances(
+          state.subtransactions.slice(0, index),
+          state.balance,
+        ),
+      ),
+
+      Dropdown: (
+        <div>
+          <Dropdown className="text-center">
+            <Dropdown.Toggle
+              size="sm"
+              variant="default"
+              style={{padding: "1px 5px", fontSize: "12px"}}
+            />
+            <Dropdown.Menu
+              renderOnMount
+              popperConfig={{
+                strategy: "fixed",
+              }}
+            >
+              <Dropdown.Item
+                as={Link}
+                to={`/accounts/${state.id}/sync?after_tr=${sub.transactionElement.id}`}
+              >
+                Sync after
+              </Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
+        </div>
+      ),
+    };
   }
 
   return (
@@ -144,76 +264,72 @@ export const Account = observer(() => {
         </Row>
         <StaticField label="Description" content={state.desc} />
         <h3>Transactions</h3>
-        <Table size="sm">
-          <thead>
-            {state.subtransactions.length > 0 ? (
-              <tr>
-                <th>Description</th>
-                <th>Date</th>
-                <th>Amount</th>
-                <th>Balance</th>
-                <th></th>
-              </tr>
-            ) : (
-              <></>
+        <div style={{height: "70vh", width: "100%"}}>
+          <AutoSizer>
+            {({height, width}) => (
+              <Table
+                width={width}
+                height={height}
+                headerHeight={20}
+                rowHeight={33}
+                rowCount={
+                  state.subtransactions.length > 0
+                    ? state.subtransactions.length + 1
+                    : 0
+                }
+                rowGetter={({index}: {index: number}) => rowRenderer({index})}
+                rowStyle={() => ({
+                  borderBottom: "1px solid #DEE2E6",
+                })}
+                noRowsRenderer={() => (
+                  <div style={{padding: 16, textAlign: "center"}}>
+                    {loadingRef.current ? "loading..." : "No transactions"}
+                  </div>
+                )}
+                onScroll={({clientHeight, scrollHeight, scrollTop}) => {
+                  if (
+                    scrollTop + clientHeight >= scrollHeight - 5 &&
+                    !loadingRef.current &&
+                    state.subtransactions.length > 25
+                  ) {
+                    fetchAccount();
+                  }
+                }}
+              >
+                <Column
+                  label="Description"
+                  dataKey="Description"
+                  width={width / 1}
+                  cellRenderer={({cellData}) => cellData}
+                />
+                <Column
+                  label="Date/Time"
+                  dataKey="Date"
+                  width={width / 1}
+                  cellRenderer={({cellData}) => cellData}
+                />
+                <Column
+                  label="Amount"
+                  dataKey="Amount"
+                  width={width / 1}
+                  cellRenderer={({cellData}) => cellData}
+                />
+                <Column
+                  label="Balance"
+                  dataKey="Balance"
+                  width={width / 1}
+                  cellRenderer={({cellData}) => cellData}
+                />
+                <Column
+                  label=""
+                  dataKey="Dropdown"
+                  width={width / 10}
+                  cellRenderer={({cellData}) => cellData}
+                />
+              </Table>
             )}
-          </thead>
-          <tbody>
-            {state.subtransactions.length > 0 ? (
-              state.subtransactions.map((sub, id) => (
-                <tr key={id}>
-                  <td>
-                    {sub.transactionElement.desc ? (
-                      <Link to={`/transactions/${sub.transactionElement.id}`}>
-                        {sub.transactionElement.desc}
-                      </Link>
-                    ) : (
-                      <Link to={`/sync/${sub.transactionElement.syncEvent.id}`}>
-                        Sync event
-                      </Link>
-                    )}
-                  </td>
-                  <td>
-                    {formatDate(sub.transactionElement.date_time)}
-                    <TimezoneTag
-                      offset={sub.transactionElement.timezone_offset}
-                    />
-                  </td>
-                  <td>{centsToString(sub.amount)}</td>
-                  <td>
-                    {centsToString(
-                      state.balances[state.balances.length - 1 - id],
-                    )}
-                  </td>
-                  <td>
-                    {sub.transactionElement.desc ? (
-                      <Dropdown className="text-end">
-                        <Dropdown.Toggle
-                          size="sm"
-                          variant="default"
-                          style={{padding: "1px 5px", fontSize: "12px"}}
-                        />
-                        <Dropdown.Menu>
-                          <Dropdown.Item
-                            href={`/accounts/${state.id}/sync?after_tr=${sub.transactionElement.id}`}
-                          >
-                            Sync after
-                          </Dropdown.Item>
-                        </Dropdown.Menu>
-                      </Dropdown>
-                    ) : (
-                      <></>
-                    )}
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td>No transactions yet</td>
-              </tr>
-            )}
-          </tbody>
-        </Table>
+          </AutoSizer>
+        </div>
       </>
     </Container>
   );

@@ -1,8 +1,11 @@
+import "react-virtualized/styles.css";
+
 import dayjs, {Dayjs} from "dayjs";
 import {observer} from "mobx-react-lite";
-import React, {useEffect, useState} from "react";
-import {Button, Col, Container, Row, Table} from "react-bootstrap";
+import React, {useCallback, useEffect, useRef, useState} from "react";
+import {Button, Col, Container, Row} from "react-bootstrap";
 import {Link, useNavigate, useParams} from "react-router-dom";
+import {AutoSizer, Column, Table} from "react-virtualized";
 
 import {NavbarComponent} from "../../components/Navbar";
 import {StaticField} from "../../components/StaticField";
@@ -60,15 +63,43 @@ export const Tag = observer(() => {
   if (auth.getToken() === "") {
     navigate("/login");
   }
-  useEffect(() => {
-    const fetchTag = async () => {
-      const tagRes = await AuthAxios.get(`tags?id=${id}`, auth.getToken());
-      const tag: TagElement = tagRes.data[0];
-      const transTagRes = await AuthAxios.get(
-        `transaction_tags?tag=${id}`,
-        auth.getToken(),
-      );
-      const transTagData: TransTag[] = transTagRes.data;
+
+  const limit = 30;
+  const [offset, setOffset] = useState(0);
+  const loadingRef = useRef(false);
+  const [finished, setFinished] = useState(false);
+
+  const fetchTag = useCallback(async () => {
+    if (loadingRef.current) {
+      return;
+    }
+    loadingRef.current = true;
+
+    try {
+      const tag: TagElement = (
+        await AuthAxios.get(`tags?id=${id}`, auth.getToken())
+      ).data[0];
+      const transTagData: TransTag[] = (
+        await AuthAxios.get(`transaction_tags?tag=${id}`, auth.getToken(), {
+          params: {
+            limit: limit,
+            offset: offset,
+          },
+        })
+      ).data;
+      if (transTagData.length <= 0) {
+        setState((prev) => ({
+          id: tag.id,
+          name: tag.name,
+          desc: tag.desc,
+          user: tag.user,
+          transTag: prev.transTag,
+        }));
+        setFinished(true);
+        loadingRef.current = false;
+        return;
+      }
+
       const transTagsWithTrans = await Promise.all(
         transTagData.map(async (transTag: TransTag) => {
           const transRes = await AuthAxios.get(
@@ -97,19 +128,88 @@ export const Tag = observer(() => {
         }),
       );
 
-      transTagsWithTrans.sort(
-        (a, b) =>
-          a.transactionElement.date_time.valueOf() -
-          b.transactionElement.date_time.valueOf(),
-      );
-      tag.transTag = transTagsWithTrans;
-      setState(tag);
-    };
+      setState((prev) => {
+        const merged = [
+          ...prev.transTag.slice(0, offset),
+          ...transTagsWithTrans,
+        ];
+
+        setOffset(merged.length);
+        return {
+          id: tag.id,
+          name: tag.name,
+          desc: tag.desc,
+          user: tag.user,
+          transTag: merged,
+        };
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      loadingRef.current = false;
+    }
+  }, [auth, id, offset]);
+
+  //initial load
+  useEffect(() => {
     fetchTag();
   }, []);
   if (id === undefined) {
     navigate("/tags");
     return;
+  }
+
+  function rowRenderer({index}: {index: number}) {
+    const TransTag = state.transTag[index];
+
+    if (!TransTag) {
+      if (finished) {
+        return {
+          Description: "",
+          Date: "",
+          Actions: "",
+        };
+      } else {
+        return {
+          Description: "loading...",
+          Date: "loading...",
+          Actions: "loading...",
+        };
+      }
+    }
+
+    return {
+      Description: (
+        <Link to={`/transactions/${TransTag.transactionElement.id}`}>
+          {TransTag.transactionElement.desc}
+        </Link>
+      ),
+
+      Date: (
+        <>
+          {formatDate(TransTag.transactionElement.date_time)}
+          <TimezoneTag offset={TransTag.transactionElement.timezone_offset} />
+        </>
+      ),
+
+      Actions: TransTag.transactionElement.subs ? (
+        TransTag.transactionElement.subs.map((sub, id) => (
+          <a key={id} href={`/accounts/${sub.accountElement.id}`}>
+            <Button
+              variant="secondary"
+              className="btn-xs"
+              style={{marginLeft: 5}}
+              role="button"
+            >
+              {sub.accountElement.name}&nbsp;
+              {centsToString(sub.amount)}
+            </Button>
+          </a>
+        ))
+      ) : (
+        <></>
+      ),
+    };
   }
 
   return (
@@ -131,60 +231,58 @@ export const Tag = observer(() => {
         </Row>
         <StaticField label="Description" content={state.desc} />
         <h3>Transactions</h3>
-        <Table size="sm">
-          <thead>
-            {state.transTag.length > 0 ? (
-              <tr>
-                <th>Description</th>
-                <th>Date/Time</th>
-                <th>Actions</th>
-              </tr>
-            ) : (
-              <></>
+        <div style={{height: "70vh", width: "100%"}}>
+          <AutoSizer>
+            {({height, width}) => (
+              <Table
+                width={width}
+                height={height}
+                headerHeight={20}
+                rowHeight={33}
+                rowCount={
+                  state.transTag.length > 0 ? state.transTag.length + 1 : 0
+                }
+                rowGetter={({index}: {index: number}) => rowRenderer({index})}
+                rowStyle={() => ({
+                  borderBottom: "1px solid #DEE2E6",
+                })}
+                noRowsRenderer={() => (
+                  <div style={{padding: 16, textAlign: "center"}}>
+                    {loadingRef.current ? "loading..." : "No transactions"}
+                  </div>
+                )}
+                onScroll={({clientHeight, scrollHeight, scrollTop}) => {
+                  if (
+                    scrollTop + clientHeight >= scrollHeight - 5 &&
+                    !loadingRef.current &&
+                    state.transTag.length > 25
+                  ) {
+                    fetchTag();
+                  }
+                }}
+              >
+                <Column
+                  label="Description"
+                  dataKey="Description"
+                  width={width / 3}
+                  cellRenderer={({cellData}) => cellData}
+                />
+                <Column
+                  label="Date/Time"
+                  dataKey="Date"
+                  width={width / 3}
+                  cellRenderer={({cellData}) => cellData}
+                />
+                <Column
+                  label="Actions"
+                  dataKey="Actions"
+                  width={width / 3}
+                  cellRenderer={({cellData}) => cellData}
+                />
+              </Table>
             )}
-          </thead>
-          <tbody>
-            {state.transTag.length > 0 ? (
-              state.transTag.map((output, id) => (
-                <tr key={id}>
-                  <td>
-                    <Link to={`/transactions/${output.transactionElement.id}`}>
-                      {output.transactionElement.desc}
-                    </Link>
-                  </td>
-                  <td>
-                    {formatDate(dayjs(output.transactionElement.date_time))}
-                    <TimezoneTag
-                      offset={output.transactionElement.timezone_offset}
-                    />
-                  </td>
-                  <td>
-                    {output.transactionElement.subs ? (
-                      output.transactionElement.subs.map((sub, id) => (
-                        <Button
-                          variant="secondary"
-                          className="btn-xs"
-                          style={{marginLeft: 5}}
-                          role="button"
-                          key={id}
-                        >
-                          {sub.accountElement.name}&nbsp;
-                          {centsToString(sub.amount)}
-                        </Button>
-                      ))
-                    ) : (
-                      <></>
-                    )}
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td>No transactions yet</td>
-              </tr>
-            )}
-          </tbody>
-        </Table>
+          </AutoSizer>
+        </div>
       </>
     </Container>
   );

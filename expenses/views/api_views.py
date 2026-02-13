@@ -66,6 +66,16 @@ class AccountView(generics.ListCreateAPIView):
         id = self.request.query_params.get('id')
         if id is not None:
             queryset = queryset.filter(id=id)
+
+        limit = self.request.query_params.get("limit")
+        offset = self.request.query_params.get("offset")
+        if limit is not None and offset is not None:
+            limit = int(limit)
+            offset = int(offset)
+            queryset = queryset[offset : offset + limit]
+        elif limit is not None or offset is not None:
+            raise ValueError("Either both limit and offset must be provided or neither.")
+
         return queryset
 
     def post(self, request, *args, **kwargs):
@@ -104,6 +114,17 @@ class TagView(generics.ListCreateAPIView):
         id = self.request.query_params.get('id')
         if id is not None:
             queryset = queryset.filter(id=id)
+            return queryset
+
+        limit = self.request.query_params.get("limit")
+        offset = self.request.query_params.get("offset")
+        if limit is not None and offset is not None:
+            limit = int(limit)
+            offset = int(offset)
+            queryset = queryset[offset : offset + limit]
+        elif limit is not None or offset is not None:
+            raise ValueError("Either both limit and offset must be provided or neither.")
+
         return queryset
 
     def post(self, request, *args, **kwargs):
@@ -145,6 +166,17 @@ class TransactionView(generics.ListCreateAPIView):
         id = self.request.query_params.get("id")
         if id is not None:
             queryset = queryset.filter(id=id)
+            return queryset
+
+        limit = self.request.query_params.get("limit")
+        offset = self.request.query_params.get("offset")
+        if limit is not None and offset is not None:
+            limit = int(limit)
+            offset = int(offset)
+            queryset = queryset[offset : offset + limit]
+        elif limit is not None or offset is not None:
+            raise ValueError("Either both limit and offset must be provided or neither.")
+
         return queryset
 
     def post(self, request, *args, **kwargs):
@@ -308,6 +340,17 @@ class PresetView(generics.ListCreateAPIView):
         tag = self.request.query_params.get('tag')
         if tag is not None:
             queryset = queryset.filter(preset_tags__tag=tag)
+
+        limit = self.request.query_params.get("limit")
+        offset = self.request.query_params.get("offset")
+
+        if limit is not None and offset is not None:
+            limit = int(limit)
+            offset = int(offset)
+            queryset = queryset[offset : offset + limit]
+        elif limit is not None or offset is not None:
+            raise ValueError("Either both limit and offset must be provided or neither.")
+
         return queryset
 
     def post(self, request, *args, **kwargs):
@@ -429,6 +472,16 @@ class TransactionTagsView(generics.ListAPIView):
         if tag_id is not None:
             queryset = queryset.filter(tag=require_int(tag_id, 'tag'))
 
+        limit = self.request.query_params.get("limit")
+        offset = self.request.query_params.get("offset")
+        if limit is not None and offset is not None:
+            queryset = queryset.order_by('-transaction__date_time', '-id')
+            limit = int(limit)
+            offset = int(offset)
+            queryset = queryset[offset : offset + limit]
+        elif limit is not None or offset is not None:
+            raise ValueError("Either both limit and offset must be provided or neither.")
+
         return queryset
 
 
@@ -439,9 +492,11 @@ class SubtransactionView(generics.ListAPIView):
     def get_queryset(self):
         queryset = super().get_queryset()
         queryset = queryset.order_by('-transaction__date_time', '-id')
+
         transaction_id = self.request.query_params.get('transaction')
         if transaction_id is not None:
             queryset = queryset.filter(transaction=require_int(transaction_id, 'transaction'))
+
         account_id = self.request.query_params.get('account')
         if account_id is not None:
             queryset = queryset.filter(account=require_int(account_id, 'account'))
@@ -451,6 +506,16 @@ class SubtransactionView(generics.ListAPIView):
         date_gte = self.request.query_params.get('date_gte')
         if date_gte is not None:
             queryset = queryset.filter(transaction__date_time__gte=require_dt(date_gte, 'date_gte'))
+
+        limit = self.request.query_params.get("limit")
+        offset = self.request.query_params.get("offset")
+        if limit is not None and offset is not None:
+            limit = int(limit)
+            offset = int(offset)
+            queryset = queryset[offset : offset + limit]
+        elif limit is not None or offset is not None:
+            raise ValueError("Either both limit and offset must be provided or neither.")
+
         return queryset
 
 

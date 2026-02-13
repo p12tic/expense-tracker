@@ -1,4 +1,8 @@
-import {Dayjs} from "dayjs";
+import {AxiosResponse} from "axios";
+import dayjs, {Dayjs} from "dayjs";
+
+import {AuthAxios} from "../utils/Network";
+import {formatDate} from "./Tools";
 
 interface Subtransaction {
   id: number;
@@ -21,15 +25,48 @@ interface SyncEvent {
   subtransaction: string;
 }
 
+interface AuthToken {
+  getToken: () => string;
+}
+
 export function getSubtransactionBalances(
-  subtransactionBalancesProps: Subtransaction[],
+  subtransactions: Subtransaction[],
+  fullBalance: number,
 ) {
-  let sum = 0;
-  const subs = subtransactionBalancesProps;
-  subs.reverse();
-  const sums = subs.map((sub) => {
-    sum = sum + sub.amount;
-    return sum;
+  let sum = fullBalance;
+  subtransactions.forEach((subtransaction) => {
+    sum -= subtransaction.amount;
   });
-  return sums;
+  return sum;
+}
+
+function getBalancesSumAndLastCacheDate(balanceRes: AxiosResponse) {
+  if (balanceRes.data.length > 0) {
+    return [
+      balanceRes.data[balanceRes.data.length - 1].balance,
+      dayjs(balanceRes.data[balanceRes.data.length - 1].date),
+    ];
+  } else {
+    return [0, dayjs(0)];
+  }
+}
+
+export async function getAccountBalance(accountid: number, auth: AuthToken) {
+  const balanceRes = await AuthAxios.get(
+    `account_balance_cache?account=${accountid}`,
+    auth.getToken(),
+  );
+
+  const [cacheValue, lastCacheDate] =
+    getBalancesSumAndLastCacheDate(balanceRes);
+
+  const subRes = await AuthAxios.get(
+    `subtransactions?account=${accountid}&date_gte=${formatDate(lastCacheDate)}`,
+    auth.getToken(),
+  );
+
+  return subRes.data.reduce(
+    (total: number, sub: Subtransaction) => total + sub.amount,
+    cacheValue,
+  );
 }
