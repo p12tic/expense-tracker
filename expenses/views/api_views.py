@@ -73,6 +73,8 @@ class AccountView(generics.ListCreateAPIView):
             limit = int(limit)
             offset = int(offset)
             queryset = queryset[offset : offset + limit]
+        elif limit is not None or offset is not None:
+            raise ValueError("Either both limit and offset must be provided or neither.")
 
         return queryset
 
@@ -120,6 +122,8 @@ class TagView(generics.ListCreateAPIView):
             limit = int(limit)
             offset = int(offset)
             queryset = queryset[offset : offset + limit]
+        elif limit is not None or offset is not None:
+            raise ValueError("Either both limit and offset must be provided or neither.")
 
         return queryset
 
@@ -170,6 +174,8 @@ class TransactionView(generics.ListCreateAPIView):
             limit = int(limit)
             offset = int(offset)
             queryset = queryset[offset : offset + limit]
+        elif limit is not None or offset is not None:
+            raise ValueError("Either both limit and offset must be provided or neither.")
 
         return queryset
 
@@ -342,6 +348,8 @@ class PresetView(generics.ListCreateAPIView):
             limit = int(limit)
             offset = int(offset)
             queryset = queryset[offset : offset + limit]
+        elif limit is not None or offset is not None:
+            raise ValueError("Either both limit and offset must be provided or neither.")
 
         return queryset
 
@@ -471,6 +479,8 @@ class TransactionTagsView(generics.ListAPIView):
             limit = int(limit)
             offset = int(offset)
             queryset = queryset[offset : offset + limit]
+        elif limit is not None or offset is not None:
+            raise ValueError("Either both limit and offset must be provided or neither.")
 
         return queryset
 
@@ -503,6 +513,8 @@ class SubtransactionView(generics.ListAPIView):
             limit = int(limit)
             offset = int(offset)
             queryset = queryset[offset : offset + limit]
+        elif limit is not None or offset is not None:
+            raise ValueError("Either both limit and offset must be provided or neither.")
 
         return queryset
 
