@@ -31,7 +31,9 @@ export const Tags = observer(() => {
   const [finished, setFinished] = useState(false);
 
   const fetchTags = useCallback(async () => {
-    if (loadingRef.current) return;
+    if (loadingRef.current) {
+      return;
+    }
     loadingRef.current = true;
 
     try {

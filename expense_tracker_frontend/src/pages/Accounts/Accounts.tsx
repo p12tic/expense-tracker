@@ -37,7 +37,9 @@ export const Accounts = observer(() => {
   const [finished, setFinished] = useState(false);
 
   const fetchAccounts = useCallback(async () => {
-    if (loadingRef.current) return;
+    if (loadingRef.current) {
+      return;
+    }
     loadingRef.current = true;
 
     try {
