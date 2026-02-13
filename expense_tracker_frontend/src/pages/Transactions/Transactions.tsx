@@ -140,6 +140,14 @@ export const TransactionsList = observer(() => {
               auth.getToken(),
             );
             const syncEvents = syncEventRes.data[0];
+
+            if (!syncEvents) {
+              console.error(
+                `syncEvents was not found, but it should be there, transaction id=${transaction.id}`,
+              );
+              return transaction;
+            }
+
             const syncEventAccRes = await AuthAxios.get(
               `accounts?id=${syncEvents.account}`,
               auth.getToken(),
@@ -220,7 +228,7 @@ export const TransactionsList = observer(() => {
     return {
       Description: transaction.desc ? (
         <Link to={`/transactions/${transaction.id}`}>{transaction.desc}</Link>
-      ) : (
+      ) : transaction.syncEvent ? (
         <>
           <Link to={`/sync/${transaction.syncEvent?.id}`}>Sync event</Link>
           <a href={`/accounts/${transaction.syncEvent?.accountElement?.id}`}>
@@ -233,6 +241,8 @@ export const TransactionsList = observer(() => {
             </Button>
           </a>
         </>
+      ) : (
+        <>{`ERROR no syncEvent was found for transaction id=${transaction.id}`}</>
       ),
 
       Date: (

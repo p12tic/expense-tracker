@@ -117,10 +117,16 @@ export const Account = observer(() => {
               `account_sync_event?subtransaction=${sub.id}`,
               auth.getToken(),
             );
-            transaction.syncEvent = syncRes.data[0];
+
+            if (!syncRes) {
+              console.error(
+                `syncRes was not found, but it should be there, transaction id=${transaction.id}`,
+              );
+            } else {
+              transaction.syncEvent = syncRes.data[0];
+            }
           }
           sub.transactionElement = transaction;
-
           return sub;
         }),
       );
@@ -187,10 +193,12 @@ export const Account = observer(() => {
         <Link to={`/transactions/${sub.transactionElement.id}`}>
           {sub.transactionElement.desc}
         </Link>
-      ) : (
+      ) : sub.transactionElement.syncEvent ? (
         <Link to={`/sync/${sub.transactionElement.syncEvent.id}`}>
           Sync event
         </Link>
+      ) : (
+        <>{`ERROR no syncEvent was found for transaction id=${sub.transactionElement.id}`}</>
       ),
 
       Date: (
