@@ -284,6 +284,24 @@ class TestTagView(TestCase):
         tag_names = [tag['name'] for tag in response.data]
         self.assertEqual(tag_names, sorted(tag_names))
 
+    def test_tag_limit_offset(self):
+        """Test that tags are ordered by name and have limit, offset"""
+        self.client.force_authenticate(user=self.user1)
+
+        # Create tags with names that would sort differently
+        Tag.objects.create(user=self.user1, name='Alpha Tag', desc='Should be first')
+        Tag.objects.create(user=self.user1, name='Zebra Tag', desc='Should be last')
+
+        response = self.client.get(self.url, {'limit': 2, 'offset': 1})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data,
+            [
+                {'id': 1, 'name': 'Test Tag 1', 'desc': 'Test Description 1', 'user': 1},
+                {'id': 2, 'name': 'Test Tag 2', 'desc': 'Test Description 2', 'user': 1},
+            ],
+        )
+
     def test_tag_with_empty_description(self):
         """Test creating a tag with empty description"""
         self.client.force_authenticate(user=self.user1)
