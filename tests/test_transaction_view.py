@@ -484,6 +484,47 @@ class TestTransactionView(TestCase):
         self.assertEqual(transaction_descs[2], 'Test transaction 1')
         self.assertEqual(transaction_descs[3], 'Oldest transaction')
 
+    def test_transaction_limit_offset(self):
+        """Test that transactions are ordered by date_time and have limit, offset"""
+        self.client.force_authenticate(user=self.user1)
+
+        # Create transactions with different dates
+        Transaction.objects.create(
+            user=self.user1,
+            desc='Oldest transaction',
+            date_time=datetime(2023, 1, 1, 10, 0, 0),
+            timezone_offset=-120,
+        )
+
+        Transaction.objects.create(
+            user=self.user1,
+            desc='Newest transaction',
+            date_time=datetime(2023, 1, 5, 10, 0, 0),
+            timezone_offset=-120,
+        )
+
+        response = self.client.get(self.url, {'limit': 2, 'offset': 1})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data,
+            [
+                {
+                    'id': 2,
+                    'date_time': '2023-01-02T14:00:00',
+                    'desc': 'Test transaction 2',
+                    'timezone_offset': -120,
+                    'user': 1,
+                },
+                {
+                    'id': 1,
+                    'date_time': '2023-01-01T14:00:00',
+                    'desc': 'Test transaction 1',
+                    'timezone_offset': -120,
+                    'user': 1,
+                },
+            ],
+        )
+
     def test_edit_transaction_with_existing_images(self):
         """Test editing transaction with existing images"""
         self.client.force_authenticate(user=self.user1)
