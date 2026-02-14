@@ -271,3 +271,35 @@ class TestAccountView(TestCase):
         response = self.client.get(self.url)
         account_names = [account['name'] for account in response.data]
         self.assertNotIn('User2 New Account', account_names)
+
+    def test_account_limit_offset(self):
+        """Test that checks if limit and offset are correct"""
+        self.client.force_authenticate(user=self.user1)
+
+        response = self.client.post(
+            self.url,
+            {
+                'action': 'create',
+                'Name': 'Test 3',
+                'Description': 'New Description',
+            },
+        )
+        response = self.client.post(
+            self.url,
+            {
+                'action': 'create',
+                'Name': 'Test 4',
+                'Description': 'New Description',
+            },
+        )
+
+        response = self.client.get(self.url, {'limit': 2, 'offset': 1})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(
+            response.data,
+            [
+                {'id': 2, 'name': 'Test 2', 'desc': 'Test Description 2', 'user': 1},
+                {'id': 4, 'name': 'Test 3', 'desc': 'New Description', 'user': 1},
+            ],
+        )

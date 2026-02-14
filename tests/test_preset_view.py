@@ -548,6 +548,46 @@ class TestPresetView(TestCase):
         preset_names = [preset['name'] for preset in response.data]
         self.assertEqual(preset_names, sorted(preset_names))
 
+    def test_preset_limit_offset(self):
+        """Test that presets are ordered by name and have limit, offset"""
+        self.client.force_authenticate(user=self.user1)
+
+        # Create presets with names that would sort differently
+        Preset.objects.create(
+            user=self.user1,
+            name='Alpha Preset',
+            desc='Should be first',
+            transaction_desc='Alpha Transaction',
+        )
+        Preset.objects.create(
+            user=self.user1,
+            name='Zebra Preset',
+            desc='Should be last',
+            transaction_desc='Zebra Transaction',
+        )
+
+        response = self.client.get(self.url, {'limit': 2, 'offset': 1})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data,
+            [
+                {
+                    'id': 1,
+                    'name': 'Test Preset 1',
+                    'desc': 'Test Preset Description 1',
+                    'transaction_desc': 'Test Transaction Description 1',
+                    'user': 1,
+                },
+                {
+                    'id': 2,
+                    'name': 'Test Preset 2',
+                    'desc': 'Test Preset Description 2',
+                    'transaction_desc': 'Test Transaction Description 2',
+                    'user': 1,
+                },
+            ],
+        )
+
     def test_preset_with_empty_description(self):
         """Test creating a preset with empty description"""
         self.client.force_authenticate(user=self.user1)
