@@ -367,7 +367,7 @@ export const TransactionsList = observer(() => {
                 if (
                   scrollTop + clientHeight >= scrollHeight - 5 &&
                   !loadingRef.current &&
-                  state.length > 25
+                  !finished
                 ) {
                   fetchTransactions();
                 }
