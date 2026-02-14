@@ -121,6 +121,19 @@ class TestSubtransactionView(TestCase):
             ],
         )
 
+    def test_get_subtransactions_limit_offset(self):
+        """Test that limit and offset are working correctly"""
+        response = self.client.get(self.url, {'limit': 2, 'offset': 1})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data,
+            [
+                {'id': 4, 'amount': 2500, 'transaction': 3, 'account': 2},
+                {'id': 3, 'amount': 7500, 'transaction': 2, 'account': 1},
+            ],
+        )
+
     def test_filter_by_transaction_id(self):
         """Test filtering subtransactions by transaction ID"""
         response = self.client.get(self.url, {'transaction': self.transaction1_user1.id})
