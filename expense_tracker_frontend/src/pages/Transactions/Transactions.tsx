@@ -73,7 +73,7 @@ export const TransactionsList = observer(() => {
     navigate("/login");
   }
 
-  const limit = 30;
+  const limit = 100;
   const [offset, setOffset] = useState(0);
   const loadingRef = useRef(false);
   const [finished, setFinished] = useState(false);
