@@ -237,3 +237,11 @@ class TestTransactionTagsView(TestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 0)
+
+    def test_transaction_tags_limit_offset(self):
+        """Test that checks if limit and offset are correct"""
+        self.client.force_authenticate(user=self.user1)
+
+        response = self.client.get(self.url, {'limit': 1, 'offset': 1})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, [{'id': 2, 'transaction': 1, 'tag': 2}])
