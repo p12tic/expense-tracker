@@ -12,6 +12,7 @@ import {TableButton} from "../../components/TableButton";
 import {TimezoneTag} from "../../components/TimezoneTag";
 import {centsToString, formatDate} from "../../components/Tools";
 import {useToken} from "../../utils/AuthContext";
+import {checkIfVirtTableNeedsFetch} from "../../utils/Math";
 import {AuthAxios} from "../../utils/Network";
 
 interface Transaction {
@@ -73,7 +74,8 @@ export const TransactionsList = observer(() => {
     navigate("/login");
   }
 
-  const limit = 30;
+  const limit = 100;
+  const rowHeight = 33;
   const [offset, setOffset] = useState(0);
   const loadingRef = useRef(false);
   const [finished, setFinished] = useState(false);
@@ -352,7 +354,7 @@ export const TransactionsList = observer(() => {
               width={width}
               height={height}
               headerHeight={20}
-              rowHeight={33}
+              rowHeight={rowHeight}
               rowCount={state.length > 0 ? state.length + 1 : 0}
               rowGetter={({index}: {index: number}) => rowRenderer({index})}
               rowStyle={() => ({
@@ -363,11 +365,17 @@ export const TransactionsList = observer(() => {
                   {loadingRef.current ? "loading..." : "No transactions"}
                 </div>
               )}
-              onScroll={({clientHeight, scrollHeight, scrollTop}) => {
+              onScroll={({clientHeight, scrollTop}) => {
                 if (
-                  scrollTop + clientHeight >= scrollHeight - 5 &&
                   !loadingRef.current &&
-                  state.length > 25
+                  !finished &&
+                  checkIfVirtTableNeedsFetch(
+                    scrollTop,
+                    clientHeight,
+                    rowHeight,
+                    state.length,
+                    limit / 2,
+                  )
                 ) {
                   fetchTransactions();
                 }
