@@ -794,3 +794,61 @@ def next_batch_item_id(request, batch_id, current_id):
         return Response({'id': next_item.id}, status=status.HTTP_200_OK)
     else:
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class TransactionsAndRelatedDataView(generics.GenericAPIView):
+    serializer_class = serializers.TokenSerializer
+
+    def get(self, request):
+        transactions = (
+            models.Transaction.objects.all().order_by('-date_time').filter(user=request.user)
+        )
+        tag_id = request.query_params.get("tagid")
+        if tag_id is not None:
+            transactions = transactions.filter(transaction_tags__tag_id=int(tag_id))
+        account_id = request.query_params.get("accountid")
+        if account_id is not None:
+            transactions = transactions.filter(subtransactions__account=int(account_id))
+
+        limit = request.query_params.get("limit")
+        offset = request.query_params.get("offset")
+        if limit is not None and offset is not None:
+            limit = int(limit)
+            offset = int(offset)
+            transactions = transactions[offset : offset + limit]
+        elif limit is not None or offset is not None:
+            raise ValueError("Either both limit and offset must be provided or neither.")
+
+        subtransactions = (
+            models.Subtransaction.objects
+            .filter(transaction__in=transactions)
+            .order_by('-transaction__date_time', '-id')
+            .distinct()
+        )
+
+        transaction_tags = models.TransactionTag.objects.filter(
+            transaction__in=transactions
+        ).distinct()
+        if tag_id is not None:
+            transaction_tags = transaction_tags.filter(tag_id=int(tag_id))
+
+        tags = models.Tag.objects.filter(transaction_tags__transaction__in=transactions).distinct()
+
+        accounts = models.Account.objects.filter(subtransactions__in=subtransactions).distinct()
+
+        sync_events = models.AccountSyncEvent.objects.filter(
+            subtransaction__in=subtransactions
+        ).distinct()
+
+        return Response({
+            "transactions": serializers.TransactionSerializer(transactions, many=True).data,
+            "transactionTags": serializers.TransactionTagsSerializer(
+                transaction_tags, many=True
+            ).data,
+            "tags": serializers.TagSerializer(tags, many=True).data,
+            "subtransactions": serializers.SubtransactionSerializer(
+                subtransactions, many=True
+            ).data,
+            "accounts": serializers.AccountSerializer(accounts, many=True).data,
+            "syncEvent": serializers.AccountSyncEventSerializer(sync_events, many=True).data,
+        })
