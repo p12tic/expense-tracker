@@ -1,6 +1,5 @@
 import "react-virtualized/styles.css";
 
-import dayjs, {Dayjs} from "dayjs";
 import {observer} from "mobx-react-lite";
 import React, {useCallback, useEffect, useRef, useState} from "react";
 import {Button, Col, Container, Row} from "react-bootstrap";
@@ -12,7 +11,9 @@ import {StaticField} from "../../components/StaticField";
 import {TableButton} from "../../components/TableButton";
 import {TimezoneTag} from "../../components/TimezoneTag";
 import {centsToString, formatDate} from "../../components/Tools";
+import {getStructuredTransactionData} from "../../utils/APICalls";
 import {useToken} from "../../utils/AuthContext";
+import {Transaction, TransactionTag} from "../../utils/Interfaces";
 import {AuthAxios} from "../../utils/Network";
 
 interface TagElement {
@@ -20,35 +21,12 @@ interface TagElement {
   name: string;
   desc: string;
   user: number;
-  transTag: TransTag[];
+  transTag: TransactionTagWithTransactionElement[];
 }
-interface TransTag {
-  id: number;
-  transaction: number;
-  tag: number;
+interface TransactionTagWithTransactionElement extends TransactionTag {
   transactionElement: Transaction;
 }
-interface Transaction {
-  id: number;
-  desc: string;
-  date_time: Dayjs;
-  timezone_offset: number;
-  user: string;
-  subs: Subtransaction[];
-}
-interface Subtransaction {
-  id: number;
-  amount: number;
-  transaction: string;
-  account: string;
-  accountElement: Account;
-}
-interface Account {
-  id: number;
-  name: string;
-  desc: string;
-  user: string;
-}
+
 export const Tag = observer(() => {
   const auth = useToken();
   const [state, setState] = useState<TagElement>({
@@ -79,15 +57,28 @@ export const Tag = observer(() => {
       const tag: TagElement = (
         await AuthAxios.get(`tags?id=${id}`, auth.getToken())
       ).data[0];
-      const transTagData: TransTag[] = (
-        await AuthAxios.get(`transaction_tags?tag=${id}`, auth.getToken(), {
-          params: {
-            limit: limit,
-            offset: offset,
-          },
-        })
-      ).data;
-      if (transTagData.length <= 0) {
+      const structuredTransactionData = await getStructuredTransactionData(
+        auth,
+        limit,
+        offset,
+        tag.id,
+        undefined,
+      );
+
+      const transactionTags: TransactionTagWithTransactionElement[] = [];
+
+      structuredTransactionData.forEach((curTransaction) => {
+        curTransaction.transactionTag.forEach((curTransactionTag) => {
+          if (curTransactionTag.tag === tag.id) {
+            transactionTags.push({
+              ...curTransactionTag,
+              transactionElement: curTransaction,
+            });
+          }
+        });
+      });
+
+      if (transactionTags.length <= 0) {
         setState((prev) => ({
           id: tag.id,
           name: tag.name,
@@ -100,41 +91,10 @@ export const Tag = observer(() => {
         return;
       }
 
-      const transTagsWithTrans = await Promise.all(
-        transTagData.map(async (transTag: TransTag) => {
-          const transRes = await AuthAxios.get(
-            `transactions?id=${transTag.transaction}`,
-            auth.getToken(),
-          );
-          const transData: Transaction = transRes.data[0];
-          transData.date_time = dayjs(transData.date_time);
-          const subsRes = await AuthAxios.get(
-            `subtransactions?transaction=${transData.id}`,
-            auth.getToken(),
-          );
-          const subsData: Subtransaction[] = subsRes.data;
-          transData.subs = await Promise.all(
-            subsData.map(async (sub) => {
-              const accountsRes = await AuthAxios.get(
-                `accounts?id=${sub.account}`,
-                auth.getToken(),
-              );
-              sub.accountElement = accountsRes.data[0];
-              return sub;
-            }),
-          );
-          transTag.transactionElement = transData;
-          return transTag;
-        }),
-      );
-
       setState((prev) => {
-        const merged = [
-          ...prev.transTag.slice(0, offset),
-          ...transTagsWithTrans,
-        ];
+        const merged = [...prev.transTag.slice(0, offset), ...transactionTags];
 
-        setOffset(merged.length);
+        setOffset(offset + structuredTransactionData.length);
         return {
           id: tag.id,
           name: tag.name,
@@ -192,8 +152,8 @@ export const Tag = observer(() => {
         </>
       ),
 
-      Actions: TransTag.transactionElement.subs ? (
-        TransTag.transactionElement.subs.map((sub, id) => (
+      Actions: TransTag.transactionElement.subtransaction ? (
+        TransTag.transactionElement.subtransaction.map((sub, id) => (
           <a key={id} href={`/accounts/${sub.accountElement.id}`}>
             <Button
               variant="secondary"
@@ -255,7 +215,7 @@ export const Tag = observer(() => {
                   if (
                     scrollTop + clientHeight >= scrollHeight - 5 &&
                     !loadingRef.current &&
-                    state.transTag.length > 25
+                    !finished
                   ) {
                     fetchTag();
                   }
