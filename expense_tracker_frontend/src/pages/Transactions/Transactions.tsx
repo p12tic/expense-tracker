@@ -1,6 +1,6 @@
 import "react-virtualized/styles.css";
 
-import dayjs, {Dayjs} from "dayjs";
+import {Dayjs} from "dayjs";
 import {observer} from "mobx-react-lite";
 import React, {useCallback, useEffect, useRef, useState} from "react";
 import {Alert, Button, Col, Container, Row, Table} from "react-bootstrap";
@@ -11,6 +11,7 @@ import {NavbarComponent} from "../../components/Navbar";
 import {TableButton} from "../../components/TableButton";
 import {TimezoneTag} from "../../components/TimezoneTag";
 import {centsToString, formatDate} from "../../components/Tools";
+import {getStructuredTransactionData} from "../../utils/APICalls";
 import {useToken} from "../../utils/AuthContext";
 import {checkIfVirtTableNeedsFetch} from "../../utils/Math";
 import {AuthAxios} from "../../utils/Network";
@@ -22,7 +23,7 @@ interface Transaction {
   user: string;
   transactionTag: TransactionTag[];
   subtransaction: Subtransaction[];
-  syncEvent: SyncEvent;
+  syncEvent?: SyncEvent;
   timezone_offset: number;
 }
 interface TransactionTag {
@@ -87,82 +88,23 @@ export const TransactionsList = observer(() => {
     loadingRef.current = true;
 
     try {
-      const data: Transaction[] = (
-        await AuthAxios.get("transactions", auth.getToken(), {
-          params: {
-            limit: limit,
-            offset: offset,
-          },
-        })
-      ).data;
+      const structuredTransactionData = await getStructuredTransactionData(
+        auth,
+        limit,
+        offset,
+      );
 
-      if (data.length <= 0) {
+      if (structuredTransactionData.length <= 0) {
         setFinished(true);
         loadingRef.current = false;
         return;
       }
 
-      const transactionWithTags = await Promise.all(
-        data.map(async (transaction) => {
-          transaction.date_time = dayjs(transaction.date_time);
-          const transactionTagRes = await AuthAxios.get(
-            `transaction_tags?transaction=${transaction.id}`,
-            auth.getToken(),
-          );
-          transaction.transactionTag = transactionTagRes.data;
-          const tagOfTransaction = await Promise.all(
-            transaction.transactionTag.map(async (transTag) => {
-              const tagRes = await AuthAxios.get(
-                `tags?id=${transTag.tag}`,
-                auth.getToken(),
-              );
-              transTag.tagElement = tagRes.data[0];
-              return transTag;
-            }),
-          );
-          const subtransactionRes = await AuthAxios.get(
-            `subtransactions?transaction=${transaction.id}`,
-            auth.getToken(),
-          );
-
-          transaction.subtransaction = subtransactionRes.data;
-          await Promise.all(
-            transaction.subtransaction.map(async (sub) => {
-              const subAccRes = await AuthAxios.get(
-                `accounts?id=${sub.account}`,
-                auth.getToken(),
-              );
-              sub.accountElement = subAccRes.data[0];
-            }),
-          );
-          transaction.transactionTag = tagOfTransaction;
-          if (!transaction.desc) {
-            const syncEventRes = await AuthAxios.get(
-              `account_sync_event?subtransaction=${subtransactionRes.data[0].id}`,
-              auth.getToken(),
-            );
-            const syncEvents = syncEventRes.data[0];
-
-            if (!syncEvents) {
-              console.error(
-                `syncEvents was not found, but it should be there, transaction id=${transaction.id}`,
-              );
-              return transaction;
-            }
-
-            const syncEventAccRes = await AuthAxios.get(
-              `accounts?id=${syncEvents.account}`,
-              auth.getToken(),
-            );
-            syncEvents.accountElement = syncEventAccRes.data[0];
-            transaction.syncEvent = syncEvents;
-          }
-          return transaction;
-        }),
-      );
-
       setState((prev) => {
-        const mergedSubs = [...prev.slice(0, offset), ...transactionWithTags];
+        const mergedSubs = [
+          ...prev.slice(0, offset),
+          ...structuredTransactionData,
+        ];
 
         setOffset(mergedSubs.length);
         return mergedSubs;
