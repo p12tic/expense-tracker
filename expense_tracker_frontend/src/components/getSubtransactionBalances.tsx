@@ -16,7 +16,7 @@ interface Transaction {
   desc: string;
   date_time: Dayjs;
   user: string;
-  syncEvent: SyncEvent;
+  syncEvent?: SyncEvent;
 }
 interface SyncEvent {
   id: number;
