@@ -40,5 +40,6 @@ urlpatterns = [
     path(
         'api/transaction_batch/<int:batch_id>/<int:current_id>/next', api_views.next_batch_item_id
     ),
+    path('api/transactions_and_relevent_data', api_views.TransactionsAndRelatedDataView.as_view()),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

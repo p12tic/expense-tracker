@@ -1,6 +1,5 @@
 import "react-virtualized/styles.css";
 
-import dayjs, {Dayjs} from "dayjs";
 import {observer} from "mobx-react-lite";
 import React, {useCallback, useEffect, useRef, useState} from "react";
 import {Col, Container, Dropdown, Row} from "react-bootstrap";
@@ -16,7 +15,9 @@ import {StaticField} from "../../components/StaticField";
 import {TableButton} from "../../components/TableButton";
 import {TimezoneTag} from "../../components/TimezoneTag";
 import {centsToString, formatDate} from "../../components/Tools";
+import {getStructuredTransactionData} from "../../utils/APICalls";
 import {useToken} from "../../utils/AuthContext";
+import {Subtransaction, Transaction} from "../../utils/Interfaces";
 import {AuthAxios} from "../../utils/Network";
 
 interface AccountElement {
@@ -24,31 +25,15 @@ interface AccountElement {
   name: string;
   desc: string;
   user: number;
-  subtransactions: Subtransaction[];
+  subtransactions: SubtransactionWithTransactionElement[];
   balances: number[];
   balance: number;
 }
-interface Subtransaction {
-  id: number;
-  amount: number;
-  transaction: string;
-  account: string;
+
+interface SubtransactionWithTransactionElement extends Subtransaction {
   transactionElement: Transaction;
 }
-interface Transaction {
-  id: number;
-  desc: string;
-  date_time: Dayjs;
-  timezone_offset: number;
-  user: string;
-  syncEvent: SyncEvent;
-}
-interface SyncEvent {
-  id: number;
-  balance: number;
-  account: string;
-  subtransaction: string;
-}
+
 export const Account = observer(() => {
   const auth = useToken();
   const [state, setState] = useState<AccountElement>({
@@ -81,15 +66,25 @@ export const Account = observer(() => {
       const account: AccountElement = (
         await AuthAxios.get(`accounts?id=${id}`, auth.getToken())
       ).data[0];
-      const accountSubs: Subtransaction[] = (
-        await AuthAxios.get(`subtransactions?account=${id}`, auth.getToken(), {
-          params: {
-            limit: limit,
-            offset: offset,
-          },
-        })
-      ).data;
-      if (accountSubs.length <= 0) {
+      const structuredTransactionData = await getStructuredTransactionData(
+        auth,
+        limit,
+        offset,
+        undefined,
+        account.id,
+      );
+      const subtransactions: SubtransactionWithTransactionElement[] = [];
+      structuredTransactionData.forEach((curTransaction) => {
+        curTransaction.subtransaction.forEach((curSubtransaction) => {
+          if (Number(curSubtransaction.account) === account.id) {
+            subtransactions.push({
+              ...curSubtransaction,
+              transactionElement: curTransaction,
+            });
+          }
+        });
+      });
+      if (structuredTransactionData.length <= 0) {
         setState((prev) => ({
           id: account.id,
           name: account.name,
@@ -104,32 +99,6 @@ export const Account = observer(() => {
         return;
       }
 
-      const subtransactions = await Promise.all(
-        accountSubs.map(async (sub) => {
-          const transactionRes = await AuthAxios.get(
-            `transactions?id=${sub.transaction}`,
-            auth.getToken(),
-          );
-          const transaction: Transaction = transactionRes.data[0];
-          transaction.date_time = dayjs(transaction.date_time);
-          if (!transaction.desc) {
-            const syncRes = await AuthAxios.get(
-              `account_sync_event?subtransaction=${sub.id}`,
-              auth.getToken(),
-            );
-
-            if (!syncRes) {
-              console.error(
-                `syncRes was not found, but it should be there, transaction id=${transaction.id}`,
-              );
-            } else {
-              transaction.syncEvent = syncRes.data[0];
-            }
-          }
-          sub.transactionElement = transaction;
-          return sub;
-        }),
-      );
       const balance = await getAccountBalance(account.id, auth);
 
       setState((prev) => {
@@ -138,7 +107,7 @@ export const Account = observer(() => {
           ...subtransactions,
         ];
 
-        setOffset(mergedSubs.length);
+        setOffset(offset + structuredTransactionData.length);
         return {
           id: account.id,
           name: account.name,
@@ -290,7 +259,7 @@ export const Account = observer(() => {
                   if (
                     scrollTop + clientHeight >= scrollHeight - 5 &&
                     !loadingRef.current &&
-                    state.subtransactions.length > 25
+                    !finished
                   ) {
                     fetchAccount();
                   }
