@@ -10,6 +10,7 @@ import {NavbarComponent} from "../../components/Navbar";
 import {TableButton} from "../../components/TableButton";
 import {useToken} from "../../utils/AuthContext";
 import {AuthAxios} from "../../utils/Network";
+import {popup} from "../../utils/popupUtils";
 
 interface Presets {
   id: number;
@@ -105,7 +106,8 @@ export const PresetsList = observer(() => {
       setState(data);
       setOffset(data.length);
     } catch (err) {
-      console.error(err);
+      const message = err instanceof Error ? err.message : String(err);
+      popup(message as string, "Server", "danger");
     } finally {
       loadingRef.current = false;
     }

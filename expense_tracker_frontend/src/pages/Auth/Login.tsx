@@ -8,6 +8,7 @@ import {NavbarEmpty} from "../../components/NavbarEmpty";
 import {SubmitButton} from "../../components/SubmitButton";
 import {useToken} from "../../utils/AuthContext";
 import {getApiUrlForCurrentWindow} from "../../utils/Network";
+import {popup} from "../../utils/popupUtils";
 
 export const Login = observer(() => {
   const auth = useToken();
@@ -47,7 +48,8 @@ export const Login = observer(() => {
         navigate("/transactions");
       })
       .catch((err) => {
-        console.error(err);
+        const message = err instanceof Error ? err.message : String(err);
+        popup(message as string, "Server", "danger");
       });
   };
 

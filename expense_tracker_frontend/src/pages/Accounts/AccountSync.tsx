@@ -15,6 +15,7 @@ import {
 } from "../../components/Tools";
 import {useToken} from "../../utils/AuthContext";
 import {AuthAxios} from "../../utils/Network";
+import {popup} from "../../utils/popupUtils";
 
 interface Subtransaction {
   id: number;
@@ -78,7 +79,8 @@ export const AccountSync = observer(() => {
         setLastBalance(sum);
         return data;
       } catch (err) {
-        console.error(err);
+        const message = err instanceof Error ? err.message : String(err);
+        popup(message as string, "Server", "danger");
       }
     };
     fetchAccounts();
