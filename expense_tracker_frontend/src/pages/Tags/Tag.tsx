@@ -15,6 +15,7 @@ import {getStructuredTransactionData} from "../../utils/APICalls";
 import {useToken} from "../../utils/AuthContext";
 import {Transaction, TransactionTag} from "../../utils/Interfaces";
 import {AuthAxios} from "../../utils/Network";
+import {popup} from "../../utils/popupUtils";
 
 interface TagElement {
   id: number;
@@ -104,7 +105,8 @@ export const Tag = observer(() => {
         };
       });
     } catch (err) {
-      console.error(err);
+      const message = err instanceof Error ? err.message : String(err);
+      popup(message as string, "Server", "danger");
     } finally {
       loadingRef.current = false;
     }

@@ -7,6 +7,7 @@ import {NavbarComponent} from "../../components/Navbar";
 import {SubmitButton} from "../../components/SubmitButton";
 import {useToken} from "../../utils/AuthContext";
 import {AuthAxios} from "../../utils/Network";
+import {popup} from "../../utils/popupUtils";
 
 interface Account {
   id: number;
@@ -31,7 +32,10 @@ export const AccountEdit = observer(() => {
         setName(data.name);
         setDesc(data.desc);
       })
-      .catch((err) => console.error(err));
+      .catch((err) => {
+        const message = err instanceof Error ? err.message : String(err);
+        popup(message as string, "Server", "danger");
+      });
   }, []);
   if (id === undefined) {
     navigate("/accounts");
@@ -47,9 +51,10 @@ export const AccountEdit = observer(() => {
     e.preventDefault();
     bodyParameters.Name = name;
     bodyParameters.Description = desc;
-    AuthAxios.post("accounts", auth.getToken(), bodyParameters).catch((err) =>
-      console.error(err),
-    );
+    AuthAxios.post("accounts", auth.getToken(), bodyParameters).catch((err) => {
+      const message = err instanceof Error ? err.message : String(err);
+      popup(message as string, "Server", "danger");
+    });
     navigate(`/accounts/${id}`);
   };
   return (

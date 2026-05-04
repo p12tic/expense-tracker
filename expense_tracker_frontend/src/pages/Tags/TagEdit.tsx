@@ -7,6 +7,7 @@ import {NavbarComponent} from "../../components/Navbar";
 import {SubmitButton} from "../../components/SubmitButton";
 import {useToken} from "../../utils/AuthContext";
 import {AuthAxios} from "../../utils/Network";
+import {popup} from "../../utils/popupUtils";
 
 interface Tag {
   id: number;
@@ -31,7 +32,10 @@ export const TagEdit = observer(() => {
         setName(data.name);
         setDesc(data.desc);
       })
-      .catch((err) => console.error(err));
+      .catch((err) => {
+        const message = err instanceof Error ? err.message : String(err);
+        popup(message as string, "Server", "danger");
+      });
   }, []);
   if (id === undefined) {
     navigate("/tags");
@@ -49,9 +53,10 @@ export const TagEdit = observer(() => {
     e.preventDefault();
     bodyParameters.Name = name;
     bodyParameters.Description = desc;
-    AuthAxios.post("tags", auth.getToken(), bodyParameters).catch((err) =>
-      console.error(err),
-    );
+    AuthAxios.post("tags", auth.getToken(), bodyParameters).catch((err) => {
+      const message = err instanceof Error ? err.message : String(err);
+      popup(message as string, "Server", "danger");
+    });
     navigate(`/tags/${id}`);
   };
   return (

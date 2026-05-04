@@ -7,6 +7,7 @@ import {NavbarComponent} from "../../components/Navbar";
 import {SubmitButton} from "../../components/SubmitButton";
 import {useToken} from "../../utils/AuthContext";
 import {AuthAxios} from "../../utils/Network";
+import {popup} from "../../utils/popupUtils";
 
 export const AccountCreate = observer(() => {
   const auth = useToken();
@@ -27,7 +28,10 @@ export const AccountCreate = observer(() => {
     bodyParameters.Name = name;
     bodyParameters.Description = desc;
     await AuthAxios.post("accounts", auth.getToken(), bodyParameters).catch(
-      (err) => console.error(err),
+      (err) => {
+        const message = err instanceof Error ? err.message : String(err);
+        popup(message as string, "Server", "danger");
+      },
     );
     navigate("/accounts");
   };

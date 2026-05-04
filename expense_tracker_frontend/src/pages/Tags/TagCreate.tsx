@@ -7,6 +7,7 @@ import {NavbarComponent} from "../../components/Navbar";
 import {SubmitButton} from "../../components/SubmitButton";
 import {useToken} from "../../utils/AuthContext";
 import {AuthAxios} from "../../utils/Network";
+import {popup} from "../../utils/popupUtils";
 
 export const TagCreate = observer(() => {
   const auth = useToken();
@@ -26,8 +27,11 @@ export const TagCreate = observer(() => {
     e.preventDefault();
     bodyParameters.Name = name;
     bodyParameters.Description = desc;
-    await AuthAxios.post("tags", auth.getToken(), bodyParameters).catch((err) =>
-      console.error(err),
+    await AuthAxios.post("tags", auth.getToken(), bodyParameters).catch(
+      (err) => {
+        const message = err instanceof Error ? err.message : String(err);
+        popup(message as string, "Server", "danger");
+      },
     );
     navigate("/tags");
   };

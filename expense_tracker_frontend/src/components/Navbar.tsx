@@ -4,13 +4,18 @@ import {Container, Nav, Navbar, NavDropdown} from "react-bootstrap";
 
 import {useToken} from "../utils/AuthContext";
 import {AuthAxios} from "../utils/Network";
+import {popup} from "../utils/popupUtils";
 
 export const NavbarComponent = observer(() => {
   const auth = useToken();
   const [username, setUsername] = useState("");
-  AuthAxios.get("token", auth.getToken()).then((res) => {
-    setUsername(res.data[0].username);
-  });
+  AuthAxios.get("token", auth.getToken())
+    .then((res) => {
+      setUsername(res.data[0].username);
+    })
+    .catch((err) => {
+      popup(err, "Server", "danger");
+    });
   return (
     <>
       <Navbar expand="lg" className="bg-body-tertiary">
