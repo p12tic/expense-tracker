@@ -66,6 +66,17 @@ interface Batch {
   nextID: number;
 }
 
+interface Expense {
+  id: number;
+  desc: string;
+  date_time: Dayjs;
+  timezone_offset: number;
+  amount: number;
+  master_username: string;
+  slave_account: number;
+  slave_account_name: string;
+}
+
 export const TransactionsList = observer(() => {
   const auth = useToken();
   const [state, setState] = useState<Transaction[]>([]);
@@ -119,6 +130,15 @@ export const TransactionsList = observer(() => {
   }, [auth, offset]);
 
   useEffect(() => {
+    const popupNewExpenses = async () => {
+      const data: Expense[] = (
+        await AuthAxios.get("expenses_pending", auth.getToken())
+      ).data.map((item: Expense) => item);
+
+      if (data.length > 0) {
+        popup(`There is new ${data.length} expenses`, "", "info");
+      }
+    };
     const fetchBatches = async () => {
       const res = await AuthAxios.get("transaction_batch", auth.getToken());
       const data: Batch[] = res.data;
@@ -140,6 +160,7 @@ export const TransactionsList = observer(() => {
         ),
       );
     };
+    popupNewExpenses();
     fetchTransactions();
     fetchBatches();
   }, []);
