@@ -4,3 +4,5 @@
 .venv
 /staticfiles
 *.jpg
+e2e/node_modules
+e2e/test-results

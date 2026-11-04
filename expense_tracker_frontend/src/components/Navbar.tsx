@@ -28,6 +28,7 @@ export const NavbarComponent = observer(() => {
                 Transactions
               </Nav.Link>
               <Nav.Link href="/accounts">Accounts</Nav.Link>
+              <Nav.Link href="/expenses">Expenses</Nav.Link>
               <Nav.Link href="/graphs">Graphs</Nav.Link>
               <NavDropdown title="Misc">
                 <NavDropdown.Item href="/chained_accounts">

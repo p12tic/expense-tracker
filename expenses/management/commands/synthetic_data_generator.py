@@ -12,6 +12,13 @@ from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
 from expenses.models import Account
+from expenses.models import ChainedAccount
+from expenses.models import ChainedAccountRequestPendingNew
+from expenses.models import ChainedSubtransaction
+from expenses.models import ChainedSubtransactionPendingNew
+from expenses.models import Preset
+from expenses.models import PresetSubtransaction
+from expenses.models import PresetTransactionTag
 from expenses.models import Subtransaction
 from expenses.models import Tag
 from expenses.models import Transaction
@@ -40,6 +47,22 @@ class Command(BaseCommand):
         )
         parser.add_argument("-a", "--accounts", type=int, default=10, help="Number of accounts")
         parser.add_argument("-t", "--tags", type=int, default=5, help="Number of tags")
+        parser.add_argument("-r", "--presets", type=int, default=0, help="Number of presets")
+        parser.add_argument(
+            "-c",
+            "--chain-with",
+            type=str,
+            help="Username of a partner user to chain an account with (created if missing, "
+            "using the same password)",
+        )
+        parser.add_argument(
+            "-e",
+            "--expenses",
+            type=int,
+            default=6,
+            help="Number of chained expenses shared with --chain-with user "
+            "(half stay pending, half are already accepted)",
+        )
         parser.add_argument("-l", "--log", action="store_true")
 
     def handle(self, *args, **options) -> None:
@@ -60,15 +83,28 @@ class Command(BaseCommand):
             password=options["password"],
         )
 
+        account_list = self.generate_accounts(amount_of_accounts=options["accounts"], user=user)
+        tag_list = self.generate_tags(amount_of_tags=options["tags"], user=user)
+
         self.generate_data(
             user=user,
             amount_of_data_points=options["data_points"],
-            account_list=self.generate_accounts(
-                amount_of_accounts=options["accounts"],
-                user=user,
-            ),
-            tag_list=self.generate_tags(amount_of_tags=options["tags"], user=user),
+            account_list=account_list,
+            tag_list=tag_list,
         )
+
+        self.generate_presets(
+            amount_of_presets=options["presets"],
+            user=user,
+            account_list=account_list,
+            tag_list=tag_list,
+        )
+
+        if options["chain_with"]:
+            partner = self.get_partner(username=options["chain_with"])
+            self.generate_chained(
+                user=user, partner=partner, amount_of_expenses=options["expenses"]
+            )
 
         self.stdout.write(
             self.style.SUCCESS(
@@ -179,3 +215,125 @@ class Command(BaseCommand):
                 )
             elif not self.verbose and i % 100 == 0:
                 self.stdout.write(f"Generated {i}/{amount_of_data_points}")
+
+    def generate_presets(
+        self,
+        amount_of_presets: int,
+        user: User,
+        account_list: Sequence[Account],
+        tag_list: Sequence[Tag],
+    ) -> None:
+        for i in range(amount_of_presets):
+            preset = Preset.objects.create(
+                user=user,
+                name=f"Preset_{random_string(self.rng_obj, 8)}",
+                desc="Test description of this preset",
+                transaction_desc=f"Preset transaction {random_string(self.rng_obj, 5)}",
+            )
+
+            accounts = self.rng_obj.sample(list(account_list), min(2, len(account_list)))
+            for account in accounts:
+                PresetSubtransaction.objects.create(
+                    preset=preset, account=account, fraction=1 / len(accounts)
+                )
+
+            if tag_list:
+                PresetTransactionTag.objects.create(
+                    preset=preset, tag=self.rng_obj.choice(tag_list)
+                )
+
+            if self.verbose:
+                self.stdout.write(
+                    self.style.SUCCESS(f"New preset has been created with name: {preset.name}")
+                )
+
+    def get_partner(self, username: str) -> User:
+        partner = User.objects.filter(username=username).first()
+        if partner is None:
+            partner = User.objects.create_user(username=username, password=self.raw_password)
+
+            if self.verbose:
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f"New partner user has been created:\nUsername: {username}\n"
+                        f"Password: {self.raw_password}\n"
+                    )
+                )
+
+        return partner
+
+    def generate_chained(self, user: User, partner: User, amount_of_expenses: int) -> None:
+        """Chains a new account of `user` (master) to a new account of `partner` (slave),
+        creates expenses in the master account (pending for the partner, via the
+        Subtransaction post_save signal) and accepts half of them. Also leaves an
+        unanswered chained account request for the partner.
+        """
+        master_account = Account.objects.create(
+            user=user,
+            name=f"Shared_with_{partner.username}",
+            desc=f"Expenses shared with {partner.username}",
+        )
+        slave_account = Account.objects.create(
+            user=partner,
+            name=f"Shared_from_{user.username}",
+            desc=f"Expenses shared by {user.username}",
+        )
+        chained_account = ChainedAccount.objects.create(
+            master_account=master_account, slave_account=slave_account
+        )
+
+        ChainedAccountRequestPendingNew.objects.create(
+            master=user,
+            slave=partner,
+            master_account=Account.objects.create(
+                user=user,
+                name=f"Requested_with_{partner.username}",
+                desc=f"Requested chain with {partner.username}",
+            ),
+            desc=f"Chain request from {user.username}",
+        )
+
+        for i in range(amount_of_expenses):
+            date_time = datetime.datetime(
+                2026,
+                self.rng_obj.randint(1, 12),
+                self.rng_obj.randint(1, 28),
+                self.rng_obj.randint(0, 12),
+                0,
+                0,
+                tzinfo=UTC,
+            )
+            amount = -self.rng_obj.randint(100, 10000)
+            transaction = Transaction.objects.create(
+                user=user,
+                desc=f"Shared expense {random_string(self.rng_obj, 5)}",
+                date_time=date_time,
+            )
+            master_subtransaction = Subtransaction.objects.create(
+                account=master_account, transaction=transaction, amount=amount
+            )
+
+            # Every second expense is accepted by the partner, the rest stay pending
+            if i % 2 == 1:
+                ChainedSubtransactionPendingNew.objects.filter(
+                    master_subtransaction=master_subtransaction,
+                    chained_account=chained_account,
+                ).delete()
+                slave_transaction = Transaction.objects.create(
+                    user=partner, desc=transaction.desc, date_time=date_time
+                )
+                ChainedSubtransaction.objects.create(
+                    master_subtransaction=master_subtransaction,
+                    slave_subtransaction=Subtransaction.objects.create(
+                        account=slave_account, transaction=slave_transaction, amount=amount
+                    ),
+                )
+
+        if self.verbose:
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Chained {master_account.name} ({user.username}) -> "
+                    f"{slave_account.name} ({partner.username}) with "
+                    f"{amount_of_expenses} expenses"
+                )
+            )

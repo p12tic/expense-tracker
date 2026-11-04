@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.db.models.signals import post_delete
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 # ------------------------------------------------------------------------------
@@ -107,6 +108,8 @@ class ChainedAccountRequestPendingNew(models.Model):
         settings.AUTH_USER_MODEL, related_name='slave', on_delete=models.CASCADE
     )
 
+    master_account = models.ForeignKey(Account, on_delete=models.CASCADE, null=True, blank=True)
+
     desc = models.CharField(max_length=256, verbose_name="description", blank=True)
 
     relation = models.IntegerField(default=0)
@@ -201,8 +204,6 @@ class PresetSubtransaction(models.Model):
     fraction = models.FloatField(default=1)
 
 
-# ------------------------------------------------------------------------------
-# Account sync
 
 
 class AccountBalanceCache(models.Model):
@@ -267,3 +268,17 @@ class TransactionCreateBatchRemainingTransactions(models.Model):
 def delete_transaction_image_file(sender, instance, **kwargs):
     if instance.image:
         instance.image.delete(save=False)
+
+
+@receiver(post_save, sender=Subtransaction)
+def create_chained_subtransaction_requests(sender, instance, created, **kwargs):
+    if not created:
+        return
+    for chained in ChainedAccount.objects.filter(master_account=instance.account).select_related(
+        'slave_account'
+    ):
+        ChainedSubtransactionPendingNew.objects.create(
+            slave_user=chained.slave_account.user,
+            master_subtransaction=instance,
+            chained_account=chained,
+        )

@@ -1,0 +1,19 @@
+{
+  "name": "e2e",
+  "version": "1.0.0",
+  "description": "tests with playwright",
+  "main": "index.js",
+  "scripts": {
+    "test": "./run-e2e.sh",
+    "test:only": "playwright test"
+  },
+  "packageManager": "npm@11.10.1",
+  "keywords": [],
+  "type": "commonjs",
+  "dependencies": {
+    "@playwright/test": "~1.64.0",
+    "qs": "^6.16",
+    "request": "^2.88.2",
+    "typescript": "^7.0.2"
+  }
+}

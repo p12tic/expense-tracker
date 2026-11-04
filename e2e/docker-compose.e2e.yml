@@ -1,0 +1,15 @@
+# Runs the e2e image. The database lives inside the container, so every `up` starts clean.
+name: expense_tracker_e2e
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: e2e/Dockerfile
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8000/"]
+      interval: 2s
+      timeout: 5s
+      retries: 60

@@ -5,6 +5,12 @@ from . import models
 from .db_utils import format_return_iso
 
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username')
+
+
 class AccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Account
@@ -94,3 +100,76 @@ class TransactionCreateBatchRemainingTransactionsSerializer(serializers.ModelSer
     class Meta:
         model = models.TransactionCreateBatchRemainingTransactions
         fields = '__all__'
+
+
+class ChainedAccountSerializer(serializers.ModelSerializer):
+    master_account_name = serializers.CharField(source='master_account.name', read_only=True)
+    slave_account_name = serializers.CharField(source='slave_account.name', read_only=True)
+
+    class Meta:
+        model = models.ChainedAccount
+        fields = '__all__'
+
+
+class ChainedAccountRequestPendingNewSerializer(serializers.ModelSerializer):
+    master_username = serializers.CharField(source='master.username', read_only=True)
+    slave_username = serializers.CharField(source='slave.username', read_only=True)
+
+    class Meta:
+        model = models.ChainedAccountRequestPendingNew
+        fields = '__all__'
+
+
+class ChainedSubtransactionPendingNewSerializer(serializers.ModelSerializer):
+    desc = serializers.CharField(source='master_subtransaction.transaction.desc', read_only=True)
+    date_time = serializers.SerializerMethodField()
+    timezone_offset = serializers.IntegerField(
+        source='master_subtransaction.transaction.timezone_offset', read_only=True
+    )
+    amount = serializers.SerializerMethodField()
+    master_username = serializers.CharField(
+        source='master_subtransaction.account.user.username', read_only=True
+    )
+    slave_account = serializers.IntegerField(
+        source='chained_account.slave_account.id', read_only=True
+    )
+    slave_account_name = serializers.CharField(
+        source='chained_account.slave_account.name', read_only=True
+    )
+
+    class Meta:
+        model = models.ChainedSubtransactionPendingNew
+        fields = '__all__'
+
+    def get_amount(self, obj):
+        return -obj.master_subtransaction.amount
+
+    def get_date_time(self, obj):
+        transaction = obj.master_subtransaction.transaction
+        return f'{format_return_iso(transaction.date_time, transaction.timezone_offset)}'
+
+
+class ChainedSubtransactionSerializer(serializers.ModelSerializer):
+    desc = serializers.CharField(source='slave_subtransaction.transaction.desc', read_only=True)
+    date_time = serializers.SerializerMethodField()
+    timezone_offset = serializers.IntegerField(
+        source='slave_subtransaction.transaction.timezone_offset', read_only=True
+    )
+    amount = serializers.IntegerField(source='slave_subtransaction.amount', read_only=True)
+    master_username = serializers.CharField(
+        source='master_subtransaction.account.user.username', read_only=True
+    )
+    slave_account = serializers.IntegerField(
+        source='slave_subtransaction.account.id', read_only=True
+    )
+    slave_account_name = serializers.CharField(
+        source='slave_subtransaction.account.name', read_only=True
+    )
+
+    class Meta:
+        model = models.ChainedSubtransaction
+        fields = '__all__'
+
+    def get_date_time(self, obj):
+        transaction = obj.slave_subtransaction.transaction
+        return f'{format_return_iso(transaction.date_time, transaction.timezone_offset)}'
